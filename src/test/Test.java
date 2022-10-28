@@ -1,23 +1,23 @@
 package test;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import condition.Condition;
-import condition.ConditionOperatorPair;
-import condition.LogicOperator;
-import condition.Comparator;
+import condition.LogicConditionPair;
+import condition.Logic;
+import condition.Negate;
+import condition.Compare;
 import condition.CompoundCondition;
 import condition.SimpleCondition;
+import universal_randomizer.Group;
 import universal_randomizer.ReflectionObject;
-import universal_randomizer.select.SelectAll;
-import universal_randomizer.select.SelectEach;
+import universal_randomizer.Select;
 
 public class Test {
 	
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException
+	public static void main(String[] args) throws IllegalAccessException, NoSuchFieldException
 	{
 		List<ReflectionObject> testList = new ArrayList<>();
 		testList.add(new ReflectionObject(new SimpleObject("1", 4)));
@@ -31,58 +31,48 @@ public class Test {
 		testList.add(new ReflectionObject(new SimpleObject("9", 4)));			
 
 		// ------------- Simple Condition testing -------------------
-		SimpleCondition intLte4 = new SimpleCondition();
-		intLte4.variable = "intVal";
-		intLte4.negate = true;
-		intLte4.comparator = Comparator.GREATER_THAN;
-		intLte4.val = 4;
+		SimpleCondition intLte4 = new SimpleCondition("intVal", Negate.YES, Compare.GREATER_THAN, 4);
 		executeAndPrintCondition(testList, intLte4);
 
-		SimpleCondition intGt1 = new SimpleCondition();
-		intGt1.variable = "intVal";
-		intGt1.negate = false;
-		intGt1.comparator = Comparator.GREATER_THAN;
-		intGt1.val = 1;
+		SimpleCondition intGt1 = new SimpleCondition("intVal", Compare.GREATER_THAN, 1);
 		executeAndPrintCondition(testList, intGt1);
 
-		SimpleCondition nameIs8 = new SimpleCondition();
-		nameIs8.variable = "name";
-		nameIs8.negate = false;
-		nameIs8.comparator = Comparator.EQUAL;
-		nameIs8.val = "8";
+		SimpleCondition nameIs8 = new SimpleCondition("name", Compare.EQUAL, "8");
 		executeAndPrintCondition(testList, nameIs8);
 
 		
-		SelectAll sa1 = new SelectAll(intLte4);
-		sa1.nextAction = Test::printSimpleObjectList;
-		sa1.perform(testList);
+		Select select1 = new Select(intLte4, Test::printSimpleObjectList);
+		select1.perform(testList.stream());
 		
-		SelectEach se1 = new SelectEach(intLte4);
-		se1.nextAction = Test::printSimpleObjectList;
-		se1.perform(testList);
+		Select select2 = new Select(intGt1, select1::perform);
+		select2.perform(testList.stream());
+
+		// ------------------- Group testing --------------------------
+		Select sg1 = new Select(intLte4, 
+						new Select(intGt1, 
+								new Group("intVal", Test::printSimpleObjectList)));
+		sg1.perform(testList.stream());
 		
-		SelectAll sa2 = new SelectAll(intGt1);
-		sa2.nextAction = sa1::perform;
-		sa2.perform(testList);
+		Select sg2 = new Select(intLte4, 
+				new Select(intGt1, 
+						new Group("intVal", 
+								new Group("name", Test::printSimpleObjectList))));
+		sg2.perform(testList.stream());
 
 		// ------------- Compound Condition testing -------------------
-		List<ConditionOperatorPair> cc1Conds = new LinkedList<>();
-		cc1Conds.add(new ConditionOperatorPair(LogicOperator.START, nameIs8));
-		cc1Conds.add(new ConditionOperatorPair(LogicOperator.OR, intLte4));
-		CompoundCondition cc1 = new CompoundCondition(cc1Conds);
+		CompoundCondition cc1 = new CompoundCondition(
+				nameIs8,
+				new LogicConditionPair(Logic.OR, intLte4));
 
-		SelectAll saCc1 = new SelectAll(cc1);
-		saCc1.nextAction = Test::printSimpleObjectList;
-		saCc1.perform(testList);
+		Select saCc1 = new Select(cc1, Test::printSimpleObjectList);
+		saCc1.perform(testList.stream());
 
-		List<ConditionOperatorPair> cc2Conds = new LinkedList<>();
-		cc2Conds.add(new ConditionOperatorPair(LogicOperator.START, cc1));
-		cc2Conds.add(new ConditionOperatorPair(LogicOperator.AND, intGt1));
-		CompoundCondition cc2 = new CompoundCondition(cc2Conds);
+		CompoundCondition cc2 = new CompoundCondition(
+				cc1,
+				new LogicConditionPair(Logic.AND, Negate.YES, new SimpleCondition("intVal", Compare.GREATER_THAN, 1)));
 
-		SelectAll saCc2 = new SelectAll(cc2);
-		saCc2.nextAction = Test::printSimpleObjectList;
-		saCc2.perform(testList);
+		Select saCc2 = new Select(cc2, Test::printSimpleObjectList);
+		saCc2.perform(testList.stream());
 	}
 	
 	static void executeAndPrintCondition(List<ReflectionObject> list, Condition cond)
@@ -95,14 +85,13 @@ public class Test {
 		}
 	}
 	
-	static boolean printSimpleObjectList(Collection<ReflectionObject> list)
+	static boolean printSimpleObjectList(Stream<ReflectionObject> stream)
 	{
 		System.out.println("printSimpleObjectList:");
-		for (ReflectionObject obj : list)
-		{
+		stream.forEach(obj -> {
 			SimpleObject so = (SimpleObject) obj.getObject();
 			System.out.println(so.name + "," + so.intVal);
-		}
+		});
 		return true;
 	}
 }
