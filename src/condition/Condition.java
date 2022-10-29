@@ -3,22 +3,19 @@ package condition;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import universal_randomizer.ReflectionObject;
-
 public abstract class Condition 
 {
 	public abstract Condition copy();
-	public abstract boolean evaluate(ReflectionObject obj);
+	public abstract boolean evaluate(Object obj);
 	
 	protected <T extends Object> boolean compareTo(T wrapped, Negate negate, Compare comparator, Object val)
 	{
 		boolean result = false;
 		if (wrapped != null)
 		{
-			Class<?> clazz = wrapped.getClass();
 			if (wrapped.getClass().isInstance(val))
 			{
-				result = invokeCompareTo(clazz, wrapped, comparator, val);
+				result = invokeCompareTo(wrapped, comparator, val);
 				if (negate == Negate.YES)
 				{
 					result = !result;
@@ -28,11 +25,12 @@ public abstract class Condition
 		return result;
 	}
 	
-	private <T extends Object> boolean invokeCompareTo(Class<?> clazz, T wrapped, Compare comparator, Object val)
+	private <T extends Object> boolean invokeCompareTo(T wrapped, Compare comparator, Object val)
 	{
+		// TODO: Use comapator/comparable interface instead?
 		try 
 		{
-			Method compareTo = clazz.getMethod("compareTo", clazz);
+			Method compareTo = wrapped.getClass().getMethod("compareTo", wrapped.getClass());
 			Integer compareResult = (Integer) compareTo.invoke(wrapped, val);
 			if (compareResult != null)
 			{

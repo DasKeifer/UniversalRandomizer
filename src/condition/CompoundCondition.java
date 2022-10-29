@@ -3,8 +3,6 @@ package condition;
 import java.util.LinkedList;
 import java.util.List;
 
-import universal_randomizer.ReflectionObject;
-
 public class CompoundCondition extends Condition
 {
 	Condition baseCond;
@@ -42,7 +40,7 @@ public class CompoundCondition extends Condition
 	}
 	
 	@Override
-	public boolean evaluate(ReflectionObject obj) 
+	public boolean evaluate(Object obj) 
 	{
 		boolean result = baseCond.evaluate(obj);
 		

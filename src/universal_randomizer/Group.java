@@ -5,27 +5,27 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Group extends IntermediateAction
+public class Group<T extends Object> extends IntermediateAction<T>
 {
 	String var;
 	
-	public Group(String groupingVar, StreamAction nextAction)
+	public Group(String groupingVar, StreamAction<T> nextAction)
 	{
 		super(nextAction);
 		var = groupingVar;
 	}
 	
 	@Override
-	public boolean perform(Stream<ReflectionObject> objStream)
+	public boolean perform(Stream<T> objStream)
 	{
-		Map<Object, List<ReflectionObject>> grouped = 
+		Map<Object, List<T>> grouped = 
 				objStream.collect(Collectors.groupingBy(
 					x -> {
-		                return x.getVariableValue(var);
+		                return ReflectionUtils.getVariableValue(x, var);
 		            }));
 		
 		boolean okay = true;
-		for (List<ReflectionObject> group : grouped.values())
+		for (List<T> group : grouped.values())
 		{
 			okay = continueActions(group.stream());
 		}

@@ -2,11 +2,11 @@ package universal_randomizer;
 
 import java.util.stream.Stream;
 
-public abstract class IntermediateAction implements StreamAction
+public abstract class IntermediateAction<T extends Object> implements StreamAction<T>
 {
-	StreamAction nextAction;
+	StreamAction<T> nextAction;
 	
-	protected IntermediateAction(StreamAction nextAction)
+	protected IntermediateAction(StreamAction<T> nextAction)
 	{
 		if (nextAction == null)
 		{
@@ -17,7 +17,7 @@ public abstract class IntermediateAction implements StreamAction
 		this.nextAction = nextAction;
 	}
 	
-	protected boolean continueActions(Stream<ReflectionObject> objStream)
+	protected boolean continueActions(Stream<T> objStream)
 	{
 		return nextAction.perform(objStream);
 	}

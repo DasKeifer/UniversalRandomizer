@@ -1,7 +1,7 @@
 package condition;
 
 
-import universal_randomizer.ReflectionObject;
+import universal_randomizer.ReflectionUtils;
 
 public class SimpleCondition extends Condition
 {
@@ -38,10 +38,10 @@ public class SimpleCondition extends Condition
 	}
 	
 	@Override
-	public boolean evaluate(ReflectionObject obj)
+	public boolean evaluate(Object obj)
 	{
 		// Get the var
-		Object var = obj.getVariableValue(variable);
+		Object var = ReflectionUtils.getVariableValue(obj, variable);
 		return compareTo(var, negate, comparator, val);
 	}
 }

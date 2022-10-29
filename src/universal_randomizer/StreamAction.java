@@ -2,7 +2,7 @@ package universal_randomizer;
 
 import java.util.stream.Stream;
 
-public interface StreamAction 
+public interface StreamAction<T extends Object> 
 {
-	public boolean perform(Stream<ReflectionObject> objStream);
+	public boolean perform(Stream<T> objStream);
 }
