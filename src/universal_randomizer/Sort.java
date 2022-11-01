@@ -6,17 +6,20 @@ import java.util.stream.Stream;
 public class Sort<T extends Object> extends IntermediateAction<T>
 {
 	Comparator<T> sorter;
+	boolean implementsComparable;
 	
-	protected Sort(Comparator<T> sorter, StreamAction<T> nextAction)
+	public Sort(Comparator<T> sorter, StreamAction<T> nextAction)
 	{
 		super(nextAction);
 		this.sorter = sorter;
+		implementsComparable = false;
 	}
 	
-	protected Sort(StreamAction<T> nextAction)
+	public Sort(Class<T> tClass, StreamAction<T> nextAction)
 	{
 		super(nextAction);
 		this.sorter = null;
+		implementsComparable = Comparable.class.isAssignableFrom(tClass);
 	}
 
 	@Override
@@ -26,6 +29,12 @@ public class Sort<T extends Object> extends IntermediateAction<T>
 		{
 			return continueActions(objStream.sorted(sorter));
 		}
-		return continueActions(objStream.sorted());
+		else if (implementsComparable)
+		{
+			return continueActions(objStream.sorted());
+		}
+		
+		System.err.println("Doesn't implement comparable");
+		return false;
 	}
 }

@@ -13,6 +13,7 @@ import condition.CompoundCondition;
 import condition.SimpleCondition;
 import universal_randomizer.Group;
 import universal_randomizer.Select;
+import universal_randomizer.Sort;
 
 public class Test {
 	
@@ -88,6 +89,14 @@ public class Test {
 		Select<NestedObject> nos1 = new Select<>(intLte4,
 				new Select<NestedObject>(soIntLte4, Test::printNestedObjectList));
 		nos1.perform(noList.stream());
+        
+        // --------------------- Sort testing ---------------------------
+        Sort<SimpleObject> sort1 = new Sort<>(SimpleObject::reverseSort, Test::printSimpleObjectList);
+        sort1.perform(soList.stream());
+        
+        Sort<SimpleObject> sort2 = new Sort<>(SimpleObject.class, Test::printSimpleObjectList);
+        sort2.perform(soList.stream());
+
 	}
 	
 	static void executeAndPrintCondition(List<SimpleObject> list, Condition cond)
