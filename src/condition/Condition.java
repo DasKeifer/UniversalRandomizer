@@ -3,10 +3,12 @@ package condition;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import universal_randomizer.ReflectionObject;
+
 public abstract class Condition 
 {
 	public abstract Condition copy();
-	public abstract boolean evaluate(Object obj);
+	public abstract <T> boolean evaluate(ReflectionObject<T> obj);
 	
 	protected <T extends Object> boolean compareTo(T wrapped, Negate negate, Compare comparator, Object val)
 	{

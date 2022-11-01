@@ -2,7 +2,7 @@ package universal_randomizer;
 
 import java.util.stream.Stream;
 
-public class Shuffle<T extends Object> extends IntermediateAction<T>
+public class Shuffle<T> extends IntermediateAction<T>
 {
 	protected Shuffle(StreamAction<T> nextAction)
 	{
@@ -10,7 +10,7 @@ public class Shuffle<T extends Object> extends IntermediateAction<T>
 	}
 
 	@Override
-	public boolean perform(Stream<T> objStream) 
+	public boolean perform(Stream<ReflectionObject<T>> objStream) 
 	{
 		return false;
 	}

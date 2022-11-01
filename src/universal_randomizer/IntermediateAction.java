@@ -2,7 +2,7 @@ package universal_randomizer;
 
 import java.util.stream.Stream;
 
-public abstract class IntermediateAction<T extends Object> implements StreamAction<T>
+public abstract class IntermediateAction<T> implements StreamAction<T>
 {
 	StreamAction<T> nextAction;
 	
@@ -17,7 +17,7 @@ public abstract class IntermediateAction<T extends Object> implements StreamActi
 		this.nextAction = nextAction;
 	}
 	
-	protected boolean continueActions(Stream<T> objStream)
+	protected boolean continueActions(Stream<ReflectionObject<T>> objStream)
 	{
 		return nextAction.perform(objStream);
 	}

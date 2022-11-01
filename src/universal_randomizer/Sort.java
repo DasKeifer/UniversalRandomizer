@@ -23,16 +23,16 @@ public class Sort<T extends Object> extends IntermediateAction<T>
 	}
 
 	@Override
-	public boolean perform(Stream<T> objStream) 
+	public boolean perform(Stream<ReflectionObject<T>> objStream) 
 	{
-		if (sorter != null)
-		{
-			return continueActions(objStream.sorted(sorter));
-		}
-		else if (implementsComparable)
-		{
-			return continueActions(objStream.sorted());
-		}
+//		if (sorter != null)
+//		{
+//			return continueActions(objStream.sorted(sorter));
+//		}
+//		else if (implementsComparable)
+//		{
+//			return continueActions(objStream.sorted());
+//		}
 		
 		System.err.println("Doesn't implement comparable");
 		return false;

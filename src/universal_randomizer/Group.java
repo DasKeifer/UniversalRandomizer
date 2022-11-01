@@ -16,16 +16,16 @@ public class Group<T extends Object> extends IntermediateAction<T>
 	}
 	
 	@Override
-	public boolean perform(Stream<T> objStream)
+	public boolean perform(Stream<ReflectionObject<T>> objStream)
 	{
-		Map<Object, List<T>> grouped = 
+		Map<Object, List<ReflectionObject<T>>> grouped = 
 				objStream.collect(Collectors.groupingBy(
 					x -> {
-		                return ReflectionUtils.getVariableValue(x, var);
+		                return x.getVariableValue(var);
 		            }));
 		
 		boolean okay = true;
-		for (List<T> group : grouped.values())
+		for (List<ReflectionObject<T>> group : grouped.values())
 		{
 			okay = continueActions(group.stream());
 		}

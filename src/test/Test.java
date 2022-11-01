@@ -12,6 +12,7 @@ import condition.Compare;
 import condition.CompoundCondition;
 import condition.SimpleCondition;
 import universal_randomizer.Group;
+import universal_randomizer.ReflectionObject;
 import universal_randomizer.Select;
 import universal_randomizer.Sort;
 
@@ -19,24 +20,24 @@ public class Test {
 	
 	public static void main(String[] args)
 	{
-		List<SimpleObject> soList = new ArrayList<>();
-		soList.add(new SimpleObject("1", 4));
-		soList.add(new SimpleObject("2", 1));
-		soList.add(new SimpleObject("3", 2));
-		soList.add(new SimpleObject("4", 4));
-		soList.add(new SimpleObject("5", 1));	
-		soList.add(new SimpleObject("6", 7));	
-		soList.add(new SimpleObject("7", 5));	
-		soList.add(new SimpleObject("8", 9));
-		soList.add(new SimpleObject("9", 4));		
+		List<ReflectionObject<SimpleObject>> soList = new ArrayList<>();
+		soList.add(new ReflectionObject<>(new SimpleObject("1", 4)));
+		soList.add(new ReflectionObject<>(new SimpleObject("2", 1)));
+		soList.add(new ReflectionObject<>(new SimpleObject("3", 2)));
+		soList.add(new ReflectionObject<>(new SimpleObject("4", 4)));
+		soList.add(new ReflectionObject<>(new SimpleObject("5", 1)));	
+		soList.add(new ReflectionObject<>(new SimpleObject("6", 7)));	
+		soList.add(new ReflectionObject<>(new SimpleObject("7", 5)));	
+		soList.add(new ReflectionObject<>(new SimpleObject("8", 9)));
+		soList.add(new ReflectionObject<>(new SimpleObject("9", 4)));		
 		
-		List<NestedObject> noList = new ArrayList<>();
-		noList.add(new NestedObject("no1", 4, soList.get(8)));
-		noList.add(new NestedObject("no2", 3, soList.get(7)));
-		noList.add(new NestedObject("no3", 3, soList.get(6)));
-		noList.add(new NestedObject("no4", 1, soList.get(5)));
-		noList.add(new NestedObject("no5", 4, soList.get(4)));
-		noList.add(new NestedObject("no6", 6, soList.get(3)));
+		List<ReflectionObject<NestedObject>> noList = new ArrayList<>();
+		noList.add(new ReflectionObject<>(new NestedObject("no1", 4, soList.get(8).obj)));
+		noList.add(new ReflectionObject<>(new NestedObject("no2", 3, soList.get(7).obj)));
+		noList.add(new ReflectionObject<>(new NestedObject("no3", 3, soList.get(6).obj)));
+		noList.add(new ReflectionObject<>(new NestedObject("no4", 1, soList.get(5).obj)));
+		noList.add(new ReflectionObject<>(new NestedObject("no5", 4, soList.get(4).obj)));
+		noList.add(new ReflectionObject<>(new NestedObject("no6", 6, soList.get(3).obj)));
 
 		// ------------- Simple Condition testing -------------------
 		SimpleCondition intLte4 = new SimpleCondition("intVal", Negate.YES, Compare.GREATER_THAN, 4);
@@ -99,29 +100,29 @@ public class Test {
 
 	}
 	
-	static void executeAndPrintCondition(List<SimpleObject> list, Condition cond)
+	static void executeAndPrintCondition(List<ReflectionObject<SimpleObject>> list, Condition cond)
 	{
 		System.out.println("executeAndPrintCondition:");
-		for (SimpleObject so : list)
+		for (ReflectionObject<SimpleObject> obj : list)
 		{
-			System.out.println(cond.evaluate(so) + " - " + so.name + "," + so.intVal);
+			System.out.println(cond.evaluate(obj) + " - " + obj.obj.name + "," + obj.obj.intVal);
 		}
 	}
 	
-	static boolean printSimpleObjectList(Stream<SimpleObject> stream)
+	static boolean printSimpleObjectList(Stream<ReflectionObject<SimpleObject>> stream)
 	{
 		System.out.println("printSimpleObjectList:");
-		stream.forEach(so -> {
-			System.out.println(so.name + "," + so.intVal);
+		stream.forEach(obj -> {
+			System.out.println(obj.obj.name + "," + obj.obj.intVal);
 		});
 		return true;
 	}
 	
-	static boolean printNestedObjectList(Stream<NestedObject> stream)
+	static boolean printNestedObjectList(Stream<ReflectionObject<NestedObject>> stream)
 	{
 		System.out.println("printNestedObjectList:");
-		stream.forEach(no -> {
-			System.out.println(no.name + "," + no.intVal + " - SO " + no.so.name + "," + no.so.intVal);
+		stream.forEach(obj -> {
+			System.out.println(obj.obj.name + "," + obj.obj.intVal + " - SO " + obj.obj.so.name + "," + obj.obj.so.intVal);
 		});
 		return true;
 	}

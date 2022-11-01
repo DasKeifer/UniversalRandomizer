@@ -4,5 +4,5 @@ import java.util.stream.Stream;
 
 public interface StreamAction<T extends Object> 
 {
-	public boolean perform(Stream<T> objStream);
+	public boolean perform(Stream<ReflectionObject<T>> objStream);
 }

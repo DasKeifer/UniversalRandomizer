@@ -20,7 +20,7 @@ public class Select<T extends Object> extends IntermediateAction<T>
 		this.varExpr = varExpr;
 	}
 	
-	public boolean perform(Stream<T> objStream)
+	public boolean perform(Stream<ReflectionObject<T>> objStream)
 	{
 		return continueActions(objStream.filter(obj -> varExpr.evaluate(obj)));
 	}
