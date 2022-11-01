@@ -10,4 +10,14 @@ public class SimpleObject
 		this.name = name;
 		this.intVal = intVal;
 	}
+	
+    static public int reverseSortAsObj(Object lhs, Object rhs)
+    {
+    	return Integer.compare(((SimpleObject)rhs).intVal, ((SimpleObject)lhs).intVal);
+    }
+	
+    static public int reverseSort(SimpleObject lhs, SimpleObject rhs)
+    {
+    	return Integer.compare(rhs.intVal, lhs.intVal);
+    }
 }

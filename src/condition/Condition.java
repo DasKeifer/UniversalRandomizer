@@ -15,10 +15,9 @@ public abstract class Condition
 		boolean result = false;
 		if (wrapped != null)
 		{
-			Class<?> clazz = wrapped.getClass();
 			if (wrapped.getClass().isInstance(val))
 			{
-				result = invokeCompareTo(clazz, wrapped, comparator, val);
+				result = invokeCompareTo(wrapped, comparator, val);
 				if (negate == Negate.YES)
 				{
 					result = !result;
@@ -28,11 +27,12 @@ public abstract class Condition
 		return result;
 	}
 	
-	private <T extends Object> boolean invokeCompareTo(Class<?> clazz, T wrapped, Compare comparator, Object val)
+	private <T extends Object> boolean invokeCompareTo(T wrapped, Compare comparator, Object val)
 	{
+		// TODO: Reflection vs comparable interface?
 		try 
 		{
-			Method compareTo = clazz.getMethod("compareTo", clazz);
+			Method compareTo = wrapped.getClass().getMethod("compareTo", wrapped.getClass());
 			Integer compareResult = (Integer) compareTo.invoke(wrapped, val);
 			if (compareResult != null)
 			{
