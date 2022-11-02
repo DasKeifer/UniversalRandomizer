@@ -3,13 +3,14 @@ package condition;
 import java.util.LinkedList;
 import java.util.List;
 
-import universal_randomizer.ReflectionObject;
+import universal_randomizer.wrappers.ReflectionObject;
 
 public class CompoundCondition extends Condition
 {
 	Condition baseCond;
 	List<LogicConditionPair> additionalConds;
-	
+
+	// TODO: Refactor to factory instead of constructor?
 	public CompoundCondition(Condition baseCond, List<LogicConditionPair> additionalConds)
 	{
 		this.baseCond = baseCond.copy();

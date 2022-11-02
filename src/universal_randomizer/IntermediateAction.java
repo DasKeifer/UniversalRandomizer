@@ -2,6 +2,8 @@ package universal_randomizer;
 
 import java.util.stream.Stream;
 
+import universal_randomizer.wrappers.ReflectionObject;
+
 public abstract class IntermediateAction<T> implements StreamAction<T>
 {
 	StreamAction<T> nextAction;

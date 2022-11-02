@@ -3,7 +3,7 @@ package condition;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import universal_randomizer.ReflectionObject;
+import universal_randomizer.wrappers.ReflectionObject;
 
 public abstract class Condition 
 {

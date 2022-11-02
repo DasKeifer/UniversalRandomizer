@@ -5,9 +5,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import universal_randomizer.wrappers.ReflectionObject;
+
 public class Group<T extends Object> extends IntermediateAction<T>
 {
 	String var;
+
+	// TODO: Refactor to factory instead of constructor
 	
 	public Group(String groupingVar, StreamAction<T> nextAction)
 	{
@@ -20,9 +24,7 @@ public class Group<T extends Object> extends IntermediateAction<T>
 	{
 		Map<Object, List<ReflectionObject<T>>> grouped = 
 				objStream.collect(Collectors.groupingBy(
-					x -> {
-		                return x.getVariableValue(var);
-		            }));
+					x -> x.getVariableValue(var)));
 		
 		boolean okay = true;
 		for (List<ReflectionObject<T>> group : grouped.values())

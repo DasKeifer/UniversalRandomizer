@@ -12,9 +12,10 @@ import condition.Compare;
 import condition.CompoundCondition;
 import condition.SimpleCondition;
 import universal_randomizer.Group;
-import universal_randomizer.ReflectionObject;
 import universal_randomizer.Select;
+import universal_randomizer.Shuffle;
 import universal_randomizer.Sort;
+import universal_randomizer.wrappers.ReflectionObject;
 
 public class Test {
 	
@@ -32,12 +33,12 @@ public class Test {
 		soList.add(new ReflectionObject<>(new SimpleObject("9", 4)));		
 		
 		List<ReflectionObject<NestedObject>> noList = new ArrayList<>();
-		noList.add(new ReflectionObject<>(new NestedObject("no1", 4, soList.get(8).obj)));
-		noList.add(new ReflectionObject<>(new NestedObject("no2", 3, soList.get(7).obj)));
-		noList.add(new ReflectionObject<>(new NestedObject("no3", 3, soList.get(6).obj)));
-		noList.add(new ReflectionObject<>(new NestedObject("no4", 1, soList.get(5).obj)));
-		noList.add(new ReflectionObject<>(new NestedObject("no5", 4, soList.get(4).obj)));
-		noList.add(new ReflectionObject<>(new NestedObject("no6", 6, soList.get(3).obj)));
+		noList.add(new ReflectionObject<>(new NestedObject("no1", 4, soList.get(8).getObject())));
+		noList.add(new ReflectionObject<>(new NestedObject("no2", 3, soList.get(7).getObject())));
+		noList.add(new ReflectionObject<>(new NestedObject("no3", 3, soList.get(6).getObject())));
+		noList.add(new ReflectionObject<>(new NestedObject("no4", 1, soList.get(5).getObject())));
+		noList.add(new ReflectionObject<>(new NestedObject("no5", 4, soList.get(4).getObject())));
+		noList.add(new ReflectionObject<>(new NestedObject("no6", 6, soList.get(3).getObject())));
 
 		// ------------- Simple Condition testing -------------------
 		SimpleCondition intLte4 = new SimpleCondition("intVal", Negate.YES, Compare.GREATER_THAN, 4);
@@ -53,7 +54,7 @@ public class Test {
 		executeAndPrintCondition(soList, nameIs8);
 
 		
-		Select<SimpleObject> select1 = new Select<>(intLte4, Test::printSimpleObjectList);
+		Select<SimpleObject> select1 = new Select<>(intLte4, Test::unwrappedPrintSimpleObject);
 		select1.perform(soList.stream());
 		
 		Select<SimpleObject> select2 = new Select<>(intGt1, select1::perform);
@@ -92,12 +93,16 @@ public class Test {
 		nos1.perform(noList.stream());
         
         // --------------------- Sort testing ---------------------------
-        Sort<SimpleObject> sort1 = new Sort<>(SimpleObject::reverseSort, Test::printSimpleObjectList);
+        Sort<SimpleObject> sort1 = Sort.comparatorSort(SimpleObject::reverseSort, Test::printSimpleObjectList);
         sort1.perform(soList.stream());
         
-        Sort<SimpleObject> sort2 = new Sort<>(SimpleObject.class, Test::printSimpleObjectList);
+        Sort<SimpleObject> sort2 = Sort.comparableSort(Test::printSimpleObjectList);
         sort2.perform(soList.stream());
+        
 
+        // --------------------- Shuffle testing ---------------------------
+        Shuffle<SimpleObject> shuffle2 = Shuffle.seededShuffle(Test::printSimpleObjectList, 1);
+        shuffle2.perform(soList.stream());
 	}
 	
 	static void executeAndPrintCondition(List<ReflectionObject<SimpleObject>> list, Condition cond)
@@ -105,15 +110,21 @@ public class Test {
 		System.out.println("executeAndPrintCondition:");
 		for (ReflectionObject<SimpleObject> obj : list)
 		{
-			System.out.println(cond.evaluate(obj) + " - " + obj.obj.name + "," + obj.obj.intVal);
+			System.out.println(cond.evaluate(obj) + " - " + obj.getObject().name + "," + obj.getObject().intVal);
 		}
+	}
+
+	static boolean unwrappedPrintSimpleObject(SimpleObject obj)
+	{
+		System.out.println(obj.name + "," + obj.intVal);
+		return true;
 	}
 	
 	static boolean printSimpleObjectList(Stream<ReflectionObject<SimpleObject>> stream)
 	{
 		System.out.println("printSimpleObjectList:");
 		stream.forEach(obj -> {
-			System.out.println(obj.obj.name + "," + obj.obj.intVal);
+			System.out.println(obj.getObject().name + "," + obj.getObject().intVal);
 		});
 		return true;
 	}
@@ -122,7 +133,7 @@ public class Test {
 	{
 		System.out.println("printNestedObjectList:");
 		stream.forEach(obj -> {
-			System.out.println(obj.obj.name + "," + obj.obj.intVal + " - SO " + obj.obj.so.name + "," + obj.obj.so.intVal);
+			System.out.println(obj.getObject().name + "," + obj.getObject().intVal + " - SO " + obj.getObject().so.name + "," + obj.getObject().so.intVal);
 		});
 		return true;
 	}

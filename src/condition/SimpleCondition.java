@@ -1,8 +1,7 @@
 package condition;
 
 
-import universal_randomizer.ReflectionObject;
-import universal_randomizer.ReflectionUtils;
+import universal_randomizer.wrappers.ReflectionObject;
 
 public class SimpleCondition extends Condition
 {
@@ -10,6 +9,8 @@ public class SimpleCondition extends Condition
 	Negate negate;
 	Compare comparator;
 	Object val;
+
+	// TODO: Refactor to factory instead of constructor?
 	
 	public SimpleCondition(String variable, Negate negate, Compare comparator, Object val) 
 	{

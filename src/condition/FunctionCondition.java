@@ -1,5 +1,6 @@
 package condition;
 
-public class FunctionCondition {
-
+public class FunctionCondition 
+{
+	// TODO
 }

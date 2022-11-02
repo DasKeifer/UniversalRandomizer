@@ -6,6 +6,8 @@ public class LogicConditionPair
 	Logic op;
 	Negate negate;
 	Condition cond;
+
+	// TODO: Refactor to factory instead of constructor
 	
 	public LogicConditionPair(Logic op, Negate negate, Condition cond)
 	{

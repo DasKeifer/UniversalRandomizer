@@ -3,38 +3,44 @@ package universal_randomizer;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
+import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.wrappers.WrappedComparable;
+import universal_randomizer.wrappers.WrappedComparator;
+
 public class Sort<T extends Object> extends IntermediateAction<T>
 {
-	Comparator<T> sorter;
-	boolean implementsComparable;
+	Comparator<ReflectionObject<T>> sorter;
 	
-	public Sort(Comparator<T> sorter, StreamAction<T> nextAction)
+	private Sort(Comparator<ReflectionObject<T>> sorter, StreamAction<T> nextAction)
 	{
 		super(nextAction);
 		this.sorter = sorter;
-		implementsComparable = false;
 	}
 	
-	public Sort(Class<T> tClass, StreamAction<T> nextAction)
+	public static <T extends Comparable<T>> Sort<T> comparableSort(StreamAction<T> nextAction)
 	{
-		super(nextAction);
-		this.sorter = null;
-		implementsComparable = Comparable.class.isAssignableFrom(tClass);
+		return new Sort<>(new WrappedComparable<>(), nextAction);
+	}
+	
+	public static <T> Sort<T> comparatorSort(Comparator<T> sorter, StreamAction<T> nextAction)
+	{
+		return new Sort<>(new WrappedComparator<>(sorter), nextAction);
+	}
+	
+	public static <T> Sort<T> wrappedComparatorSort(Comparator<ReflectionObject<T>> sorter, StreamAction<T> nextAction)
+	{
+		return new Sort<>(sorter, nextAction);
 	}
 
 	@Override
 	public boolean perform(Stream<ReflectionObject<T>> objStream) 
 	{
-//		if (sorter != null)
-//		{
-//			return continueActions(objStream.sorted(sorter));
-//		}
-//		else if (implementsComparable)
-//		{
-//			return continueActions(objStream.sorted());
-//		}
+		if (sorter != null)
+		{
+			return continueActions(objStream.sorted(sorter));
+		}
 		
-		System.err.println("Doesn't implement comparable");
+		System.err.println("No sorter given");
 		return false;
 	}
 }
