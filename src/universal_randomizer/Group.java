@@ -11,7 +11,7 @@ public class Group<T extends Object> extends IntermediateAction<T>
 {
 	String var;
 
-	// TODO: Refactor to factory instead of constructor
+	// TODO: Refactor to factory instead of constructor?
 	
 	public Group(String groupingVar, StreamAction<T> nextAction)
 	{

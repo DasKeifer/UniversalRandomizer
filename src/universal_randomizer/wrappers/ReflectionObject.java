@@ -1,5 +1,7 @@
 package universal_randomizer.wrappers;
 
+import java.lang.reflect.Method;
+
 public class ReflectionObject <T> {
 	T obj;
 	int randValue;
@@ -24,6 +26,26 @@ public class ReflectionObject <T> {
 //		}
 //		return null;
 //	}
+	
+	public Method getBooleanMethod(String name, Class<?>... paramTypes)
+	{
+		// TODO: Support paths
+		try {
+			Method method = obj.getClass().getMethod(name, paramTypes);
+			if (method.getReturnType() == Boolean.class || method.getReturnType() == boolean.class)
+			{
+				return method;
+			}
+			else
+			{
+				System.err.println("getBooleanMethod found Method " + method.getName() + " but it does not return a boolean ");
+			}
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 	// TODO: Extract to function that can be used for vars or functions? At least part probably can be
 	public Object getVariableValue(String name)

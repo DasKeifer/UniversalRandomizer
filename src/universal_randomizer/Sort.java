@@ -10,6 +10,8 @@ import universal_randomizer.wrappers.WrappedComparator;
 public class Sort<T extends Object> extends IntermediateAction<T>
 {
 	Comparator<ReflectionObject<T>> sorter;
+
+	// TODO: Refactor to use inheritance instead of factory and then use constructor?
 	
 	private Sort(Comparator<ReflectionObject<T>> sorter, StreamAction<T> nextAction)
 	{

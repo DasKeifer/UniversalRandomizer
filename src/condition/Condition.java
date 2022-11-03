@@ -10,6 +10,8 @@ public abstract class Condition
 	public abstract Condition copy();
 	public abstract <T> boolean evaluate(ReflectionObject<T> obj);
 	
+	
+	// TODO: Move to simpleCondition?
 	protected <T extends Object> boolean compareTo(T wrapped, Negate negate, Compare comparator, Object val)
 	{
 		boolean result = false;

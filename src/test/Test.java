@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import condition.Condition;
 import condition.LogicConditionPair;
+import condition.MethodCondition;
 import condition.Logic;
 import condition.Negate;
 import condition.Compare;
@@ -42,17 +43,18 @@ public class Test {
 
 		// ------------- Simple Condition testing -------------------
 		SimpleCondition intLte4 = new SimpleCondition("intVal", Negate.YES, Compare.GREATER_THAN, 4);
-		executeAndPrintCondition(soList, intLte4);
+//		executeAndPrintCondition(soList, intLte4);
 		
 		SimpleCondition soIntLte4 = new SimpleCondition("so.intVal", Negate.YES, Compare.GREATER_THAN, 4);
-		executeAndPrintCondition(soList, intLte4);
+//		executeAndPrintCondition(soList, intLte4);
 
 		SimpleCondition intGt1 = new SimpleCondition("intVal", Compare.GREATER_THAN, 1);
-		executeAndPrintCondition(soList, intGt1);
+//		executeAndPrintCondition(soList, intGt1);
 
 		SimpleCondition nameIs8 = new SimpleCondition("name", Compare.EQUAL, "8");
-		executeAndPrintCondition(soList, nameIs8);
+//		executeAndPrintCondition(soList, nameIs8);
 
+		System.out.println("----------- Select/Simple Condition -------------------");
 		
 		Select<SimpleObject> select1 = new Select<>(intLte4, Test::unwrappedPrintSimpleObject);
 		select1.perform(soList.stream());
@@ -60,7 +62,15 @@ public class Test {
 		Select<SimpleObject> select2 = new Select<>(intGt1, select1::perform);
 		select2.perform(soList.stream());
 
+		// ------------------- Method Condition testing --------------------------
+		System.out.println("----------- Method Condition -------------------");
+		MethodCondition mc1 = new MethodCondition("valBetweenn2And5Excl");
+		Select<SimpleObject> smc1 = new Select<>(mc1, Test::unwrappedPrintSimpleObject);
+		smc1.perform(soList.stream());
+		
+
 		// ------------------- Group testing --------------------------
+		System.out.println("----------- Group -------------------");
 		Select<SimpleObject> sg1 = new Select<>(intLte4, 
 						new Select<SimpleObject>(intGt1, 
 								new Group<SimpleObject>("intVal", Test::printSimpleObjectList)));
@@ -73,6 +83,7 @@ public class Test {
 		sg2.perform(soList.stream());
 
 		// ------------- Compound Condition testing -------------------
+		System.out.println("----------- Compount Condition -------------------");
 		CompoundCondition cc1 = new CompoundCondition(
 				nameIs8,
 				new LogicConditionPair(Logic.OR, intLte4));
@@ -88,11 +99,13 @@ public class Test {
 		saCc2.perform(soList.stream());
 		
 		// ------------------- Nested Object Selects --------------------
+		System.out.println("----------- Nested Selects -------------------");
 		Select<NestedObject> nos1 = new Select<>(intLte4,
 				new Select<NestedObject>(soIntLte4, Test::printNestedObjectList));
 		nos1.perform(noList.stream());
         
         // --------------------- Sort testing ---------------------------
+		System.out.println("----------- Sort -------------------");
         Sort<SimpleObject> sort1 = Sort.comparatorSort(SimpleObject::reverseSort, Test::printSimpleObjectList);
         sort1.perform(soList.stream());
         
@@ -101,6 +114,7 @@ public class Test {
         
 
         // --------------------- Shuffle testing ---------------------------
+		System.out.println("----------- Shuffle -------------------");
         Shuffle<SimpleObject> shuffle2 = Shuffle.seededShuffle(Test::printSimpleObjectList, 1);
         shuffle2.perform(soList.stream());
 	}
