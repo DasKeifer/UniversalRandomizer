@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 
 import universal_randomizer.wrappers.ReflectionObject;
 
-public class MethodCondition extends Condition 
+public class MethodCondition <T> implements Condition<T>
 {
 	String method;
 
@@ -14,19 +14,19 @@ public class MethodCondition extends Condition
 		this.method = methodName;
 	}
 	
-	public MethodCondition(MethodCondition toCopy) 
+	public MethodCondition(MethodCondition<T> toCopy) 
 	{
 		this.method = toCopy.method;
 	}
 	
 	@Override
-	public Condition copy() 
+	public Condition<T> copy() 
 	{
-		return new MethodCondition(this);
+		return new MethodCondition<>(this);
 	}
 
 	@Override
-	public <T> boolean evaluate(ReflectionObject<T> obj) 
+	public boolean evaluate(ReflectionObject<T> obj) 
 	{
 		// Get the var
 		Method methObj = obj.getBooleanMethod(method);

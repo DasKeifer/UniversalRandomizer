@@ -48,7 +48,7 @@ public class ReflectionObject <T> {
 	}
 	
 	// TODO: Extract to function that can be used for vars or functions? At least part probably can be
-	public Object getVariableValue(String name)
+	public <M> M getVariableValue(String name, Class<? extends M> clazz)
 	{
 		if (name.contains("."))
 		{
@@ -60,7 +60,7 @@ public class ReflectionObject <T> {
 				{
 					nextObj = nextObj.getClass().getField(paths[pathIndex]).get(nextObj);
 				}
-				return nextObj;
+				return safeCast(clazz, nextObj);
 			} 
 			catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) 
 			{
@@ -71,7 +71,7 @@ public class ReflectionObject <T> {
 		
 		try 
 		{
-			return obj.getClass().getField(name).get(obj);
+			return safeCast(clazz, obj.getClass().getField(name).get(obj));
 		} 
 		catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			// TODO Auto-generated catch block
@@ -94,5 +94,10 @@ public class ReflectionObject <T> {
 	public void setRandomValue(int val)
 	{
 		randValue = val;
+	}
+	
+	private <M> M safeCast(Class<? extends M> clazz, Object obj)
+	{
+	   return clazz != null && clazz.isInstance(obj) ? clazz.cast(obj) : null;
 	}
 }

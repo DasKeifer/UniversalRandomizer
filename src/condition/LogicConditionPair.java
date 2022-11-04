@@ -1,27 +1,27 @@
 package condition;
 
 
-public class LogicConditionPair
+public class LogicConditionPair<T>
 {
 	Logic op;
 	Negate negate;
-	Condition cond;
+	Condition<T> cond;
 
 	// TODO: Refactor to factory instead of constructor
 	
-	public LogicConditionPair(Logic op, Negate negate, Condition cond)
+	public LogicConditionPair(Logic op, Negate negate, Condition<T> cond)
 	{
 		this.op = op;
 		this.negate = negate;
 		this.cond = cond;
 	}
 	
-	public LogicConditionPair(Logic op, Condition cond)
+	public LogicConditionPair(Logic op, Condition<T> cond)
 	{
 		this(op, Negate.NO, cond);
 	}
 	
-	public LogicConditionPair(LogicConditionPair toCopy)
+	public LogicConditionPair(LogicConditionPair<T> toCopy)
 	{
 		this.op = toCopy.op;
 		this.negate = toCopy.negate;
@@ -38,7 +38,7 @@ public class LogicConditionPair
 		return negate;
 	}
 	
-	Condition getCondition()
+	Condition<T> getCondition()
 	{
 		return cond;
 	}

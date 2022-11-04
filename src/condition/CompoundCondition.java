@@ -5,49 +5,51 @@ import java.util.List;
 
 import universal_randomizer.wrappers.ReflectionObject;
 
-public class CompoundCondition extends Condition
+public class CompoundCondition <T> implements Condition<T>
 {
-	Condition baseCond;
-	List<LogicConditionPair> additionalConds;
+	Condition<T> baseCond;
+	List<LogicConditionPair<T>> additionalConds;
 
 	// TODO: Refactor to factory instead of constructor?
-	public CompoundCondition(Condition baseCond, List<LogicConditionPair> additionalConds)
+	public CompoundCondition(Condition<T> baseCond, List<LogicConditionPair<T>> additionalConds)
 	{
 		this.baseCond = baseCond.copy();
 		this.additionalConds = new LinkedList<>();
-		for (LogicConditionPair pair : additionalConds)
+		for (LogicConditionPair<T> pair : additionalConds)
 		{
-			this.additionalConds.add(new LogicConditionPair(pair));
+			this.additionalConds.add(new LogicConditionPair<>(pair));
 		}
 	}
 	
-	public CompoundCondition(Condition baseCond, LogicConditionPair... additionalConds)
+	//TODO investigate annotation
+	@SafeVarargs
+	public CompoundCondition(Condition<T> baseCond, LogicConditionPair<T>... additionalConds)
 	{
 		this.baseCond = baseCond.copy();
 		this.additionalConds = new LinkedList<>();
-		for (LogicConditionPair pair : additionalConds)
+		for (LogicConditionPair<T> pair : additionalConds)
 		{
-			this.additionalConds.add(new LogicConditionPair(pair));
+			this.additionalConds.add(new LogicConditionPair<>(pair));
 		}
 	}
 	
-	public CompoundCondition(CompoundCondition toCopy)
+	public CompoundCondition(CompoundCondition<T> toCopy)
 	{
 		this(toCopy.baseCond, toCopy.additionalConds);
 	}
 
 	@Override
-	public CompoundCondition copy() 
+	public CompoundCondition<T> copy() 
 	{
-		return new CompoundCondition(this);
+		return new CompoundCondition<>(this);
 	}
 	
 	@Override
-	public <T> boolean evaluate(ReflectionObject<T> obj) 
+	public boolean evaluate(ReflectionObject<T> obj) 
 	{
 		boolean result = baseCond.evaluate(obj);
 		
-		for (LogicConditionPair condOp : additionalConds)
+		for (LogicConditionPair<T> condOp : additionalConds)
 		{
 			switch (condOp.op)
 			{

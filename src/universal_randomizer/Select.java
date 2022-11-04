@@ -14,18 +14,18 @@ public class Select<T extends Object> extends IntermediateAction<T>
 		EACH, ALL
 	}
 	
-	Condition varExpr;
+	Condition<T> varExpr;
 	
 	// TODO: Refactor to factory instead of constructor
 	
-	public Select(Condition varExpr, StreamAction<T> nextAction)
+	public Select(Condition<T> varExpr, StreamAction<T> nextAction)
 	{
 		super(nextAction);
 		
 		this.varExpr = varExpr;
 	}
 	
-	public Select(Condition varExpr, UnwrappedStreamAction<T> nextAction)
+	public Select(Condition<T> varExpr, UnwrappedStreamAction<T> nextAction)
 	{
 		super(new WrappedStreamAction<>(nextAction));
 		
