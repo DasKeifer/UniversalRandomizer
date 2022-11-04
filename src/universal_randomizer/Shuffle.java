@@ -4,12 +4,13 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.wrappers.ReflectionObjectStreamAction;
 
 public class Shuffle<T> extends IntermediateAction<T>
 {
 	Random rand;
 	
-	private Shuffle(StreamAction<T> nextAction, Random rand)
+	private Shuffle(ReflectionObjectStreamAction<T> nextAction, Random rand)
 	{
 		super(nextAction);
 		if (rand == null)
@@ -22,12 +23,12 @@ public class Shuffle<T> extends IntermediateAction<T>
 		}
 	}
 	
-	public static <T> Shuffle<T> createRandom(StreamAction<T> nextAction)
+	public static <T> Shuffle<T> createRandom(ReflectionObjectStreamAction<T> nextAction)
 	{
 		return new Shuffle<>(nextAction, null);
 	}
 			
-	public static <T> Shuffle<T> createSeeded(StreamAction<T> nextAction, long seed)
+	public static <T> Shuffle<T> createSeeded(ReflectionObjectStreamAction<T> nextAction, long seed)
 	{
 		return new Shuffle<>(nextAction, new Random(seed));
 	}

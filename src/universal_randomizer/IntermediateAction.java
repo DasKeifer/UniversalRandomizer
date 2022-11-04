@@ -3,12 +3,13 @@ package universal_randomizer;
 import java.util.stream.Stream;
 
 import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.wrappers.ReflectionObjectStreamAction;
 
-public abstract class IntermediateAction<T> implements StreamAction<T>
+public abstract class IntermediateAction<T> implements ReflectionObjectStreamAction<T>
 {
-	StreamAction<T> nextAction;
+	ReflectionObjectStreamAction<T> nextAction;
 	
-	protected IntermediateAction(StreamAction<T> nextAction)
+	protected IntermediateAction(ReflectionObjectStreamAction<T> nextAction)
 	{
 		if (nextAction == null)
 		{
@@ -21,6 +22,7 @@ public abstract class IntermediateAction<T> implements StreamAction<T>
 	
 	protected boolean continueActions(Stream<ReflectionObject<T>> objStream)
 	{
+		
 		return nextAction.perform(objStream);
 	}
 }

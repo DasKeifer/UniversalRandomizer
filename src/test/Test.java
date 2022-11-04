@@ -59,7 +59,7 @@ public class Test {
 
 		System.out.println("----------- Select/Simple Condition -------------------");
 		
-		Select<SimpleObject> select1 = new Select<>(sointLte4, Test::unwrappedPrintSimpleObject);
+		Select<SimpleObject> select1 = new Select<>(sointLte4, Test::printSimpleObjectList);
 		select1.perform(soList.stream());
 		
 		Select<SimpleObject> select2 = new Select<>(intGt1, select1::perform);
@@ -68,7 +68,7 @@ public class Test {
 		// ------------------- Method Condition testing --------------------------
 		System.out.println("----------- Method Condition -------------------");
 		MethodCondition<SimpleObject> mc1 = new MethodCondition<>("valBetweenn2And5Excl");
-		Select<SimpleObject> smc1 = new Select<>(mc1, Test::unwrappedPrintSimpleObject);
+		Select<SimpleObject> smc1 = new Select<>(mc1, Test::printSimpleObjectList);
 		smc1.perform(soList.stream());
 		
 
@@ -76,13 +76,13 @@ public class Test {
 		System.out.println("----------- Group -------------------");
 		Select<SimpleObject> sg1 = new Select<>(sointLte4, 
 						new Select<>(intGt1, 
-								new Group<>("intVal", Test::printSimpleObjectList)));
+								new Group<>("intVal", Test::printWrappedSimpleObjectList)));
 		sg1.perform(soList.stream());
 		
 		Select<SimpleObject> sg2 = new Select<>(sointLte4, 
 				new Select<>(intGt1, 
 						new Group<>("intVal", 
-								new Group<>("name", Test::printSimpleObjectList))));
+								new Group<>("name", Test::printWrappedSimpleObjectList))));
 		sg2.perform(soList.stream());
 
 		// ------------- Compound Condition testing -------------------
@@ -91,14 +91,14 @@ public class Test {
 				nameIs8,
 				new LogicConditionPair<>(Logic.OR, sointLte4));
 
-		Select<SimpleObject> saCc1 = new Select<>(cc1, Test::printSimpleObjectList);
+		Select<SimpleObject> saCc1 = new Select<>(cc1, Test::printWrappedSimpleObjectList);
 		saCc1.perform(soList.stream());
 
 		CompoundCondition<SimpleObject> cc2 = new CompoundCondition<>(
 				cc1,
 				new LogicConditionPair<>(Logic.AND, Negate.YES, new SimpleCondition<>("intVal", Compare.GREATER_THAN, 1)));
 
-		Select<SimpleObject> saCc2 = new Select<>(cc2, Test::printSimpleObjectList);
+		Select<SimpleObject> saCc2 = new Select<>(cc2, Test::printWrappedSimpleObjectList);
 		saCc2.perform(soList.stream());
 		
 		// ------------------- Nested Object Selects --------------------
@@ -109,24 +109,29 @@ public class Test {
         
         // --------------------- Sort testing ---------------------------
 		System.out.println("----------- Sort -------------------");
-        Sort<SimpleObject> sort1 = Sort.createComparator(SimpleObject::reverseSort, Test::printSimpleObjectList);
+        Sort<SimpleObject> sort1 = Sort.createComparator(SimpleObject::reverseSort, Test::printWrappedSimpleObjectList);
         sort1.perform(soList.stream());
         
-        Sort<SimpleObject> sort2 = Sort.createComparable(Test::printSimpleObjectList);
+        Sort<SimpleObject> sort2 = Sort.createComparable(Test::printWrappedSimpleObjectList);
         sort2.perform(soList.stream());
         
 
         // --------------------- Shuffle testing ---------------------------
 		System.out.println("----------- Shuffle -------------------");
-        Shuffle<SimpleObject> shuffle2 = Shuffle.createSeeded(Test::printSimpleObjectList, 1);
+        Shuffle<SimpleObject> shuffle2 = Shuffle.createSeeded(Test::printWrappedSimpleObjectList, 1);
         shuffle2.perform(soList.stream());
 
         // --------------------- Randomize testing ---------------------------
 		System.out.println("----------- Randomize -------------------");
-		Pool<Integer> rp1 = Pool.createRange(21, 31, 2);
+		Pool<Integer> rp1 = Pool.createRange(1, 20, 2, Integer::sum);
 		Randomize<SimpleObject> r1 = Randomize.createSeeded("intVal", rp1, 1);
 		r1.perform(soList.stream());
-		printSimpleObjectList(soList.stream());
+		printWrappedSimpleObjectList(soList.stream());
+	}
+	
+	static SimpleObject sumSO(SimpleObject o1, SimpleObject o2)
+	{
+		return o1;
 	}
 	
 	static void executeAndPrintCondition(List<ReflectionObject<SimpleObject>> list, Condition<SimpleObject> cond)
@@ -138,15 +143,18 @@ public class Test {
 		}
 	}
 
-	static boolean unwrappedPrintSimpleObject(SimpleObject obj)
+	static boolean printSimpleObjectList(Stream<SimpleObject> stream)
 	{
-		System.out.println(obj.name + "," + obj.intVal);
+		System.out.println("printSimpleObjectList:");
+		stream.forEach(obj -> {
+			System.out.println(obj.name + "," + obj.intVal);
+		});
 		return true;
 	}
 	
-	static boolean printSimpleObjectList(Stream<ReflectionObject<SimpleObject>> stream)
+	static boolean printWrappedSimpleObjectList(Stream<ReflectionObject<SimpleObject>> stream)
 	{
-		System.out.println("printSimpleObjectList:");
+		System.out.println("printWrappedSimpleObjectList:");
 		stream.forEach(obj -> {
 			System.out.println(obj.getObject().name + "," + obj.getObject().intVal);
 		});

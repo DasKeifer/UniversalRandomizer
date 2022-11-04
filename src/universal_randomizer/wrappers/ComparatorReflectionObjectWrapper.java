@@ -2,11 +2,11 @@ package universal_randomizer.wrappers;
 
 import java.util.Comparator;
 
-public class WrappedComparator<T> implements Comparator<ReflectionObject<T>>
+public class ComparatorReflectionObjectWrapper<T> implements Comparator<ReflectionObject<T>>
 {
 	Comparator<T> unwrapped;
 	
-	public WrappedComparator(Comparator<T> unwrapped)
+	public ComparatorReflectionObjectWrapper(Comparator<T> unwrapped)
 	{
 		this.unwrapped = unwrapped;
 	}

@@ -8,7 +8,7 @@ public class ReflectionObject <T> {
 	T obj;
 	int randValue;
 
-	// TODO: Refactor to factory instead of constructor
+	// TODO: Refactor to factory instead of constructor and to prevent null values
 	
 	public ReflectionObject(T obj)
 	{

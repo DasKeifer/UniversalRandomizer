@@ -5,8 +5,9 @@ import java.util.stream.Stream;
 
 import universal_randomizer.pool.Pool;
 import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.wrappers.ReflectionObjectStreamAction;
 
-public class Randomize<T> implements StreamAction<T>
+public class Randomize<T> implements ReflectionObjectStreamAction<T>
 {
 	String pathToField;
 	Random rand;
