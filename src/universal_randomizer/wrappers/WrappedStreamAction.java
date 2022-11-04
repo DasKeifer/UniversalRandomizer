@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import universal_randomizer.StreamAction;
 
-public class WrappedStreamAction<T extends Object> implements StreamAction<T> 
+public class WrappedStreamAction<T> implements StreamAction<T> 
 {
 	UnwrappedStreamAction<T> action;
 	

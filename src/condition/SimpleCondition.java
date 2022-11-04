@@ -48,8 +48,7 @@ public class SimpleCondition <T, M> implements Condition<T>
 		boolean result = false;
 		
 		// Get the var
-		@SuppressWarnings("unchecked")
-		M var = obj.getVariableValue(variable, (Class<? extends M>)val.getClass());
+		M var = obj.getVariableValue(variable);
 		if (var != null && var.getClass().isInstance(val))
 		{
 			result = invokeCompareTo(var, comparator, val);

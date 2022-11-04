@@ -22,12 +22,12 @@ public class Shuffle<T> extends IntermediateAction<T>
 		}
 	}
 	
-	public static <T> Shuffle<T> randomShuffle(StreamAction<T> nextAction)
+	public static <T> Shuffle<T> createRandom(StreamAction<T> nextAction)
 	{
 		return new Shuffle<>(nextAction, null);
 	}
 			
-	public static <T> Shuffle<T> seededShuffle(StreamAction<T> nextAction, long seed)
+	public static <T> Shuffle<T> createSeeded(StreamAction<T> nextAction, long seed)
 	{
 		return new Shuffle<>(nextAction, new Random(seed));
 	}

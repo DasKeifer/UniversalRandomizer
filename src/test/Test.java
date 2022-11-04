@@ -13,9 +13,11 @@ import condition.Compare;
 import condition.CompoundCondition;
 import condition.SimpleCondition;
 import universal_randomizer.Group;
+import universal_randomizer.Randomize;
 import universal_randomizer.Select;
 import universal_randomizer.Shuffle;
 import universal_randomizer.Sort;
+import universal_randomizer.pool.Pool;
 import universal_randomizer.wrappers.ReflectionObject;
 
 public class Test {
@@ -74,13 +76,13 @@ public class Test {
 		System.out.println("----------- Group -------------------");
 		Select<SimpleObject> sg1 = new Select<>(sointLte4, 
 						new Select<>(intGt1, 
-								new Group<>(Integer.class, "intVal", Test::printSimpleObjectList)));
+								new Group<>("intVal", Test::printSimpleObjectList)));
 		sg1.perform(soList.stream());
 		
 		Select<SimpleObject> sg2 = new Select<>(sointLte4, 
 				new Select<>(intGt1, 
-						new Group<>(Integer.class, "intVal", 
-								new Group<>(String.class, "name", Test::printSimpleObjectList))));
+						new Group<>("intVal", 
+								new Group<>("name", Test::printSimpleObjectList))));
 		sg2.perform(soList.stream());
 
 		// ------------- Compound Condition testing -------------------
@@ -107,17 +109,24 @@ public class Test {
         
         // --------------------- Sort testing ---------------------------
 		System.out.println("----------- Sort -------------------");
-        Sort<SimpleObject> sort1 = Sort.comparatorSort(SimpleObject::reverseSort, Test::printSimpleObjectList);
+        Sort<SimpleObject> sort1 = Sort.createComparator(SimpleObject::reverseSort, Test::printSimpleObjectList);
         sort1.perform(soList.stream());
         
-        Sort<SimpleObject> sort2 = Sort.comparableSort(Test::printSimpleObjectList);
+        Sort<SimpleObject> sort2 = Sort.createComparable(Test::printSimpleObjectList);
         sort2.perform(soList.stream());
         
 
         // --------------------- Shuffle testing ---------------------------
 		System.out.println("----------- Shuffle -------------------");
-        Shuffle<SimpleObject> shuffle2 = Shuffle.seededShuffle(Test::printSimpleObjectList, 1);
+        Shuffle<SimpleObject> shuffle2 = Shuffle.createSeeded(Test::printSimpleObjectList, 1);
         shuffle2.perform(soList.stream());
+
+        // --------------------- Randomize testing ---------------------------
+		System.out.println("----------- Randomize -------------------");
+		Pool<Integer> rp1 = Pool.createRange(21, 31, 2);
+		Randomize<SimpleObject> r1 = Randomize.createSeeded("intVal", rp1, 1);
+		r1.perform(soList.stream());
+		printSimpleObjectList(soList.stream());
 	}
 	
 	static void executeAndPrintCondition(List<ReflectionObject<SimpleObject>> list, Condition<SimpleObject> cond)

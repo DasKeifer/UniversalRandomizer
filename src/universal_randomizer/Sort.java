@@ -7,29 +7,27 @@ import universal_randomizer.wrappers.ReflectionObject;
 import universal_randomizer.wrappers.WrappedComparable;
 import universal_randomizer.wrappers.WrappedComparator;
 
-public class Sort<T extends Object> extends IntermediateAction<T>
+public class Sort<T> extends IntermediateAction<T>
 {
 	Comparator<ReflectionObject<T>> sorter;
 
-	// TODO: Refactor to use inheritance instead of factory and then use constructor?
-	
 	private Sort(Comparator<ReflectionObject<T>> sorter, StreamAction<T> nextAction)
 	{
 		super(nextAction);
 		this.sorter = sorter;
 	}
 	
-	public static <T extends Comparable<T>> Sort<T> comparableSort(StreamAction<T> nextAction)
+	public static <M extends Comparable<M>> Sort<M> createComparable(StreamAction<M> nextAction)
 	{
 		return new Sort<>(new WrappedComparable<>(), nextAction);
 	}
 	
-	public static <T> Sort<T> comparatorSort(Comparator<T> sorter, StreamAction<T> nextAction)
+	public static <M> Sort<M> createComparator(Comparator<M> sorter, StreamAction<M> nextAction)
 	{
 		return new Sort<>(new WrappedComparator<>(sorter), nextAction);
 	}
 	
-	public static <T> Sort<T> wrappedComparatorSort(Comparator<ReflectionObject<T>> sorter, StreamAction<T> nextAction)
+	public static <T> Sort<T> createWrappedComparator(Comparator<ReflectionObject<T>> sorter, StreamAction<T> nextAction)
 	{
 		return new Sort<>(sorter, nextAction);
 	}
@@ -37,12 +35,6 @@ public class Sort<T extends Object> extends IntermediateAction<T>
 	@Override
 	public boolean perform(Stream<ReflectionObject<T>> objStream) 
 	{
-		if (sorter != null)
-		{
-			return continueActions(objStream.sorted(sorter));
-		}
-		
-		System.err.println("No sorter given");
-		return false;
+		return continueActions(objStream.sorted(sorter));
 	}
 }

@@ -7,7 +7,7 @@ import universal_randomizer.wrappers.ReflectionObject;
 import universal_randomizer.wrappers.UnwrappedStreamAction;
 import universal_randomizer.wrappers.WrappedStreamAction;
 
-public class Select<T extends Object> extends IntermediateAction<T>
+public class Select<T> extends IntermediateAction<T>
 {	
 	public enum SelectStrategy
 	{

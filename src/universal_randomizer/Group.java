@@ -7,26 +7,24 @@ import java.util.stream.Stream;
 
 import universal_randomizer.wrappers.ReflectionObject;
 
-public class Group<M, T extends Object> extends IntermediateAction<T>
+public class Group<T> extends IntermediateAction<T>
 {
 	String var;
-	Class<M> clazz;
 
 	// TODO: Refactor to factory instead of constructor?
 	
-	public Group(Class<M> clazz, String groupingVar, StreamAction<T> nextAction)
+	public Group(String groupingVar, StreamAction<T> nextAction)
 	{
 		super(nextAction);
-		this.clazz = clazz;
 		var = groupingVar;
 	}
 	
 	@Override
 	public boolean perform(Stream<ReflectionObject<T>> objStream)
 	{
-		Map<M, List<ReflectionObject<T>>> grouped = 
+		Map<Object, List<ReflectionObject<T>>> grouped = 
 				objStream.collect(Collectors.groupingBy(
-					x -> x.getVariableValue(var, clazz)));
+					x -> x.getVariableValue(var)));
 		
 		boolean okay = true;
 		for (List<ReflectionObject<T>> group : grouped.values())

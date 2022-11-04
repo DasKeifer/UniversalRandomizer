@@ -2,6 +2,8 @@ package universal_randomizer.wrappers;
 
 import java.lang.reflect.Method;
 
+import universal_randomizer.Utils;
+
 public class ReflectionObject <T> {
 	T obj;
 	int randValue;
@@ -12,33 +14,19 @@ public class ReflectionObject <T> {
 	{
 		this.obj = obj;
 	}
-
-	// TODO: Needed?
-//	public Class<?> getVariableType(String name)
-//	{
-//		try 
-//		{
-//			return obj.getClass().getField(name).getType();
-//		} 
-//		catch (NoSuchFieldException | SecurityException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		return null;
-//	}
 	
-	public Method getBooleanMethod(String name, Class<?>... paramTypes)
+	public Method getBooleanMethod(String pathToMethod, Class<?>... paramTypes)
 	{
-		// TODO: Support paths
+		Object owningObj = getPenultimateObject(obj, pathToMethod);
 		try {
-			Method method = obj.getClass().getMethod(name, paramTypes);
+			Method method = owningObj.getClass().getMethod(getLastNameOfPath(pathToMethod), paramTypes);
 			if (method.getReturnType() == Boolean.class || method.getReturnType() == boolean.class)
 			{
 				return method;
 			}
 			else
 			{
-				System.err.println("getBooleanMethod found Method " + method.getName() + " but it does not return a boolean ");
+				System.err.println("getBooleanMethod found Method " + method.getName() + " at path " + pathToMethod + " but it does not return a boolean ");
 			}
 		} catch (NoSuchMethodException | SecurityException e) {
 			// TODO Auto-generated catch block
@@ -47,31 +35,12 @@ public class ReflectionObject <T> {
 		return null;
 	}
 	
-	// TODO: Extract to function that can be used for vars or functions? At least part probably can be
-	public <M> M getVariableValue(String name, Class<? extends M> clazz)
+	public <M> M getVariableValue(String pathToField)
 	{
-		if (name.contains("."))
-		{
-			String[] paths = name.split("\\.");
-			try 
-			{
-				Object nextObj = obj.getClass().getField(paths[0]).get(obj);
-				for (int pathIndex = 1; pathIndex < paths.length; pathIndex++)
-				{
-					nextObj = nextObj.getClass().getField(paths[pathIndex]).get(nextObj);
-				}
-				return safeCast(clazz, nextObj);
-			} 
-			catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) 
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
+		Object owningObj = getPenultimateObject(obj, pathToField);
 		try 
 		{
-			return safeCast(clazz, obj.getClass().getField(name).get(obj));
+			return Utils.safeCast(owningObj.getClass().getField(getLastNameOfPath(pathToField)).get(owningObj));
 		} 
 		catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			// TODO Auto-generated catch block
@@ -79,6 +48,55 @@ public class ReflectionObject <T> {
 		}
 		
 		return null;
+	}
+	
+	public boolean setVariableValue(String pathToField, Object value)
+	{
+		Object owningObj = getPenultimateObject(obj, pathToField);
+		try 
+		{
+			owningObj.getClass().getField(getLastNameOfPath(pathToField)).set(owningObj, value);
+			return true;
+		} 
+		catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	private String getLastNameOfPath(String path)
+	{
+		int lastSeparator = path.lastIndexOf('.');
+		if (lastSeparator >= 0)
+		{
+			return path.substring(lastSeparator + 1);
+		}
+		return path;
+	}
+	
+	private Object getPenultimateObject(Object baseObj, String path)
+	{
+		if (path.contains("."))
+		{
+			String[] paths = path.split("\\.");
+			try 
+			{
+				Object nextObj = baseObj.getClass().getField(paths[0]).get(baseObj);
+				for (int pathIndex = 1; pathIndex < paths.length - 1; pathIndex++)
+				{
+					nextObj = nextObj.getClass().getField(paths[pathIndex]).get(nextObj);
+				}
+				return nextObj;
+			} 
+			catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return baseObj;
 	}
 	
 	public T getObject()
@@ -94,10 +112,5 @@ public class ReflectionObject <T> {
 	public void setRandomValue(int val)
 	{
 		randValue = val;
-	}
-	
-	private <M> M safeCast(Class<? extends M> clazz, Object obj)
-	{
-	   return clazz != null && clazz.isInstance(obj) ? clazz.cast(obj) : null;
 	}
 }
