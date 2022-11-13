@@ -5,8 +5,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import universal_randomizer.action.IntermediateAction;
+import universal_randomizer.action.ReflObjStreamAction;
 import universal_randomizer.wrappers.ReflectionObject;
-import universal_randomizer.wrappers.ReflectionObjectStreamAction;
 
 public class Group<T> extends IntermediateAction<T>
 {
@@ -14,7 +15,7 @@ public class Group<T> extends IntermediateAction<T>
 
 	// TODO: Refactor to factory instead of constructor?
 	
-	public Group(String groupingVar, ReflectionObjectStreamAction<T> nextAction)
+	public Group(String groupingVar, ReflObjStreamAction<T> nextAction)
 	{
 		super(nextAction);
 		var = groupingVar;

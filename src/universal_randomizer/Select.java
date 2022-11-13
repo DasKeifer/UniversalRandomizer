@@ -3,10 +3,9 @@ package universal_randomizer;
 import java.util.stream.Stream;
 
 import condition.Condition;
-import universal_randomizer.interfaces.StreamAction;
+import universal_randomizer.action.IntermediateAction;
+import universal_randomizer.action.ReflObjStreamAction;
 import universal_randomizer.wrappers.ReflectionObject;
-import universal_randomizer.wrappers.StreamActionReflectionObjectWrapper;
-import universal_randomizer.wrappers.ReflectionObjectStreamAction;
 
 public class Select<T> extends IntermediateAction<T>
 {	
@@ -19,19 +18,19 @@ public class Select<T> extends IntermediateAction<T>
 	
 	// TODO: Refactor to factory instead of constructor
 	
-	public Select(Condition<T> varExpr, ReflectionObjectStreamAction<T> nextAction)
+	public Select(Condition<T> varExpr, ReflObjStreamAction<T> nextAction)
 	{
 		super(nextAction);
 		
 		this.varExpr = varExpr;
 	}
 	
-	public Select(Condition<T> varExpr, StreamAction<T> nextAction)
-	{
-		super(new StreamActionReflectionObjectWrapper<>(nextAction));
-		
-		this.varExpr = varExpr;
-	}
+//	public Select(Condition<T> varExpr, RawStreamAction<T> nextAction)
+//	{
+//		super(new StreamActionWrapper<>(nextAction));
+//		
+//		this.varExpr = varExpr;
+//	}
 	
 	public boolean perform(Stream<ReflectionObject<T>> objStream)
 	{

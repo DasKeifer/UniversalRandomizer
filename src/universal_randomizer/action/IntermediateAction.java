@@ -1,15 +1,14 @@
-package universal_randomizer;
+package universal_randomizer.action;
 
 import java.util.stream.Stream;
 
 import universal_randomizer.wrappers.ReflectionObject;
-import universal_randomizer.wrappers.ReflectionObjectStreamAction;
 
-public abstract class IntermediateAction<T> implements ReflectionObjectStreamAction<T>
+public abstract class IntermediateAction<T> implements ReflObjStreamAction<T>
 {
-	ReflectionObjectStreamAction<T> nextAction;
+	ReflObjStreamAction<T> nextAction;
 	
-	protected IntermediateAction(ReflectionObjectStreamAction<T> nextAction)
+	protected IntermediateAction(ReflObjStreamAction<T> nextAction)
 	{
 		if (nextAction == null)
 		{

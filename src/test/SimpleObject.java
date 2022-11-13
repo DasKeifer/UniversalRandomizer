@@ -1,5 +1,6 @@
 package test;
 
+
 public class SimpleObject implements Comparable<SimpleObject>
 {
 	public String name;
@@ -22,7 +23,7 @@ public class SimpleObject implements Comparable<SimpleObject>
 		return Integer.compare(this.intVal, o.intVal);
 	}
 
-	public Boolean valBetweenn2And5Excl()
+	public Boolean valBetween2And5Excl()
 	{
 		return intVal > 2 && intVal < 5;
 	}

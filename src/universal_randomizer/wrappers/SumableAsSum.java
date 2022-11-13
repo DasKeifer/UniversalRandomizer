@@ -1,7 +1,7 @@
 package universal_randomizer.wrappers;
 
-import universal_randomizer.interfaces.Sum;
-import universal_randomizer.interfaces.Sumable;
+import universal_randomizer.user_object_apis.Sum;
+import universal_randomizer.user_object_apis.Sumable;
 
 public class SumableAsSum<T extends Sumable<T>> implements Sum<T>{
 

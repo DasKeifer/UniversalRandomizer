@@ -21,7 +21,6 @@ public class CompoundCondition <T> implements Condition<T>
 		}
 	}
 	
-	//TODO investigate annotation
 	@SafeVarargs
 	public CompoundCondition(Condition<T> baseCond, LogicConditionPair<T>... additionalConds)
 	{

@@ -1,4 +1,4 @@
-package universal_randomizer.interfaces;
+package universal_randomizer.user_object_apis;
 
 @FunctionalInterface
 public interface Sum<T> 

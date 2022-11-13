@@ -3,17 +3,16 @@ package universal_randomizer;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import universal_randomizer.pool.Pool;
+import universal_randomizer.action.ReflObjStreamAction;
 import universal_randomizer.wrappers.ReflectionObject;
-import universal_randomizer.wrappers.ReflectionObjectStreamAction;
 
-public class Randomize<T> implements ReflectionObjectStreamAction<T>
+public class Randomize<T, P> implements ReflObjStreamAction<T>
 {
 	String pathToField;
 	Random rand;
-	Pool<?> pool;
+	Pool<P> pool;
 	
-	private Randomize(String pathToField, Pool<?> pool, Random rand)
+	private Randomize(String pathToField, Pool<P> pool, Random rand)
 	{
 		this.pathToField = pathToField;
 		this.pool = pool;
@@ -27,12 +26,12 @@ public class Randomize<T> implements ReflectionObjectStreamAction<T>
 		}
 	}
 	
-	public static <T> Randomize<T> createRandom(String pathToField, Pool<?> pool)
+	public static <V, S> Randomize<V, S> createRandom(String pathToField, Pool<S> pool)
 	{
 		return new Randomize<>(pathToField, pool, null);
 	}
 			
-	public static <T> Randomize<T> createSeeded(String pathToField, Pool<?> pool, long seed)
+	public static <V, S> Randomize<V, S> createSeeded(String pathToField, Pool<S> pool, long seed)
 	{
 		return new Randomize<>(pathToField, pool, new Random(seed));
 	}
@@ -40,7 +39,11 @@ public class Randomize<T> implements ReflectionObjectStreamAction<T>
 	@Override
 	public boolean perform(Stream<ReflectionObject<T>> objStream) 
 	{
-		objStream.forEach(obj -> obj.setVariableValue(pathToField, pool.getRandomValue(rand)));
+		if (pool == null)
+		{
+			pool = Pool.createFromStream(pathToField, objStream);
+		}
+		objStream.forEach(obj -> obj.setVariableValue(pathToField, pool.getRandom(rand)));
 		return true;
 	}
 }

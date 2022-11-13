@@ -48,10 +48,13 @@ public class SimpleCondition <T, M> implements Condition<T>
 		boolean result = false;
 		
 		// Get the var
-		M var = obj.getVariableValue(variable);
-		if (var != null && var.getClass().isInstance(val))
+		Object var = obj.getVariableValue(variable);
+		if (var != null && val.getClass().isInstance(var))
 		{
-			result = invokeCompareTo(var, comparator, val);
+			// Checked on the if above
+			@SuppressWarnings("unchecked")
+			M casted = (M) var;
+			result = invokeCompareTo(casted, comparator, val);
 			if (negate == Negate.YES)
 			{
 				result = !result;

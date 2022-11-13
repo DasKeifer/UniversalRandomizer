@@ -1,6 +1,8 @@
 package universal_randomizer.wrappers;
 
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import universal_randomizer.Utils;
 
@@ -8,17 +10,19 @@ public class ReflectionObject <T> {
 	T obj;
 	int randValue;
 
-	// TODO: Refactor to factory instead of constructor and to prevent null values
+	// TODO: Refactor to factory instead of constructor and to prevent null values?
 	
 	public ReflectionObject(T obj)
 	{
 		this.obj = obj;
+		randValue = 0;
 	}
 	
 	public Method getBooleanMethod(String pathToMethod, Class<?>... paramTypes)
 	{
 		Object owningObj = getPenultimateObject(obj, pathToMethod);
-		try {
+		try
+		{
 			Method method = owningObj.getClass().getMethod(getLastNameOfPath(pathToMethod), paramTypes);
 			if (method.getReturnType() == Boolean.class || method.getReturnType() == boolean.class)
 			{
@@ -35,12 +39,12 @@ public class ReflectionObject <T> {
 		return null;
 	}
 	
-	public <M> M getVariableValue(String pathToField)
+	public Object getVariableValue(String pathToField)
 	{
 		Object owningObj = getPenultimateObject(obj, pathToField);
 		try 
 		{
-			return Utils.safeCast(owningObj.getClass().getField(getLastNameOfPath(pathToField)).get(owningObj));
+			return owningObj.getClass().getField(getLastNameOfPath(pathToField)).get(owningObj);
 		} 
 		catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			// TODO Auto-generated catch block
@@ -50,6 +54,61 @@ public class ReflectionObject <T> {
 		return null;
 	}
 	
+	public <M> Stream<M> getFieldStream(String pathToField)
+	{
+		Object owningObj = getPenultimateObject(obj, pathToField);
+		try 
+		{
+			return Utils.convertToStream(
+					owningObj.getClass().getField(getLastNameOfPath(pathToField)).get(owningObj));
+		} 
+		catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return Stream.empty();
+	}
+	
+	public <M> Stream<M> getMapFieldValuesStream(String pathToMapField)
+	{
+		return getMapFieldStream(pathToMapField, true);
+	}
+	
+	public <M> Stream<M> getMapFieldKeysStream(String pathToMapField)
+	{
+		return getMapFieldStream(pathToMapField, false);
+	}
+	
+	public <M> Stream<M> getMapFieldStream(String pathToField, boolean valuesNotKeys)
+	{
+		Object owningObj = getPenultimateObject(obj, pathToField);
+		try 
+		{
+			Object fieldVal = owningObj.getClass().getField(getLastNameOfPath(pathToField)).get(owningObj);
+			if (fieldVal instanceof Map)
+			{
+				if (valuesNotKeys)
+				{
+					return Utils.convertToStream(((Map<?, ?>) fieldVal).values());
+				}
+				else
+				{
+					return Utils.convertToStream(((Map<?, ?>) fieldVal).keySet());
+				}
+			}
+		} 
+		catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return Stream.empty();
+	}
+
+	// TODO: Need to handle setters and also "raw" vars
 	public boolean setVariableValue(String pathToField, Object value)
 	{
 		Object owningObj = getPenultimateObject(obj, pathToField);

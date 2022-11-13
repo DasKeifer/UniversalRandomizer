@@ -2,14 +2,15 @@ package universal_randomizer.wrappers;
 
 import java.util.stream.Stream;
 
-import universal_randomizer.interfaces.StreamAction;
+import universal_randomizer.action.ReflObjStreamAction;
+import universal_randomizer.action.StreamAction;
 
 
-public class StreamActionReflectionObjectWrapper<T> implements ReflectionObjectStreamAction<T> 
+public class StreamActionReflObjWrapper<T> implements ReflObjStreamAction<T> 
 {
 	StreamAction<T> wrapped;
 	
-	public StreamActionReflectionObjectWrapper(StreamAction<T> action)
+	public StreamActionReflObjWrapper(StreamAction<T> action)
 	{
 		this.wrapped = action;
 	}
