@@ -3,6 +3,8 @@ package test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import condition.Condition;
@@ -15,11 +17,11 @@ import condition.CompoundCondition;
 import condition.SimpleCondition;
 import universal_randomizer.Group;
 import universal_randomizer.Pool;
-import universal_randomizer.Randomize;
 import universal_randomizer.Select;
 import universal_randomizer.Shuffle;
 import universal_randomizer.Sort;
 import universal_randomizer.action.ReflObjStreamAction;
+import universal_randomizer.randomize.Randomize;
 import universal_randomizer.wrappers.ReflectionObject;
 
 public class Test {
@@ -246,13 +248,33 @@ public class Test {
 		{
 			System.err.println("get removed - pre " + size + " post " + intPool.size());
 		}
+		
+		// Test getting random indexes excluding some
+		SortedSet<Integer> exclIndexes = new TreeSet<>();
+		for(int i = 0; i < 100; i++)
+		{
+			exclIndexes.clear();
+			for (int j = 0; j <= intPool.size(); j++)
+			{
+				int randIndex = intPool.getRandomIndex(rand, exclIndexes);
+				if (exclIndexes.contains(randIndex))
+				{
+					System.err.println("getRandomIndex returned value in exluded list - index: " + randIndex + " excluded: " + exclIndexes);
+				}
+				if (j == intPool.size() && randIndex != -1)
+				{
+					System.err.println("getRandomIndex returned non-invalid index: " + randIndex + " when all index are excluded: " + exclIndexes);
+				}
+				exclIndexes.add(randIndex);
+			}
+		}
 	}
 
 	static void randomizeTests()
 	{
 		System.out.println("----------- Randomize -------------------");
 		Pool<Integer> rp1 = Pool.createRange(1, 20, 2, Integer::sum);
-		Randomize<SimpleObject, Integer> r1 = Randomize.createSeeded("intVal", rp1, 1);
+		Randomize<SimpleObject, Integer> r1 = Randomize.createSeededWithPool("intVal", rp1, 1);
 		r1.perform(soList.stream());
 		printWrappedSimpleObjectList(soList.stream());
 	}
