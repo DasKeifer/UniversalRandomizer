@@ -1,11 +1,23 @@
 package universal_randomizer.randomize;
 
-public class OnFailAlternateAction extends OnFailAction 
+import universal_randomizer.condition.CompoundCondition;
+
+public class OnFailAlternateAction<T> extends OnFailAction 
 {
 	//TODO: Implement
 	
 	public OnFailAlternateAction()
 	{
 		super(OnFail.ALTERNATE);
+	}
+	
+	public CompoundCondition<T> getCondition()
+	{
+		return null;
+	}
+
+	public boolean applied() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }
