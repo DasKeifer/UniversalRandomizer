@@ -1,4 +1,4 @@
-package condition;
+package universal_randomizer.condition;
 
 import java.util.LinkedList;
 import java.util.List;

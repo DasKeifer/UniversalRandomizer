@@ -2,28 +2,17 @@ package test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import condition.Condition;
-import condition.LogicConditionPair;
-import condition.MethodCondition;
-import condition.Logic;
-import condition.Negate;
-import condition.Compare;
-import condition.CompoundCondition;
-import condition.SimpleCondition;
-import universal_randomizer.Group;
-import universal_randomizer.Pool;
-import universal_randomizer.Select;
-import universal_randomizer.Shuffle;
-import universal_randomizer.Sort;
-import universal_randomizer.action.ReflObjStreamAction;
-import universal_randomizer.randomize.Randomize;
+import universal_randomizer.condition.Compare;
+import universal_randomizer.condition.Condition;
+import universal_randomizer.condition.Negate;
+import universal_randomizer.condition.SimpleCondition;
 import universal_randomizer.stream.RandomizeStream;
 import universal_randomizer.wrappers.ReflectionObject;
+
 
 public class Test {
 	
@@ -41,9 +30,27 @@ public class Test {
 	{		
 		setupLists();
 		
-		RandomizeStream<SimpleObject> rsTest = new RandomizeStream<>(soList.stream());
-		List<SimpleObject> out = rsTest.select(sointLte4).collect();
+		List<SimpleObject> out = RandomizeStream.createRandomizeStream(soList)
+				.select(sointLte4)
+				.collect(Collectors.toList());
 		printSimpleObjectList(out.stream());
+		
+		Set<SimpleObject> out2 = RandomizeStream.createRandomizeStream(soList)
+				.select(sointLte4)
+				.select(intGt1)
+				.collect(Collectors.toSet());
+		printSimpleObjectList(out2.stream());
+		
+		out = RandomizeStream.createRandomizeStream(soList)
+				.group("intVal")
+				.toList();
+		printSimpleObjectList(out.stream());
+		
+		out2 = RandomizeStream.createRandomizeStream(soList)
+				.group("intVal")
+				.select(nameIs8)
+				.collect(Collectors.toSet());
+		printSimpleObjectList(out2.stream());
 		
 //		reflectionObjectTests();
 //		simpleConditionTests();
@@ -119,7 +126,7 @@ public class Test {
 		executeAndPrintCondition(soList, intGt1);
 		executeAndPrintCondition(soList, nameIs8);
 	}
-	
+	/*
 	static void methodConditionTests()
 	{
 		System.out.println("----------- Method Condition -------------------");
@@ -193,7 +200,7 @@ public class Test {
         Shuffle<SimpleObject> shuffle2 = Shuffle.createSeeded(Test::printWrappedSimpleObjectList, 1);
         shuffle2.perform(soList.stream());
 	}
-
+	
 	static void poolTests()
 	{
 		poolCreationTests();
@@ -283,6 +290,7 @@ public class Test {
 		r1.perform(soList.stream());
 		printWrappedSimpleObjectList(soList.stream());
 	}
+	*/
 	
 	static SimpleObject sumSO(SimpleObject lhs, SimpleObject rhs)
 	{
@@ -349,6 +357,7 @@ public class Test {
 		return true;
 	}
 
+	/*
 	static void printPool(Pool<?> pool)
 	{
 		System.out.print("Pool: ");
@@ -367,5 +376,5 @@ public class Test {
 			System.out.print(pool.get(i).intVal + ", ");
 		}
 		System.out.println();
-	}
+	}*/
 }

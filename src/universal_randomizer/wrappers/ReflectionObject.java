@@ -172,4 +172,16 @@ public class ReflectionObject <T> {
 	{
 		randValue = val;
 	}
+
+	public ReflectionObject<T> setRandomValueReturnSelf(int val)
+	{
+		setRandomValue(val);
+		return this;
+	}
+	
+	public static <T> int sortByRandomValue(ReflectionObject<T> lhs, ReflectionObject<T> rhs)
+    {
+		// TODO: need a way to avoid duplicate values?
+        return Integer.compare(lhs.getRandomValue(), rhs.getRandomValue());
+    }
 }

@@ -7,9 +7,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
-import condition.CompoundCondition;
-import universal_randomizer.Pool;
 import universal_randomizer.action.ReflObjStreamAction;
+import universal_randomizer.condition.CompoundCondition;
+import universal_randomizer.Pool;
 import universal_randomizer.wrappers.ReflectionObject;
 
 public class Randomize<T, P> implements ReflObjStreamAction<T>

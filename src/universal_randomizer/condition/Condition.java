@@ -1,4 +1,4 @@
-package condition;
+package universal_randomizer.condition;
 
 import universal_randomizer.wrappers.ReflectionObject;
 

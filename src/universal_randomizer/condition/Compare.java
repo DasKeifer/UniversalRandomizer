@@ -1,4 +1,4 @@
-package condition;
+package universal_randomizer.condition;
 
 public enum Compare 
 {
