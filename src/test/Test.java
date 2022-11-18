@@ -22,6 +22,7 @@ import universal_randomizer.Shuffle;
 import universal_randomizer.Sort;
 import universal_randomizer.action.ReflObjStreamAction;
 import universal_randomizer.randomize.Randomize;
+import universal_randomizer.stream.RandomizeStream;
 import universal_randomizer.wrappers.ReflectionObject;
 
 public class Test {
@@ -40,16 +41,20 @@ public class Test {
 	{		
 		setupLists();
 		
-		reflectionObjectTests();
-		simpleConditionTests();
-		methodConditionTests();
-		compoundConditionTests();
+		RandomizeStream<SimpleObject> rsTest = new RandomizeStream<>(soList.stream());
+		List<SimpleObject> out = rsTest.select(sointLte4).collect();
+		printSimpleObjectList(out.stream());
 		
-		groupTests();
-		sortTests();
-        shuffleTests();
-        poolTests();
-        randomizeTests();
+//		reflectionObjectTests();
+//		simpleConditionTests();
+//		methodConditionTests();
+//		compoundConditionTests();
+//		
+//		groupTests();
+//		sortTests();
+//        shuffleTests();
+//        poolTests();
+//        randomizeTests();
 	}
 
 	static void setupLists()
