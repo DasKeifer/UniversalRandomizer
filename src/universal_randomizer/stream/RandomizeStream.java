@@ -8,7 +8,9 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import universal_randomizer.Pool;
 import universal_randomizer.condition.Condition;
+import universal_randomizer.randomize.Randomizer;
 import universal_randomizer.wrappers.ReflectionObject;
 
 public interface RandomizeStream<T>
@@ -32,6 +34,11 @@ public interface RandomizeStream<T>
 		return shuffle(new Random());
 	}
 	
+	public default RandomizeStream<T> shuffle(long seed)
+	{
+		return shuffle(new Random(seed));
+	}
+	
 	public RandomizeStream<T> shuffle(Random rand);
 	
 	public RandomizeStream<T> sort();
@@ -40,6 +47,8 @@ public interface RandomizeStream<T>
 	
 	public RandomizeStream<T> sortWrapped(Comparator<ReflectionObject<T>> wrappedSorter);
 
+//	public void randomize(Randomizer<T, ?> rand);
+	
 	
 	
 	

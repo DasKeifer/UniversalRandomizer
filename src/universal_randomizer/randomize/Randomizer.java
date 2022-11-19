@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import universal_randomizer.action.ReflObjStreamAction;
 import universal_randomizer.condition.CompoundCondition;
 import universal_randomizer.Pool;
 import universal_randomizer.wrappers.ReflectionObject;
 
-public class Randomize<T, P> implements ReflObjStreamAction<T>
+public class Randomizer<T, P> 
 {
 	String pathToField;
 	Random rand;
@@ -20,14 +20,17 @@ public class Randomize<T, P> implements ReflObjStreamAction<T>
 	List<Pool<P>> workingPools; // For onAssign REMOVE only
 	OnAssign onAssign;
 	CompoundCondition<P> enforce;
-	List<OnFailAction> onFailActions;
+	List<OnFailAction> sourceOnFailActions;
+	List<OnFailAction> workingOnFailActions;
 	OnFailAction currentOnFailAction;
 	// Make this a set? ALTERNATE repeats previous set if no specific is given]
 	// Define specific order for fail actions?
+	// Set order: Retry, alternate then retry again, repeat
+	
 	// RETRY, RESET, [NEW_POOL, ALTERNATE], <IGNORE/ABORT>
 	
 	
-	private Randomize(String pathToField, Pool<P> pool, Random rand)
+	private Randomizer(String pathToField, Pool<P> pool, Random rand)
 	{
 		this.pathToField = pathToField;
 
@@ -45,24 +48,24 @@ public class Randomize<T, P> implements ReflObjStreamAction<T>
 		}
 	}
 
-	public static <V, S> Randomize<V, S> createRandomPoolFromStream(String pathToField)
+	public static <V, S> Randomizer<V, S> createRandomPoolFromStream(String pathToField)
 	{
-		return new Randomize<>(pathToField, null, null);
+		return new Randomizer<>(pathToField, null, null);
 	}
 	
-	public static <V, S> Randomize<V, S> createSeededPoolFromStream(String pathToField, long seed)
+	public static <V, S> Randomizer<V, S> createSeededPoolFromStream(String pathToField, long seed)
 	{
-		return new Randomize<>(pathToField, null, new Random(seed));
+		return new Randomizer<>(pathToField, null, new Random(seed));
 	}
 	
-	public static <V, S> Randomize<V, S> createRandomWithPool(String pathToField, Pool<S> pool)
+	public static <V, S> Randomizer<V, S> createRandomWithPool(String pathToField, Pool<S> pool)
 	{
-		return new Randomize<>(pathToField, pool, null);
+		return new Randomizer<>(pathToField, pool, null);
 	}
 			
-	public static <V, S> Randomize<V, S> createSeededWithPool(String pathToField, Pool<S> pool, long seed)
+	public static <V, S> Randomizer<V, S> createSeededWithPool(String pathToField, Pool<S> pool, long seed)
 	{
-		return new Randomize<>(pathToField, pool, new Random(seed));
+		return new Randomizer<>(pathToField, pool, new Random(seed));
 	}
 	
 	private void setSourcePool(Pool<P> pool)
@@ -82,15 +85,20 @@ public class Randomize<T, P> implements ReflObjStreamAction<T>
 		this.onAssign = onAssign;
 	}
 
-	@Override
 	public boolean perform(Stream<ReflectionObject<T>> objStream) 
 	{
+		// in order to "reuse" the stream, we need to convert it out of a stream
+		// and create new ones. This will store the list if needed
+		List<ReflectionObject<T>> asList = null;
 		if (sourcePool == null)
 		{
 			//TODO: have a flatten option (Which is how it behaves now) vs a "pairwise" option which would
 			//treat arrays/collections as a single entry
-			setSourcePool(Pool.createFromStream(pathToField, objStream));
+			asList = objStream.collect(Collectors.toList());
+			setSourcePool(Pool.createFromStream(pathToField, asList.stream()));
 		}
+		
+		// TODO: If retries, create a copy of the list if not presetn
 		
 		switch (onAssign)
 		{
