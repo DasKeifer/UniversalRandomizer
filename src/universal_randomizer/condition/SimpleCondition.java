@@ -48,7 +48,7 @@ public class SimpleCondition <T, M> implements Condition<T>
 		boolean result = false;
 		
 		// Get the var
-		Object var = obj.getVariableValue(variable);
+		Object var = obj.getField(variable);
 		if (var != null && val.getClass().isInstance(var))
 		{
 			// Checked on the if above

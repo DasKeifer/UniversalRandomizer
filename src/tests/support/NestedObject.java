@@ -1,4 +1,4 @@
-package test;
+package tests.support;
 
 public class NestedObject
 {

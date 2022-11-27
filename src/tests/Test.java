@@ -1,4 +1,4 @@
-package test;
+package tests;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import tests.support.CollectionsObject;
+import tests.support.NestedObject;
+import tests.support.SimpleObject;
 import universal_randomizer.condition.Compare;
 import universal_randomizer.condition.Condition;
 import universal_randomizer.condition.Negate;
@@ -83,26 +86,10 @@ public class Test {
 		noList.add(new ReflectionObject<>(new NestedObject("no5", 4, soList.get(4).getObject())));
 		noList.add(new ReflectionObject<>(new NestedObject("no6", 6, soList.get(3).getObject())));
 		
-		CollectionsObject co1 = new CollectionsObject("1", 1);
-		co1.doubleWrapperArray = new Double[] { 1.0, 2.0, 3.0 };
-		co1.charRawArray = new char[] {'z','y','x'};
-		co1.charCollection.add('A');
-		co1.charCollection.add('B');
-		co1.charCollection.add('C');
-		co1.charCollection.add('D');
-		co1.floatMap.put(1, 1.2345f);
-		co1.floatMap.put(5, 2.1111f);
-		co1.floatMap.put(10, 0.54f);
+		CollectionsObject co1 = new CollectionsObject("1", 1, 3);
 		coList.add(new ReflectionObject<CollectionsObject>(co1));
 
-		CollectionsObject co2 = new CollectionsObject("2", 2);
-		co2.doubleWrapperArray = new Double[] { 4.0, 5.0, 6.0, 7.0 };
-		co2.charRawArray = new char[] {'w','v'};
-		co2.charCollection.add('E');
-		co2.charCollection.add('F');
-		co2.floatMap.put(3, 3.333f);
-		co2.floatMap.put(4, -4.04f);
-		co2.floatMap.put(-5, 0.01f);
+		CollectionsObject co2 = new CollectionsObject("2", 2, 2);
 		coList.add(new ReflectionObject<CollectionsObject>(co2));
 	}
 	
@@ -110,13 +97,6 @@ public class Test {
 	{
 		System.out.println("----------- Reflection Object -------------------");
 
-		getAndPrintField(coList.get(0), "intVal");
-		getAndPrintField(coList.get(0), "charRawArray");
-		getAndPrintField(coList.get(0), "doubleWrapperArray");
-		getAndPrintField(coList.get(0), "charCollection");
-		getAndPrintField(coList.get(0), "floatMap");
-		getAndPrintMapField(coList.get(0), "floatMap", true);
-		getAndPrintMapField(coList.get(0), "floatMap", false);
 	}
 
 	static void simpleConditionTests()

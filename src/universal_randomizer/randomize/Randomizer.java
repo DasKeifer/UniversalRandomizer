@@ -1,6 +1,6 @@
 package universal_randomizer.randomize;
 
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedSet;
@@ -8,20 +8,23 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import universal_randomizer.condition.CompoundCondition;
+import universal_randomizer.condition.Condition;
 import universal_randomizer.wrappers.ReflectionObject;
 import universal_randomizer.Pool;
 
 public abstract class Randomizer<T, P> 
 {
+	protected static final int FAILED_INDEX = -1;
+	protected static final int RETRY_INDEX = -2;
+	
 	String pathToField;
 	Random rand;
 	Pool<P> sourcePool;
-	CompoundCondition<P> sourceEnforce;
+	Condition<P> sourceEnforce;
 	List<OnFailAction> sourceOnFailActions;
 	
 	
-	List<CompoundCondition<P>> workingConditions;
+	List<Condition<P>> workingConditions;
 	List<OnFailAction> workingOnFailActions;
 	int currentOnFailActionIndex;
 	OnFailAction currentOnFailAction;
@@ -53,26 +56,32 @@ public abstract class Randomizer<T, P>
 		{
 			this.rand = rand;
 		}
+		
+		sourceEnforce = null;
+		sourceOnFailActions = new LinkedList<>();
+		workingConditions = new LinkedList<>();
+		workingOnFailActions = null;
+		currentOnFailActionIndex = 0;
+		currentOnFailAction = null;
 	}
 	
 	public void setOnFailActions(List<OnFailAction> actions)
 	{
 		this.sourceOnFailActions = actions;
 	}
+	
+	public void setEnforce(Condition<P> enforce)
+	{
+		sourceEnforce = enforce;
+	}
 
 	public boolean perform(Stream<ReflectionObject<T>> objStream) 
 	{
-		// Set our working actions
+    	// Create the working actions. If they are empty, use the default settings
+		workingOnFailActions = new LinkedList<>(sourceOnFailActions);
         if (workingOnFailActions.isEmpty())
         {
-        	if (sourceOnFailActions.isEmpty())
-        	{
-            	workingOnFailActions.add(OnFailActionAttempts.createRetryUntilExhaustedAction());
-        	}
-        	else
-        	{
-        		workingOnFailActions.addAll(sourceOnFailActions);
-        	}
+        	workingOnFailActions.add(OnFailActionAttempts.createRetryUntilExhaustedAction());
         }
         
         // Now go ahead an initialize our current location in our list of onFailActions
@@ -83,7 +92,7 @@ public abstract class Randomizer<T, P>
 		// and create new ones. We need to save off the list if we need to create
         // a source pool or if there is a RESET on fail action
 		List<ReflectionObject<T>> streamAsList = null;
-		if (setNextResetAction() || sourcePool == null)
+		if (hasActionRequiringRestart() || sourcePool == null)
 		{
 			//TODO: have a flatten option (Which is how it behaves now) vs a "pairwise" option which would
 			//treat arrays/collections as a single entry
@@ -97,126 +106,298 @@ public abstract class Randomizer<T, P>
 		}
 
 		// If we failed randomization and have other actions left
-		if (!attemptRandomization(objStream, streamAsList))
-		{
-			
-		}
+		boolean success = attemptRandomization(objStream, streamAsList);
 		
 		// TODO: Randomize Each/All/Set
 		
-		// TODO: handle enforce
-		
 		// TODO: Handle multi-value sets
 		
-		return true;
+		return success;
 	}
 	
+	protected List<ReflectionObject<T>> randomize(Stream<ReflectionObject<T>> objStream)
+	{
+		return objStream.filter(this::attemptAssignValue).collect(Collectors.toList());
+	}
+	
+	// Handles RESET
 	protected boolean attemptRandomization(Stream<ReflectionObject<T>> objStream, List<ReflectionObject<T>> streamAsList)
 	{
 		// Attempt to assign randomized values for each item in the stream
-		List<ReflectionObject<T>> failed = objStream.filter(this::attemptAssignValue).collect(Collectors.toList());
-
-		// TODO: Need to reset pool for exclude type
+		List<ReflectionObject<T>> failed = randomize(objStream);
 		
-		// if we failed, reset as many times as we are allowed 
-		while (!failed.isEmpty() && isCurrentActionOfType(OnFail.RESET) && 
-				((OnFailActionAttempts) currentOnFailAction).attempt())
+		if (!failed.isEmpty())
+		{
+			failed = failedRandomizationLoop(streamAsList);
+		}
+		
+		return failed == null || !failed.isEmpty();
+	}
+	
+	protected List<ReflectionObject<T>> failedRandomizationLoop(List<ReflectionObject<T>> streamAsList)
+	{
+		List<ReflectionObject<T>> failed;
+		do
 		{
 			// TODO log error info
 			
-			// Reset our list location and start over
-			resetActionListLocation();
-			failed = streamAsList.stream().filter(this::attemptAssignValue).collect(Collectors.toList());
-		}
-
-		// If we had a reset action, now that we finished, reset it
-		if (isCurrentActionOfType(OnFail.RESET))
-		{
-			((OnFailActionAttempts) currentOnFailAction).resetAttempts();
-		}
-		
-		// If we still didn't find any after resetting, move to the next action
-		if (!failed.isEmpty())
-		{
-			moveToNextAction();
-			
-			// Attempt to apply an alternate enforce and reset the retry
-			if (attemptApplyCurrentAlternateEnforce())
-			{
-				moveToNextAction();
-			}
-			
-			return false;
-		}
-		return true;
+			failed = failedRandomization(streamAsList);
+		} while (failed != null && !failed.isEmpty());
+		return failed;
 	}
 	
-	protected abstract boolean attemptAssignValue(ReflectionObject<T> obj);
-		
-	protected int getNextIndex(ReflectionObject<T> obj, Pool<P> pool)
+	protected List<ReflectionObject<T>> failedRandomization(List<ReflectionObject<T>> streamAsList)
 	{
-		// Get a random index
-		int randIndex = pool.getRandomIndex(rand);
-		
-		// If we got a valid index, but the condition failed
-		if (randIndex >= 0 /*&& enforce condition fails on index*/)
+		switch (getCurrentActionType())
 		{
-			// If our fail action is RETRY, keep trying while we
-			// have a valid index, have attempts left, and still fail
-			// the condition
-			if (isCurrentActionOfType(OnFail.RETRY) && 
-				((OnFailActionAttempts) currentOnFailAction).anyAttemptsLeft())
-			{
-				OnFailActionAttempts retryAction = (OnFailActionAttempts) currentOnFailAction;
-				
-				// Make the list of indexes to exclude
-				SortedSet<Integer> exlcudedIndexes = new TreeSet<>();
-				
-				while (retryAction.attempt())
+			case RESET:
+				OnFailActionAttempts resetAction = (OnFailActionAttempts) currentOnFailAction;
+				if (resetAction.anyAttemptsLeft())
 				{
-					// Add the index that failed the check
-					exlcudedIndexes.add(randIndex);
-					
-					// get the next index
-					randIndex = pool.getRandomIndex(rand, exlcudedIndexes);
-					
-					// if we got a bad index or the condition passes, we
-					// found a good value
-					if (randIndex < 0 &&
-							sourceEnforce != null /*&& enforce condition passes on index*/)
-					{
-						break;
-					}
+					 return randomize(streamAsList.stream());
 				}
-
-				// If we ran out of attempts, set the index to invalid
-				// and move to the next fail action
-				if (!retryAction.anyAttemptsLeft())
+				else
 				{
-					randIndex = -1;
+					// Reset our retry action, move to the next one, and retry
+					resetAction.resetAttempts();
 					moveToNextAction();
+					return failedRandomization(streamAsList);
 				}
-				
-				// Reset our retry action before we go
-				retryAction.resetAttempts();
-			}
-			// If we don't have a RETRY action, set the index to -1
-			else
-			{
-				randIndex = -1;
-			}
+			case OR_ENFORCE:
+				applyOrEnforce();
+				return failedRandomization(streamAsList);
+			case ENFORCE:
+				// TODO: new pass
+				break;
+			case RETRY:
+			case IGNORE:
+				// Handled at lower levels
+			case ABORT:
+				// Nothing to do - will abort naturally
+			case NEW_POOL:
+				// Not handled by this class
+			case INVALID:
+			default:
+				break;
 		}
 		
-		// TODO: handle "chained" retries for things like new pool or replace
-		
-		// Attempt to apply an alternate enforce and reset the retry
-		if (attemptApplyCurrentAlternateRepeat())
+		return null;
+	}
+	
+	protected boolean attemptAssignValueNegated(ReflectionObject<T> obj)
+	{
+		return !attemptAssignValue(obj);
+	}
+	
+	protected boolean attemptAssignValue(ReflectionObject<T> obj)
+	{
+		int index = attemptGetNextIndex();
+		if (index >= 0)
 		{
-			resetActionListLocation();
-			return getNextIndex(obj, pool);
+			return assignValue(obj, getAtIndex(index));
+		}
+		System.err.println("Failed to assign value for obj " + obj);
+		return false;
+	}
+
+	protected abstract int getNextIndex(SortedSet<Integer> excludedIndexes);
+	protected abstract P peekAtIndex(int index);
+	protected abstract P getAtIndex(int index);
+	
+	protected boolean assignValue(ReflectionObject<T> obj, P value)
+	{
+		return obj.setVariableValue(pathToField, value);
+	}
+		
+	protected int getNextIndex()
+	{
+		return getNextIndex(null);
+	}
+	
+	protected int attemptGetNextIndex()
+	{		
+		// Get a random index
+		int randIndex = getNextIndex();
+		if (randIndex >= 0 && !passesEnforce(randIndex))
+		{
+			randIndex = failedEnforceLoop(randIndex);
+		}
+
+		// Failed entry checking
+		if (randIndex < 0)
+		{
+			randIndex = failedEntryLoop();
+		}
+		return randIndex;
+	}
+	
+	protected boolean passesEnforce(int index)
+	{
+		if (sourceEnforce != null)
+		{
+			return sourceEnforce.evaluate(peekAtIndex(index));
+		}
+		return false;
+	}
+	
+	protected int failedEnforceLoop()
+	{
+		return failedEnforceLoop(-1);
+	}
+	
+	protected int failedEnforceLoop(int failedIndex)
+	{
+		boolean success = false;
+		SortedSet<Integer> failedIndexes = new TreeSet<>();
+		do 
+		{
+			failedIndexes.add(failedIndex);
+			failedIndex = failedEnforce(failedIndexes);
+			if (failedIndex >= 0 && passesEnforce(failedIndex))
+			{
+				success = true;
+			}
+		} while (failedIndex == RETRY_INDEX || failedIndex >= 0  && !success);
+		
+		if (!success)
+		{
+			failedIndex = FAILED_INDEX;
+		}
+		return failedIndex;
+	}
+	
+	protected int failedEnforce(SortedSet<Integer> excludedIndexes)
+	{
+		// If our fail action is RETRY, keep trying while we
+		// have a valid index, have attempts left, and still fail
+		// the condition
+		switch (getCurrentActionType())
+		{
+			case RETRY:
+				OnFailActionAttempts retryAction = (OnFailActionAttempts) currentOnFailAction;
+				if (retryAction.anyAttemptsLeft())
+				{
+					int index = getNextIndex(excludedIndexes);
+					if (index < 0)
+					{
+						return FAILED_INDEX;
+					}
+					return index;
+				}
+				else
+				{
+					// Reset our retry action, move to the next one, and retry
+					retryAction.resetAttempts();
+					moveToNextAction();
+					return failedEnforce(excludedIndexes);
+				}
+			case OR_ENFORCE:
+				applyOrEnforce();
+				return RETRY_INDEX;
+			case IGNORE:
+				// What to do? New const for ingore?
+				break;
+			case ENFORCE:
+			case ABORT:
+			case RESET:
+				// Handled at higher level
+			case NEW_POOL:
+				// Not handled in this class
+			case INVALID:
+			default:
+				break;
+		
+		}
+		return FAILED_INDEX;
+	}
+	
+	protected int failedEntryLoop() 
+	{
+		int index;
+		do
+		{
+			index = failedEntry();
+		} while (index == RETRY_INDEX);
+		
+		if (index < 0)
+		{
+			index = FAILED_INDEX;
 		}
 		
-		return randIndex;
+		return index;
+	}
+	
+	protected int failedEntry()
+	{
+		switch (getCurrentActionType())
+		{
+			case OR_ENFORCE:
+				applyOrEnforce();
+				return RETRY_INDEX;
+			case IGNORE:
+				// What to do? New const for ingore?
+				break;
+			case RETRY:
+			case ABORT:
+			case ENFORCE:
+			case RESET:
+				// Handled at higher level
+			case NEW_POOL:
+				// Not handled in this class
+			case INVALID:
+			default:
+				break;
+		
+		}
+		return FAILED_INDEX;
+	}
+	
+	protected boolean failedRandomize()
+	{
+		return false;
+	}
+	
+	protected boolean applyOrEnforce()
+	{
+		if (isCurrentActionOfType(OnFail.OR_ENFORCE))
+		{
+			@SuppressWarnings("unchecked")
+			OnFailAlternateAction<P> altAction = (OnFailAlternateAction<P>) currentOnFailAction;
+			
+			// If it hasn't already been applied, apply it then step back to
+			// the previous step
+			if (!altAction.applied())
+			{
+				workingConditions.add(altAction.getCondition());
+			}
+			
+			// Otherwise, move past this if its already applied - 
+			// nothing to do but move on and try the next thing
+			moveToNextAction();
+			return true;
+		}
+		return false;
+	}
+	
+	protected boolean hasActionRequiringRestart()
+	{
+		for (OnFailAction action : workingOnFailActions)
+		{
+			if (action.actionType == OnFail.RESET)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	protected OnFail getCurrentActionType()
+	{
+		if (currentOnFailAction != null)
+		{
+			return currentOnFailAction.actionType;
+		}
+		return OnFail.INVALID;
 	}
 	
 	protected boolean isCurrentActionOfType(OnFail toCheck)
@@ -248,28 +429,6 @@ public abstract class Randomizer<T, P>
 			currentOnFailAction = null;
 		}
 		return currentOnFailAction != null;
-	}
-		
-	@SuppressWarnings("unchecked")
-	protected boolean attemptApplyCurrentAlternateRepeat()
-	{
-		if (isCurrentActionOfType(OnFail.ALTERNATE_REPEAT))
-		{
-			OnFailAlternateAction<P> altAction = (OnFailAlternateAction<P>) currentOnFailAction;
-			
-			// If it hasn't already been applied, apply it then step back to
-			// the previous step
-			if (!altAction.applied())
-			{
-				workingConditions.add(altAction.getCondition());
-				moveToPreviousAction();
-				return true;
-			}
-			
-			// Otherwise, move past this if its already applied
-			moveToNextAction();
-		}
-		return false;
 	}
 
 	// TODO: Do it by position? Need a way to exclude the ALTERNATE_REPEAT. Maybe just check the next action?

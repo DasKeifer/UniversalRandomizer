@@ -39,7 +39,7 @@ public class ReflectionObject <T> {
 		return null;
 	}
 	
-	public Object getVariableValue(String pathToField)
+	public Object getField(String pathToField)
 	{
 		Object owningObj = getPenultimateObject(obj, pathToField);
 		try 

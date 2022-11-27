@@ -1,6 +1,6 @@
 package universal_randomizer.randomize;
 
-import universal_randomizer.condition.CompoundCondition;
+import universal_randomizer.condition.Condition;
 
 public class OnFailAlternateAction<T> extends OnFailAction 
 {
@@ -8,10 +8,10 @@ public class OnFailAlternateAction<T> extends OnFailAction
 	
 	public OnFailAlternateAction()
 	{
-		super(OnFail.ALTERNATE);
+		super(OnFail.OR_ENFORCE);
 	}
 	
-	public CompoundCondition<T> getCondition()
+	public Condition<T> getCondition()
 	{
 		return null;
 	}

@@ -17,12 +17,12 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 {
 	Stream<ReflectionObject<T>> stream;
 
-	RandomizeSingleStream(Collection<ReflectionObject<T>> source)
+	public RandomizeSingleStream(Collection<ReflectionObject<T>> source)
 	{
 		this.stream = source.stream();
 	}
 	
-	RandomizeSingleStream(Stream<ReflectionObject<T>> source)
+	public RandomizeSingleStream(Stream<ReflectionObject<T>> source)
 	{
 		this.stream = source;
 	}
@@ -38,7 +38,7 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 	public RandomizeMultiStream<T> group(String groupingVar)
 	{
 		Map<Object, List<ReflectionObject<T>>> grouped = stream
-				.collect(Collectors.groupingBy(x -> x.getVariableValue(groupingVar)));
+				.collect(Collectors.groupingBy(x -> x.getField(groupingVar)));
 		
 		return new RandomizeMultiStream<>(
 				grouped.entrySet().stream()

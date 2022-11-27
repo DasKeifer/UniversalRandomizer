@@ -1,4 +1,4 @@
-package test;
+package tests.support;
 
 
 public class SimpleObject implements Comparable<SimpleObject>
@@ -12,6 +12,12 @@ public class SimpleObject implements Comparable<SimpleObject>
 		this.intVal = intVal;
 	}
     
+	public SimpleObject(SimpleObject toCopy) 
+	{
+		this.name = toCopy.name;
+		this.intVal = toCopy.intVal;
+	}
+
 	public static int reverseSort(SimpleObject lhs, SimpleObject rhs)
     {
         return Integer.compare(rhs.intVal, lhs.intVal);

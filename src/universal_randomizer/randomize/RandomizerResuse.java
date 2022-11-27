@@ -1,14 +1,14 @@
 package universal_randomizer.randomize;
 
 import java.util.Random;
+import java.util.SortedSet;
 
 import universal_randomizer.Pool;
-import universal_randomizer.wrappers.ReflectionObject;
 
-public class RandomizerResuse<T, P> extends Randomize<T, P> 
+public class RandomizerResuse<T, P> extends Randomizer<T, P> 
 {
 	// RETRY, RESET, [ALTERNATE], <IGNORE/ABORT>
-	public RandomizerResuse(String pathToField, Pool<P> pool, Random rand)
+	private RandomizerResuse(String pathToField, Pool<P> pool, Random rand)
 	{
 		super(pathToField, pool, rand);
 	}
@@ -32,20 +32,22 @@ public class RandomizerResuse<T, P> extends Randomize<T, P>
 	{
 		return new RandomizerResuse<>(pathToField, pool, new Random(seed));
 	}
-	
+
 	@Override
-	protected boolean attemptAssignValue(ReflectionObject<T> obj)
+	protected P getAtIndex(int index) 
 	{
-		int randIndex = getNextIndex(obj, sourcePool);
-		if (randIndex >= 0)
-		{
-			obj.setVariableValue(pathToField, sourcePool.get(randIndex));
-		}
-		else
-		{
-			System.err.println("Failed to find an item in the pool - either it is empty or no items exist that satisfies enforcements");
-		}
-		// TODO: Temp
-		return false;
+		return sourcePool.get(index);
+	}
+
+	@Override
+	protected P peekAtIndex(int index) 
+	{
+		return getAtIndex(index);
+	}
+
+	@Override
+	protected int getNextIndex(SortedSet<Integer> excludedIndexes) 
+	{
+		return sourcePool.getRandomIndex(rand, excludedIndexes);
 	}
 }

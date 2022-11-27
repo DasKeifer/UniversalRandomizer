@@ -2,11 +2,11 @@ package universal_randomizer.randomize;
 
 import java.util.List;
 import java.util.Random;
+import java.util.SortedSet;
 
 import universal_randomizer.Pool;
-import universal_randomizer.wrappers.ReflectionObject;
 
-public class RandomizerEliminate<T, P> extends Randomize<T, P> {
+public class RandomizerEliminate<T, P> extends Randomizer<T, P> {
 	
 	List<Pool<P>> workingPools;
 	
@@ -34,40 +34,25 @@ public class RandomizerEliminate<T, P> extends Randomize<T, P> {
 	{
 		return new RandomizerEliminate<>(pathToField, pool, new Random(seed));
 	}
+
 	@Override
-	protected boolean attemptAssignValue(ReflectionObject<T> obj)
+	protected P getAtIndex(int index) 
 	{
-		int randIndex = -1;
-		int poolIndex = 0;
-		for (/*set above*/; poolIndex < workingPools.size(); poolIndex++)
-		{
-			randIndex = getNextIndex(obj, workingPools.get(poolIndex));
-			if (randIndex >= 0)
-			{
-				break;
-			}
-		}
-		
-		// TODO: Implement NEW_POOL functionality
-		
-		// Failed to find a valid entry in the working pools
-		if (randIndex < 0)
-		{
-			workingPools.add(Pool.createCopy(sourcePool));
-			poolIndex = workingPools.size() - 1;
-			randIndex = getNextIndex(obj, workingPools.get(poolIndex));
-		}
-		
-		// If we still failed to find it, log an error
-		if (randIndex >= 0)
-		{
-			obj.setVariableValue(pathToField, workingPools.get(poolIndex).pop(randIndex));
-		}
-		else
-		{
-			System.err.println("Failed to find an item in the pool - either it is empty or no items exist that satisfies enforcements");
-		}
-		// TODO: Temp
-		return false;
+		// TODO: temp
+		return sourcePool.pop(index);
+	}
+
+	@Override
+	protected P peekAtIndex(int index) 
+	{
+		// TODO: temp
+		return sourcePool.get(index);
+	}
+
+	@Override
+	protected int getNextIndex(SortedSet<Integer> excludedIndexes) 
+	{
+		// TODO: temp
+		return sourcePool.getRandomIndex(rand, excludedIndexes);
 	}
 }
