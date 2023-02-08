@@ -5,12 +5,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,15 +30,44 @@ public class Pool<T>
 	// TODO: Allow creation by reference, shallow, deep and reflection copy?
 	// TODO: Make into more specific subclasses, make Pool an interface/abstract class?
 	
-	List<T> values;
+	protected HashMap<Integer, T> data;
+	protected List<Integer> activeKeys;
+	protected boolean keysInSync;
 	
 	protected Pool(Collection<T> valCollection)
 	{
-		values = new ArrayList<>();
+		data = new HashMap<>();
+		int key = 0;
 		for (T val : valCollection)
 		{
-			values.add(Utils.deepCopy(val));
+			data.put(key++, Utils.deepCopy(val));
 		}
+		refreshKeyTracking();
+	}
+
+	protected Pool(Map<Integer, T> map)
+	{
+		data.putAll(map);
+		refreshKeyTracking();
+	}
+	
+	protected void refreshKeyTracking()
+	{
+		activeKeys = new ArrayList<>(data.keySet());
+		keysInSync = true;
+	}
+	
+	protected void refreshKeyTrackingIfNeeded()
+	{
+		if (!keysInSync)
+		{
+			refreshKeyTracking();
+		}
+	}
+	
+	protected void invalidateKeyTracking()
+	{
+		keysInSync = false;
 	}
 	
 	public static <V> Pool<V> createEmpty()
@@ -45,13 +77,13 @@ public class Pool<T>
 	
 	public static <V> Pool<V> createCopy(Pool<V> toCopy)
 	{
-		return new Pool<>(toCopy.values);
+		return new Pool<>(toCopy.data);
 	}
 	
 	// TODO: Create weighted from array
 	
 	@SafeVarargs
-	public static <V> Pool<V> createUniformFromArray(boolean removeDuplicates, V... values)
+	public static <V> Pool<V> createUniformFromArray(V... values)
 	{
 		return createFromArray(true, values);
 	}
@@ -74,6 +106,28 @@ public class Pool<T>
 		else
 		{
 			return new Pool<>(Arrays.asList(values));
+		}
+	}
+	
+	public static <V> Pool<V> createUniformFromList(List<V> values)
+	{
+		return createFromList(true, values);
+	}
+	
+	public static <V> Pool<V> createFromList(List<V> values)
+	{
+		return createFromList(false, values);
+	}
+	
+	public static <V> Pool<V> createFromList(boolean removeDuplicates, List<V> values)
+	{
+		if (removeDuplicates)
+		{
+			return new Pool<>(new HashSet<>(values));
+		}
+		else
+		{
+			return new Pool<>(values);
 		}
 	}
 	
@@ -156,32 +210,50 @@ public class Pool<T>
 		return new Pool<>(vals);
 	}
 	
-	public int getRandomIndex(Random rand)
+	public int getRandomKey(Random rand)
 	{
-		return rand.nextInt(values.size());
+		return getRandomKey(rand, null);
 	}
 	
-	public int getRandomIndex(Random rand, SortedSet<Integer> excluded)
+	public int getRandomKey(Random rand, Set<Integer> excludedKeys)
 	{
-		if (excluded != null)
+		if (isEmpty())
 		{
-			int adjustedSize = values.size() - excluded.size();
-			if (adjustedSize <= 0)
+			return -1;
+		}
+		else if (excludedKeys != null && !excludedKeys.isEmpty())
+		{
+			// Determine how many valid keys are left
+			if (activeKeys.size() - excludedKeys.size() <= 0)
 			{
 				return -1;
 			}
-			int tempIndex = rand.nextInt(adjustedSize);
-			for (Integer exclIndex : excluded)
+
+			// Make a temp list of list of 
+			int tempIndex = 0;
+			boolean found = false;
+			List<Integer> workingKeys = new ArrayList<>(data.keySet());
+			
+			while (!found)
 			{
-				if (tempIndex < exclIndex)
+				//try a new index
+				tempIndex = rand.nextInt(workingKeys.size());
+				if (!excludedKeys.contains(workingKeys.get(tempIndex)))
 				{
-					break;
+					found = true;
 				}
-				tempIndex++;
-			}
-			return tempIndex;
+				else
+				{
+					workingKeys.remove(tempIndex);
+				}
+			} 
+			return workingKeys.get(tempIndex);
 		}
-		return getRandomIndex(rand);
+		else
+		{
+			refreshKeyTrackingIfNeeded();
+			return activeKeys.get(rand.nextInt(activeKeys.size()));
+		}
 	}
 
 	public T popRandom(Random rand)
@@ -189,60 +261,98 @@ public class Pool<T>
 		return getRandom(rand, true);
 	}
 	
+	
 	public T getRandom(Random rand)
 	{
 		return getRandom(rand, false);
 	}
 	
+	
 	public T getRandom(Random rand, boolean remove)
 	{
-		if (!values.isEmpty())
+		if (!data.isEmpty())
 		{
 			if (remove)
 			{
-				return values.remove(rand.nextInt(values.size()));
+				invalidateKeyTracking();
+				return data.remove(rand.nextInt(data.size()));
 			}
-			return values.get(rand.nextInt(values.size()));
+			return data.get(rand.nextInt(data.size()));
 		}
 		
 		return null;
 	}
 	
-	public T pop(int i)
+	
+	public T pop(int key)
 	{
-		return get(i, true);
+		return get(key, true);
 	}
 	
-	public T get(int i)
+	public T get(int key)
 	{
-		return get(i, false);
+		return get(key, false);
 	}
 	
-	public T get(int i, boolean remove)
+	public T get(int key, boolean remove)
 	{
-		if (i < values.size())
+		if (data.containsKey(key))
 		{
 			if (remove)
 			{
-				return values.remove(i);
+				invalidateKeyTracking();
+				return data.remove(key);
 			}
-			return values.get(i);
+			return data.get(key);
 		}
 		return null;
 	}
 	
-	public void remove(int i)
+	public void remove(int key)
 	{
-		pop(i);
+		pop(key);
 	}
+	
+	private Stream<Entry<Integer, T>> baseKeyOfStream(T val)
+	{
+		return data.entrySet().stream().filter(obj -> obj.getValue().equals(val));
+	}
+	
+	public int keyOf(T val)
+	{
+		Optional<Entry<Integer, T>> entry = baseKeyOfStream(val).findFirst();
+		if (entry.isEmpty())
+		{
+			return -1;
+		}
+		return entry.get().getKey();
+	}
+	
+	public Set<Integer> allKeysOf(T val)
+	{
+		return baseKeyOfStream(val).map(obj -> obj.getKey()).collect(Collectors.toSet());
+	}
+	
+	public int instancesOf(T val)
+	{
+		return (int) baseKeyOfStream(val).count();
+	}
+	
 	
 	public int size()
 	{
-		return values.size();
+		return data.size();
 	}
+	
 	
 	public boolean isEmpty()
 	{
-		return values.isEmpty();
+		return data.isEmpty();
+	}
+
+
+	public boolean isValidKey(int key)
+	{
+		return data.containsKey(key);
 	}
 }
