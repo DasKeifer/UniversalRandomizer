@@ -5,13 +5,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,44 +26,22 @@ public class Pool<T>
 	// TODO: Allow creation by reference, shallow, deep and reflection copy?
 	// TODO: Make into more specific subclasses, make Pool an interface/abstract class?
 	
-	protected HashMap<Integer, T> data;
-	protected List<Integer> activeKeys;
-	protected boolean keysInSync;
+	protected ArrayList<T> unpeeked;
+	protected LinkedList<T> peeked;
+	protected LinkedList<T> removed;
 	
 	protected Pool(Collection<T> valCollection)
 	{
-		data = new HashMap<>();
-		int key = 0;
-		for (T val : valCollection)
-		{
-			data.put(key++, Utils.deepCopy(val));
-		}
-		refreshKeyTracking();
-	}
-
-	protected Pool(Map<Integer, T> map)
-	{
-		data.putAll(map);
-		refreshKeyTracking();
+		unpeeked = new ArrayList<>(valCollection);
+		peeked = new LinkedList<>();
+		removed = new LinkedList<>();
 	}
 	
-	protected void refreshKeyTracking()
+	protected Pool(Pool<T> toCopy)
 	{
-		activeKeys = new ArrayList<>(data.keySet());
-		keysInSync = true;
-	}
-	
-	protected void refreshKeyTrackingIfNeeded()
-	{
-		if (!keysInSync)
-		{
-			refreshKeyTracking();
-		}
-	}
-	
-	protected void invalidateKeyTracking()
-	{
-		keysInSync = false;
+		unpeeked = new ArrayList<>(toCopy.unpeeked);
+		peeked = new LinkedList<>(toCopy.peeked);
+		removed = new LinkedList<>(toCopy.removed);
 	}
 	
 	public static <V> Pool<V> createEmpty()
@@ -77,7 +51,7 @@ public class Pool<T>
 	
 	public static <V> Pool<V> createCopy(Pool<V> toCopy)
 	{
-		return new Pool<>(toCopy.data);
+		return new Pool<>(toCopy);
 	}
 	
 	// TODO: Create weighted from array
@@ -209,150 +183,90 @@ public class Pool<T>
 		}
 		return new Pool<>(vals);
 	}
-	
-	public int getRandomKey(Random rand)
-	{
-		return getRandomKey(rand, null);
-	}
-	
-	public int getRandomKey(Random rand, Set<Integer> excludedKeys)
-	{
-		if (isEmpty())
-		{
-			return -1;
-		}
-		else if (excludedKeys != null && !excludedKeys.isEmpty())
-		{
-			// Determine how many valid keys are left
-			if (activeKeys.size() - excludedKeys.size() <= 0)
-			{
-				return -1;
-			}
 
-			// Make a temp list of list of 
-			int tempIndex = 0;
-			boolean found = false;
-			List<Integer> workingKeys = new ArrayList<>(data.keySet());
-			
-			while (!found)
-			{
-				//try a new index
-				tempIndex = rand.nextInt(workingKeys.size());
-				if (!excludedKeys.contains(workingKeys.get(tempIndex)))
-				{
-					found = true;
-				}
-				else
-				{
-					workingKeys.remove(tempIndex);
-				}
-			} 
-			return workingKeys.get(tempIndex);
-		}
-		else
-		{
-			refreshKeyTrackingIfNeeded();
-			return activeKeys.get(rand.nextInt(activeKeys.size()));
-		}
+	public void reset()
+	{
+		unpeeked.addAll(peeked);
+		unpeeked.addAll(removed);
+		peeked.clear();
+		removed.clear();
 	}
 
-	public T popRandom(Random rand)
+	public T peek(Random rand)
 	{
-		return getRandom(rand, true);
-	}
-	
-	
-	public T getRandom(Random rand)
-	{
-		return getRandom(rand, false);
-	}
-	
-	
-	public T getRandom(Random rand, boolean remove)
-	{
-		if (!data.isEmpty())
+		if (unpeeked.size() <= 0)
 		{
-			if (remove)
-			{
-				invalidateKeyTracking();
-				return data.remove(rand.nextInt(data.size()));
-			}
-			return data.get(rand.nextInt(data.size()));
+			return null;
 		}
 		
-		return null;
-	}
-	
-	
-	public T pop(int key)
-	{
-		return get(key, true);
-	}
-	
-	public T get(int key)
-	{
-		return get(key, false);
-	}
-	
-	public T get(int key, boolean remove)
-	{
-		if (data.containsKey(key))
+		// get a random index and the object at that index
+		int index = rand.nextInt(unpeeked.size());
+		T obj = unpeeked.get(index);
+		
+		// Add the object to the peeked list and remove it
+		// To do this a bit more efficiently, we replace the
+		// found index with the last item, then we remove the
+		// last item
+		peeked.addFirst(obj);
+		if (index != unpeeked.size() - 1)
 		{
-			if (remove)
-			{
-				invalidateKeyTracking();
-				return data.remove(key);
-			}
-			return data.get(key);
+			unpeeked.set(index, unpeeked.get(unpeeked.size() - 1));
 		}
-		return null;
+		unpeeked.remove(unpeeked.size() - 1);
+		
+		// Return the object
+		return obj;
 	}
 	
-	public void remove(int key)
+	public T popPeeked()
 	{
-		pop(key);
+		return selectPeeked(true);
 	}
 	
-	private Stream<Entry<Integer, T>> baseKeyOfStream(T val)
+	public T selectPeeked()
 	{
-		return data.entrySet().stream().filter(obj -> obj.getValue().equals(val));
+		return selectPeeked(false);
 	}
 	
-	public int keyOf(T val)
+	public T selectPeeked(boolean remove)
 	{
-		Optional<Entry<Integer, T>> entry = baseKeyOfStream(val).findFirst();
-		if (entry.isEmpty())
+		if (peeked.size() < 1)
 		{
-			return -1;
+			return null;
 		}
-		return entry.get().getKey();
+		
+		// Get the last peeked object
+		T obj = peeked.getFirst();
+		
+		// if we are removing it, move it to the removed list
+		// before resetting the other lists
+		if (remove)
+		{
+			removed.addFirst(obj);
+			peeked.pop();
+		}
+		
+		// Add all the peeked back into the unpeeked and clear it
+		unpeeked.addAll(peeked);
+		peeked.clear();
+		
+		// return the object
+		return obj;
 	}
 	
-	public Set<Integer> allKeysOf(T val)
+	public int unpeekedSize()
 	{
-		return baseKeyOfStream(val).map(obj -> obj.getKey()).collect(Collectors.toSet());
+		return unpeeked.size();
 	}
-	
-	public int instancesOf(T val)
-	{
-		return (int) baseKeyOfStream(val).count();
-	}
-	
 	
 	public int size()
 	{
-		return data.size();
+		return unpeeked.size() + peeked.size();
 	}
 	
-	
-	public boolean isEmpty()
+	public int instancesOf(T obj)
 	{
-		return data.isEmpty();
-	}
-
-
-	public boolean isValidKey(int key)
-	{
-		return data.containsKey(key);
+		return (int) (peeked.stream().filter(s -> s == obj).count() +
+				unpeeked.stream().filter(s -> s == obj).count());
 	}
 }
