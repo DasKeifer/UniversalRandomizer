@@ -20,11 +20,11 @@ public abstract class Randomizer<T, P>
 	String pathToField;
 	Random rand;
 	Pool<P> sourcePool;
-	Condition<P> sourceEnforce;
+	Condition<T> sourceEnforce;
 	List<OnFailAction> sourceOnFailActions;
 	
 	
-	List<Condition<P>> workingConditions;
+	List<Condition<T>> workingConditions;
 	List<OnFailAction> workingOnFailActions;
 	int currentOnFailActionIndex;
 	OnFailAction currentOnFailAction;
@@ -70,7 +70,7 @@ public abstract class Randomizer<T, P>
 		this.sourceOnFailActions = actions;
 	}
 	
-	public void setEnforce(Condition<P> enforce)
+	public void setEnforce(Condition<T> enforce)
 	{
 		sourceEnforce = enforce;
 	}
@@ -191,18 +191,23 @@ public abstract class Randomizer<T, P>
 	
 	protected boolean attemptAssignValue(ReflectionObject<T> obj)
 	{
-		int index = attemptGetNextIndex();
+		int index = attemptGetNextIndex(obj);
 		if (index >= 0)
 		{
-			return assignValue(obj, getAtIndex(index));
+			P val = removeAtIndex(index);
+			if (val != null)
+			{
+				return assignValue(obj, val);
+			}
+			return true;
 		}
-		System.err.println("Failed to assign value for obj " + obj);
+		System.err.println("Failed to assign value for obj " + obj.getObject());
 		return false;
 	}
 
 	protected abstract int getNextIndex(SortedSet<Integer> excludedIndexes);
-	protected abstract P peekAtIndex(int index);
-	protected abstract P getAtIndex(int index);
+	protected abstract P trialAtIndex(int index);
+	protected abstract P removeAtIndex(int index);
 	
 	protected boolean assignValue(ReflectionObject<T> obj, P value)
 	{
@@ -214,38 +219,43 @@ public abstract class Randomizer<T, P>
 		return getNextIndex(null);
 	}
 	
-	protected int attemptGetNextIndex()
+	protected int attemptGetNextIndex(ReflectionObject<T> obj)
 	{		
 		// Get a random index
-		int randIndex = getNextIndex();
-		if (randIndex >= 0 && !passesEnforce(randIndex))
+		int randIndex = getNextIndex();		
+		if (randIndex >= 0 && !assignAndCheckEnforce(obj, randIndex))
 		{
-			randIndex = failedEnforceLoop(randIndex);
+			System.err.println("Failed initial assign for obj " + obj.getObject());
+			randIndex = failedEnforceLoop(obj, randIndex);
 		}
 
 		// Failed entry checking
 		if (randIndex < 0)
 		{
+			System.err.println("Failed finding entry for obj " + obj.getObject());
 			randIndex = failedEntryLoop();
 		}
 		return randIndex;
 	}
 	
-	protected boolean passesEnforce(int index)
+	protected boolean assignAndCheckEnforce(ReflectionObject<T> obj, int index)
 	{
+		P valAtIndex = trialAtIndex(index);
+		assignValue(obj, valAtIndex);
+		
 		if (sourceEnforce != null)
 		{
-			return sourceEnforce.evaluate(peekAtIndex(index));
+			return sourceEnforce.evaluate(obj);
 		}
 		return false;
 	}
 	
-	protected int failedEnforceLoop()
+	protected int failedEnforceLoop(ReflectionObject<T> obj)
 	{
-		return failedEnforceLoop(-1);
+		return failedEnforceLoop(obj, -1);
 	}
 	
-	protected int failedEnforceLoop(int failedIndex)
+	protected int failedEnforceLoop(ReflectionObject<T> obj, int failedIndex)
 	{
 		boolean success = false;
 		SortedSet<Integer> failedIndexes = new TreeSet<>();
@@ -253,7 +263,7 @@ public abstract class Randomizer<T, P>
 		{
 			failedIndexes.add(failedIndex);
 			failedIndex = failedEnforce(failedIndexes);
-			if (failedIndex >= 0 && passesEnforce(failedIndex))
+			if (failedIndex >= 0 && assignAndCheckEnforce(obj, failedIndex))
 			{
 				success = true;
 			}
@@ -280,18 +290,21 @@ public abstract class Randomizer<T, P>
 					int index = getNextIndex(excludedIndexes);
 					if (index < 0)
 					{
+						System.err.println("Failed retry assign for obj " + obj.getObject());
 						return FAILED_INDEX;
 					}
 					return index;
 				}
 				else
 				{
+					System.err.println("Failed RETRY condition - no more attempts " + obj.getObject());
 					// Reset our retry action, move to the next one, and retry
 					retryAction.resetAttempts();
 					moveToNextAction();
 					return failedEnforce(excludedIndexes);
 				}
 			case OR_ENFORCE:
+				System.out.println("Applying OR ENFORCE " + obj.getObject());
 				applyOrEnforce();
 				return RETRY_INDEX;
 			case IGNORE:
@@ -362,7 +375,7 @@ public abstract class Randomizer<T, P>
 		if (isCurrentActionOfType(OnFail.OR_ENFORCE))
 		{
 			@SuppressWarnings("unchecked")
-			OnFailAlternateAction<P> altAction = (OnFailAlternateAction<P>) currentOnFailAction;
+			OnFailAlternateAction<T> altAction = (OnFailAlternateAction<T>) currentOnFailAction;
 			
 			// If it hasn't already been applied, apply it then step back to
 			// the previous step

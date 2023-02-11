@@ -34,20 +34,22 @@ public class RandomizerResuse<T, P> extends Randomizer<T, P>
 	}
 
 	@Override
-	protected P getAtIndex(int index) 
+	protected P removeAtIndex(int index) 
 	{
-		return sourcePool.get(index);
+		// Null means don't reassign - use value returned for trial
+		// TODO: Copy here?
+		return null;
 	}
 
 	@Override
-	protected P peekAtIndex(int index) 
+	protected P trialAtIndex(int index) 
 	{
-		return getAtIndex(index);
+		return removeAtIndex(index);
 	}
 
 	@Override
 	protected int getNextIndex(SortedSet<Integer> excludedIndexes) 
 	{
-		return sourcePool.getRandomIndex(rand, excludedIndexes);
+		return sourcePool.getRandomKey(rand, excludedIndexes);
 	}
 }

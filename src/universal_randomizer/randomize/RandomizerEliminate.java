@@ -36,14 +36,18 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P> {
 	}
 
 	@Override
-	protected P getAtIndex(int index) 
+	protected P removeAtIndex(int index) 
 	{
 		// TODO: temp
-		return sourcePool.pop(index);
+		sourcePool.remove(index);
+
+		// Null means don't reassign - use value returned for trial
+		// TODO: Copy here?
+		return null;
 	}
 
 	@Override
-	protected P peekAtIndex(int index) 
+	protected P trialAtIndex(int index) 
 	{
 		// TODO: temp
 		return sourcePool.get(index);
@@ -53,6 +57,6 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P> {
 	protected int getNextIndex(SortedSet<Integer> excludedIndexes) 
 	{
 		// TODO: temp
-		return sourcePool.getRandomIndex(rand, excludedIndexes);
+		return sourcePool.getRandomKey(rand, excludedIndexes);
 	}
 }
