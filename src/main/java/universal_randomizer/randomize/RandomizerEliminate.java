@@ -2,13 +2,17 @@ package universal_randomizer.randomize;
 
 import java.util.List;
 import java.util.Random;
-import java.util.SortedSet;
 
 import universal_randomizer.Pool;
+import universal_randomizer.wrappers.ReflectionObject;
 
 public class RandomizerEliminate<T, P> extends Randomizer<T, P> {
+
+	// TODO: Relook at constructors
 	
+	PoolEnforceActions poolEnforceActions;
 	List<Pool<P>> workingPools;
+	int lastPeekedIndex;
 	
 	public RandomizerEliminate(String pathToField, Pool<P> pool, Random rand)
 	{
@@ -34,29 +38,82 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P> {
 	{
 		return new RandomizerEliminate<>(pathToField, pool, new Random(seed));
 	}
+	
+	@Override
+	protected boolean attemptAssignValue(ReflectionObject<T> obj)
+	{
+		boolean success = false;
+		clearPoolLocation();
+		for (int pool = 0; pool < poolEnforceActions.getMaxDepth(); pool++)
+		{
+			nextPool();
+			success = super.attemptAssignValue(obj);
+			if (success)
+			{
+				break;
+			}
+		}
+		return success;
+	}
+
+	// TODO: Keep instead of clearing pools - we have
+	// that functionality in pools already
+	
+	@Override
+	protected void resetPool() 
+	{
+		workingPools.clear();
+		lastPeekedIndex = -1;
+	}
 
 	@Override
-	protected P removeAtIndex(int index) 
+	protected P peekNext(Random rand) 
 	{
-		// TODO: temp
-		sourcePool.remove(index);
-
-		// Null means don't reassign - use value returned for trial
-		// TODO: Copy here?
+		// TODO: Warning of unset pool and whatnot
+		if (lastPeekedIndex >= 0 && lastPeekedIndex < workingPools.size())
+		{
+			// Get an item from the next pool
+			return workingPools.get(lastPeekedIndex).peek(rand);
+		}
 		return null;
 	}
 
 	@Override
-	protected P trialAtIndex(int index) 
+	protected void selectPeeked() 
 	{
-		// TODO: temp
-		return sourcePool.get(index);
+		if (lastPeekedIndex >= 0 && lastPeekedIndex < workingPools.size())
+		{
+			workingPools.get(lastPeekedIndex).popPeeked();
+			if (workingPools.isEmpty())
+			{
+				workingPools.remove(lastPeekedIndex);
+			}
+		}
+		clearPoolLocation();
+	}
+	
+	protected boolean nextPool()
+	{
+		lastPeekedIndex++;
+		if (lastPeekedIndex >= poolEnforceActions.getMaxDepth())
+		{
+			return false;
+		}
+		
+		// If we ran out of pools, add a new one
+		if (lastPeekedIndex >= workingPools.size())
+		{
+			workingPools.add(Pool.createCopy(pool));
+		}
+		return true;
 	}
 
-	@Override
-	protected int getNextIndex(SortedSet<Integer> excludedIndexes) 
+	private void clearPoolLocation() 
 	{
-		// TODO: temp
-		return sourcePool.getRandomKey(rand, excludedIndexes);
+		for (int peeked = 0; peeked <= lastPeekedIndex && peeked < workingPools.size(); peeked++)
+		{
+			workingPools.get(peeked).resetPeeked();
+		}
+		lastPeekedIndex = -1;
 	}
 }

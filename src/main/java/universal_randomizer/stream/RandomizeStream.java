@@ -8,9 +8,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import universal_randomizer.Pool;
 import universal_randomizer.condition.Condition;
-import universal_randomizer.randomize.Randomizer;
 import universal_randomizer.wrappers.ReflectionObject;
 
 public interface RandomizeStream<T>

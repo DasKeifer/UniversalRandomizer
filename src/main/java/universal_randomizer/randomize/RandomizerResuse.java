@@ -1,12 +1,13 @@
 package universal_randomizer.randomize;
 
 import java.util.Random;
-import java.util.SortedSet;
 
 import universal_randomizer.Pool;
 
 public class RandomizerResuse<T, P> extends Randomizer<T, P> 
 {
+	// TODO: Relook at constructors
+	
 	// RETRY, RESET, [ALTERNATE], <IGNORE/ABORT>
 	private RandomizerResuse(String pathToField, Pool<P> pool, Random rand)
 	{
@@ -34,22 +35,20 @@ public class RandomizerResuse<T, P> extends Randomizer<T, P>
 	}
 
 	@Override
-	protected P removeAtIndex(int index) 
+	protected void resetPool() 
 	{
-		// Null means don't reassign - use value returned for trial
-		// TODO: Copy here?
-		return null;
+		pool.reset();
 	}
 
 	@Override
-	protected P trialAtIndex(int index) 
+	protected P peekNext(Random rand) 
 	{
-		return removeAtIndex(index);
+		 return pool.peek(rand);
 	}
 
 	@Override
-	protected int getNextIndex(SortedSet<Integer> excludedIndexes) 
+	protected void selectPeeked() 
 	{
-		return sourcePool.getRandomKey(rand, excludedIndexes);
+		pool.selectPeeked();
 	}
 }

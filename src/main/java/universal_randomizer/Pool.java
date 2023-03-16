@@ -192,6 +192,13 @@ public class Pool<T>
 		removed.clear();
 	}
 
+	public void resetPeeked()
+	{
+		// Add all the peeked back into the unpeeked and clear it
+		unpeeked.addAll(peeked);
+		peeked.clear();
+	}
+
 	public T peek(Random rand)
 	{
 		if (unpeeked.size() <= 0)
@@ -246,9 +253,7 @@ public class Pool<T>
 			peeked.pop();
 		}
 		
-		// Add all the peeked back into the unpeeked and clear it
-		unpeeked.addAll(peeked);
-		peeked.clear();
+		resetPeeked();
 		
 		// return the object
 		return obj;

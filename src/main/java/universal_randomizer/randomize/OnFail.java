@@ -3,7 +3,5 @@ package universal_randomizer.randomize;
 // TODO rename - 
 public enum OnFail 
 {
-	INVALID, ENFORCE, OR_ENFORCE, RETRY, RESET, ABORT, IGNORE, 
-	NEW_POOL // How to handle this still
-	// TODO: Replace/alt pools?
+	INVALID, ABORT, IGNORE 
 }
