@@ -6,32 +6,29 @@ import universal_randomizer.Pool;
 
 public class RandomizerResuse<T, P> extends Randomizer<T, P> 
 {
-	// TODO: Relook at constructors
-	
-	// RETRY, RESET, [ALTERNATE], <IGNORE/ABORT>
-	private RandomizerResuse(String pathToField, Pool<P> pool, Random rand)
+	private RandomizerResuse(String pathToField, Pool<P> pool, Random rand, EnforceActions<T> enforce)
 	{
-		super(pathToField, pool, rand);
+		super(pathToField, pool, rand, enforce);
 	}
 	
-	public static <V, S> RandomizerResuse<V, S> createRandomPoolFromStream(String pathToField)
+	public static <V, S> RandomizerResuse<V, S> createPoolFromStreamWithEnforce(String pathToField)
 	{
-		return new RandomizerResuse<>(pathToField, null, null);
+		return new RandomizerResuse<>(pathToField, null, null, null);
 	}
 	
-	public static <V, S> RandomizerResuse<V, S> createSeededPoolFromStream(String pathToField, long seed)
+	public static <V, S> RandomizerResuse<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool)
 	{
-		return new RandomizerResuse<>(pathToField, null, new Random(seed));
+		return new RandomizerResuse<>(pathToField, pool, null, null);
 	}
 	
-	public static <V, S> RandomizerResuse<V, S> createRandomWithPool(String pathToField, Pool<S> pool)
+	public static <V, S> RandomizerResuse<V, S> createPoolFromStreamWithEnforce(String pathToField, EnforceActions<V> enforce)
 	{
-		return new RandomizerResuse<>(pathToField, pool, null);
+		return new RandomizerResuse<>(pathToField, null, null, enforce);
 	}
-			
-	public static <V, S> RandomizerResuse<V, S> createSeededWithPool(String pathToField, Pool<S> pool, long seed)
+	
+	public static <V, S> RandomizerResuse<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool, EnforceActions<V> enforce)
 	{
-		return new RandomizerResuse<>(pathToField, pool, new Random(seed));
+		return new RandomizerResuse<>(pathToField, pool, null, enforce);
 	}
 
 	@Override

@@ -24,6 +24,11 @@ public class EnforceActions<T>
 		return new EnforceActions<U>(null, 0, 0, OnFail.IGNORE);
 	}
 
+	public static <U> EnforceActions<U> copy(EnforceActions<U> toCopy)
+	{
+		return new EnforceActions<U>(toCopy.enforce, toCopy.maxRetries, toCopy.maxResets, toCopy.failAction);
+	}
+
 	public boolean evaluateEnforce(ReflectionObject<T> obj) 
 	{
 		if (enforce == null)

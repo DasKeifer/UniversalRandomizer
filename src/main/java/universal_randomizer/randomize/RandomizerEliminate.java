@@ -6,37 +6,51 @@ import java.util.Random;
 import universal_randomizer.Pool;
 import universal_randomizer.wrappers.ReflectionObject;
 
-public class RandomizerEliminate<T, P> extends Randomizer<T, P> {
+public class RandomizerEliminate<T, P> extends Randomizer<T, P> 
+{	
+	private PoolEnforceActions poolEnforceActions;
+	
+	// Internal tracking
+	private List<Pool<P>> workingPools;
+	private int lastPeekedIndex;
+	
+	protected RandomizerEliminate(String pathToField, Pool<P> pool, Random rand, EnforceActions<T> enforce, PoolEnforceActions poolEnforce)
+	{
+		super(pathToField, pool, rand, enforce);
 
-	// TODO: Relook at constructors
-	
-	PoolEnforceActions poolEnforceActions;
-	List<Pool<P>> workingPools;
-	int lastPeekedIndex;
-	
-	public RandomizerEliminate(String pathToField, Pool<P> pool, Random rand)
-	{
-		super(pathToField, pool, rand);
-	}
-	
-	public static <V, S> RandomizerEliminate<V, S> createRandomPoolFromStream(String pathToField)
-	{
-		return new RandomizerEliminate<>(pathToField, null, null);
-	}
-	
-	public static <V, S> RandomizerEliminate<V, S> createSeededPoolFromStream(String pathToField, long seed)
-	{
-		return new RandomizerEliminate<>(pathToField, null, new Random(seed));
-	}
-	
-	public static <V, S> RandomizerEliminate<V, S> createRandomWithPool(String pathToField, Pool<S> pool)
-	{
-		return new RandomizerEliminate<>(pathToField, pool, null);
-	}
+		if (poolEnforce == null || enforce == null)
+		{
+			if (enforce == null)
+			{
+				//TODO: Error? Warning?
+			}
 			
-	public static <V, S> RandomizerEliminate<V, S> createSeededWithPool(String pathToField, Pool<S> pool, long seed)
+			this.poolEnforceActions = PoolEnforceActions.createNone();
+		}
+		else
+		{
+			this.poolEnforceActions = PoolEnforceActions.copy(poolEnforce);
+		}
+	}
+	
+	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamWithEnforce(String pathToField)
 	{
-		return new RandomizerEliminate<>(pathToField, pool, new Random(seed));
+		return new RandomizerEliminate<>(pathToField, null, null, null, null);
+	}
+	
+	public static <V, S> RandomizerEliminate<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool)
+	{
+		return new RandomizerEliminate<>(pathToField, pool, null, null, null);
+	}
+	
+	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamWithEnforce(String pathToField, EnforceActions<V> enforce, PoolEnforceActions poolEnforce)
+	{
+		return new RandomizerEliminate<>(pathToField, null, null, enforce, poolEnforce);
+	}
+	
+	public static <V, S> RandomizerEliminate<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool, EnforceActions<V> enforce, PoolEnforceActions poolEnforce)
+	{
+		return new RandomizerEliminate<>(pathToField, pool, null, enforce, poolEnforce);
 	}
 	
 	@Override
@@ -56,24 +70,30 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P> {
 		return success;
 	}
 
-	// TODO: Keep instead of clearing pools - we have
-	// that functionality in pools already
-	
 	@Override
 	protected void resetPool() 
 	{
-		workingPools.clear();
-		lastPeekedIndex = -1;
+		if (lastPeekedIndex >= 0)
+		{
+			for (Pool<P> pool : workingPools)
+			{
+				pool.reset();
+			}
+			lastPeekedIndex = -1;
+		}
 	}
 
 	@Override
 	protected P peekNext(Random rand) 
 	{
-		// TODO: Warning of unset pool and whatnot
 		if (lastPeekedIndex >= 0 && lastPeekedIndex < workingPools.size())
 		{
 			// Get an item from the next pool
 			return workingPools.get(lastPeekedIndex).peek(rand);
+		}
+		else
+		{
+			// TODO: Warning of unset pool and whatnot
 		}
 		return null;
 	}

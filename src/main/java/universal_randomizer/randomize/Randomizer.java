@@ -15,13 +15,7 @@ public abstract class Randomizer<T, P>
 	Pool<P> pool;
 	EnforceActions<T> enforceActions;
 	
-	// Make this a set? ALTERNATE repeats previous set if no specific is given]
-	// Define specific order for fail actions?
-	// Set order: Retry, alternate then retry again, repeat
-	
-	// RETRY, RESET, [NEW_POOL, ALTERNATE], <IGNORE/ABORT>
-	
-	protected Randomizer(String pathToField, Pool<P> pool, Random rand)
+	protected Randomizer(String pathToField, Pool<P> pool, Random rand, EnforceActions<T> enforce)
 	{
 		this.pathToField = pathToField;
 
@@ -42,13 +36,25 @@ public abstract class Randomizer<T, P>
 		{
 			this.rand = rand;
 		}
-		
-		enforceActions = EnforceActions.createNone();
-	}
 
-	public void setEnforceActions(EnforceActions<T> enforce)
+		if (enforce == null)
+		{
+			this.enforceActions = EnforceActions.createNone();
+		}
+		else
+		{
+			this.enforceActions = EnforceActions.copy(enforce);
+		}
+	}
+	
+	public void seed(long seed)
 	{
-		enforceActions = enforce;
+		this.rand = new Random(seed);
+	}
+	
+	public void seed(Random rand)
+	{
+		this.rand = new Random(rand.nextLong());
 	}
 
 	protected abstract void resetPool();

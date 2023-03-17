@@ -15,6 +15,11 @@ public class PoolEnforceActions
 		return new PoolEnforceActions(0);
 	}
 
+	public static PoolEnforceActions copy(PoolEnforceActions toCopy) 
+	{
+		return new PoolEnforceActions(toCopy.maxDepth);
+	}
+
 	public int getMaxDepth() 
 	{
 		return maxDepth;
