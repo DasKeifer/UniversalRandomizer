@@ -11,6 +11,11 @@ public class RandomizerResuse<T, P> extends Randomizer<T, P>
 		super(pathToField, pool, rand, enforce);
 	}
 	
+	public static <V, S> RandomizerResuse<V, S> create(String pathToField, Pool<S> pool, Random rand, EnforceActions<V> enforce)
+	{
+		return new RandomizerResuse<>(pathToField, pool, rand, enforce);
+	}
+	
 	public static <V, S> RandomizerResuse<V, S> createPoolFromStreamWithEnforce(String pathToField)
 	{
 		return new RandomizerResuse<>(pathToField, null, null, null);

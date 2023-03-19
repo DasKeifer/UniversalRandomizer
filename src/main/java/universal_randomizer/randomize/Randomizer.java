@@ -25,7 +25,7 @@ public abstract class Randomizer<T, P>
 		}
 		else
 		{
-			this.pool = Pool.createCopy(pool);
+			this.pool = pool.copy();
 		}
 		
 		if (rand == null)
@@ -43,7 +43,7 @@ public abstract class Randomizer<T, P>
 		}
 		else
 		{
-			this.enforceActions = EnforceActions.copy(enforce);
+			this.enforceActions = enforce.copy();
 		}
 	}
 	
@@ -61,7 +61,7 @@ public abstract class Randomizer<T, P>
 	protected abstract P peekNext(Random rand);
 	protected abstract void selectPeeked();
 
-	public RandomizeResult perform(Stream<ReflectionObject<T>> objStream) 
+	public boolean perform(Stream<ReflectionObject<T>> objStream) 
 	{
 		// in order to "reuse" the stream, we need to convert it out of a stream
 		// and create new ones. We need to save off the list if we need to create
@@ -71,12 +71,11 @@ public abstract class Randomizer<T, P>
 		{
 			pool = Pool.createFromStream(pathToField, streamAsList.stream());
 		}
-		
 		return attemptRandomization(streamAsList);
 	}
 	
 	// Handles RESET
-	protected RandomizeResult attemptRandomization(List<ReflectionObject<T>> streamAsList)
+	protected boolean attemptRandomization(List<ReflectionObject<T>> streamAsList)
 	{		
 		// Attempt to assign randomized values for each item in the stream
 		List<ReflectionObject<T>> failed = randomize(streamAsList.stream());
@@ -92,31 +91,17 @@ public abstract class Randomizer<T, P>
 			failed = randomize(streamAsList.stream());
 		}
 		
-		RandomizeResult result = RandomizeResult.INVALID;
-		if (failed.isEmpty())
-		{
-			result = RandomizeResult.SUCCESS;
-		}
-		else 
-		{
-			switch (enforceActions.getFailAction())
-			{
-				case ABORT:
-					result = RandomizeResult.FAILED;
-					break;
-				case IGNORE:
-					result = RandomizeResult.PARTIAL;
-				default:
-					// TODO: Error
-					break;	
-			}
-		}
-		return result;
+		return failed.isEmpty();
 	}
 
 	protected List<ReflectionObject<T>> randomize(Stream<ReflectionObject<T>> objStream)
 	{
-		return objStream.filter(this::assignValue).collect(Collectors.toList());
+		return objStream.filter(this::assignValueNegated).collect(Collectors.toList());
+	}
+	
+	protected boolean assignValueNegated(ReflectionObject<T> obj)
+	{
+		return !assignValue(obj);
 	}
 	
 	protected boolean assignValue(ReflectionObject<T> obj)

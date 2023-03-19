@@ -29,8 +29,13 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 		}
 		else
 		{
-			this.poolEnforceActions = PoolEnforceActions.copy(poolEnforce);
+			this.poolEnforceActions = poolEnforce.copy();
 		}
+	}
+	
+	public static <V, S> RandomizerEliminate<V, S> create(String pathToField, Pool<S> pool, Random rand, EnforceActions<V> enforce, PoolEnforceActions poolEnforce)
+	{
+		return new RandomizerEliminate<>(pathToField, pool, rand, enforce, poolEnforce);
 	}
 	
 	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamWithEnforce(String pathToField)
@@ -123,7 +128,7 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 		// If we ran out of pools, add a new one
 		if (lastPeekedIndex >= workingPools.size())
 		{
-			workingPools.add(Pool.createCopy(pool));
+			workingPools.add(pool.copy());
 		}
 		return true;
 	}

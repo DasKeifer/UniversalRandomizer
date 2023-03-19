@@ -13,10 +13,35 @@ public class EnforceActions<T>
 
 	public EnforceActions(Condition<T> enforce, int maxRetries, int maxResets, OnFail failAction)
 	{
-		this.enforce = enforce.copy();
-		this.maxRetries = maxRetries;
-		this.maxResets = maxResets;
-		this.failAction = failAction;
+		if (enforce != null)
+		{
+			this.enforce = enforce.copy();
+			this.maxRetries = maxRetries;
+			this.maxResets = maxResets;
+			this.failAction = failAction;
+		}
+		else
+		{
+			this.enforce = null;
+			this.maxRetries = 0;
+			this.maxResets = 0;
+			this.failAction = OnFail.IGNORE;
+		}
+	}
+	
+	public EnforceActions(EnforceActions<T> toCopy)
+	{
+		if (toCopy.enforce != null)
+		{
+			this.enforce = toCopy.enforce.copy();
+		}
+		else
+		{
+			this.enforce = null;
+		}
+		this.maxRetries = toCopy.maxRetries;
+		this.maxResets = toCopy.maxResets;
+		this.failAction = toCopy.failAction;
 	}
 	
 	public static <U> EnforceActions<U> createNone() 
@@ -24,9 +49,9 @@ public class EnforceActions<T>
 		return new EnforceActions<U>(null, 0, 0, OnFail.IGNORE);
 	}
 
-	public static <U> EnforceActions<U> copy(EnforceActions<U> toCopy)
+	public EnforceActions<T> copy()
 	{
-		return new EnforceActions<U>(toCopy.enforce, toCopy.maxRetries, toCopy.maxResets, toCopy.failAction);
+		return new EnforceActions<>(this);
 	}
 
 	public boolean evaluateEnforce(ReflectionObject<T> obj) 

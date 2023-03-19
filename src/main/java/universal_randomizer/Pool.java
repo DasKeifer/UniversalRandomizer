@@ -37,6 +37,8 @@ public class Pool<T>
 		removed = new LinkedList<>();
 	}
 	
+	// TODO: Copy constructor vs function vs static
+	
 	protected Pool(Pool<T> toCopy)
 	{
 		unpeeked = new ArrayList<>(toCopy.unpeeked);
@@ -47,11 +49,6 @@ public class Pool<T>
 	public static <V> Pool<V> createEmpty()
 	{
 		return new Pool<>(new ArrayList<>());
-	}
-	
-	public static <V> Pool<V> createCopy(Pool<V> toCopy)
-	{
-		return new Pool<>(toCopy);
 	}
 	
 	// TODO: Create weighted from array
@@ -182,6 +179,11 @@ public class Pool<T>
 			nextVal = sumtor.sum(nextVal, stepSize);
 		}
 		return new Pool<>(vals);
+	}
+	
+	public Pool<T> copy()
+	{
+		return new Pool<>(this);
 	}
 
 	public void reset()
