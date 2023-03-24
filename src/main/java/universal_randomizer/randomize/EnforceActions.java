@@ -9,23 +9,20 @@ public class EnforceActions<T>
 	private Condition<T> enforce;
 	private int maxRetries;
 	private int maxResets;
-	private OnFail failAction;
 
-	public EnforceActions(Condition<T> enforce, int maxRetries, int maxResets, OnFail failAction)
+	public EnforceActions(Condition<T> enforce, int maxRetries, int maxResets)
 	{
 		if (enforce != null)
 		{
 			this.enforce = enforce.copy();
 			this.maxRetries = maxRetries;
 			this.maxResets = maxResets;
-			this.failAction = failAction;
 		}
 		else
 		{
 			this.enforce = null;
 			this.maxRetries = 0;
 			this.maxResets = 0;
-			this.failAction = OnFail.IGNORE;
 		}
 	}
 	
@@ -41,12 +38,11 @@ public class EnforceActions<T>
 		}
 		this.maxRetries = toCopy.maxRetries;
 		this.maxResets = toCopy.maxResets;
-		this.failAction = toCopy.failAction;
 	}
 	
 	public static <U> EnforceActions<U> createNone() 
 	{
-		return new EnforceActions<U>(null, 0, 0, OnFail.IGNORE);
+		return new EnforceActions<U>(null, 0, 0);
 	}
 
 	public EnforceActions<T> copy()
@@ -58,6 +54,8 @@ public class EnforceActions<T>
 	{
 		if (enforce == null)
 		{
+			// We return true because if there is no enforce,
+			// then it must "pass"
 			return true;
 		}
 		return enforce.evaluate(obj);
@@ -71,10 +69,5 @@ public class EnforceActions<T>
 	public int getMaxResets()
 	{
 		return maxResets;
-	}
-	
-	public OnFail getFailAction()
-	{
-		return failAction;
 	}
 }

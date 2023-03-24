@@ -16,24 +16,19 @@ public class RandomizerResuse<T, P> extends Randomizer<T, P>
 		return new RandomizerResuse<>(pathToField, pool, rand, enforce);
 	}
 	
-	public static <V, S> RandomizerResuse<V, S> createPoolFromStreamWithEnforce(String pathToField)
+	public static <V, S> RandomizerResuse<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool, Random rand)
 	{
-		return new RandomizerResuse<>(pathToField, null, null, null);
+		return new RandomizerResuse<>(pathToField, pool, rand, null);
 	}
 	
-	public static <V, S> RandomizerResuse<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool)
+	public static <V, S> RandomizerResuse<V, S> createPoolFromStream(String pathToField, Random rand, EnforceActions<V> enforce)
 	{
-		return new RandomizerResuse<>(pathToField, pool, null, null);
+		return new RandomizerResuse<>(pathToField, null, rand, enforce);
 	}
-	
-	public static <V, S> RandomizerResuse<V, S> createPoolFromStreamWithEnforce(String pathToField, EnforceActions<V> enforce)
+
+	public static <V, S> RandomizerResuse<V, S> createPoolFromStreamNoEnforce(String pathToField, Random rand)
 	{
-		return new RandomizerResuse<>(pathToField, null, null, enforce);
-	}
-	
-	public static <V, S> RandomizerResuse<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool, EnforceActions<V> enforce)
-	{
-		return new RandomizerResuse<>(pathToField, pool, null, enforce);
+		return new RandomizerResuse<>(pathToField, null, rand, null);
 	}
 
 	@Override
