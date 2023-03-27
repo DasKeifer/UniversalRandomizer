@@ -1,6 +1,5 @@
 package universal_randomizer.randomize;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,12 +10,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import Support.RandomizerCommonTestsCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
 import universal_randomizer.Pool;
@@ -26,13 +25,11 @@ import universal_randomizer.condition.Negate;
 import universal_randomizer.condition.SimpleCondition;
 import universal_randomizer.wrappers.ReflectionObject;
 
-class RanomizerReuseTests {
-
-	final List<Integer> NON_DUPLICATE_VALS = List.of(1, -4, 5, 99);
-	final List<Integer> DUPLICATE_VALS = List.of(1, -4, 5, 1, 99, 1, 5);
-	final Integer NON_EXISTING_VAL = 7;
+// Tests the Randomizer Reuse class and by extension the Randomizer class since the
+// reuse class is the most simple of the classes
+class CommonRandomizerTests {
 	
-	private List<ReflectionObject<SimpleObject>> createSimpleObjects(int number)
+	public static List<ReflectionObject<SimpleObject>> createSimpleObjects(int number)
 	{
 		List<ReflectionObject<SimpleObject>> list = new LinkedList<>();
 		for (int i = 0; i < number; i++)
@@ -41,67 +38,8 @@ class RanomizerReuseTests {
 		}
 		return list;
 	}
-	
-	@Test
-	void create() 
-	{
-		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
-		when(pool.copy()).thenReturn(pool);
-		
-		Random rand = mock(Random.class);
-		
-		@SuppressWarnings("unchecked")
-		EnforceActions<SimpleObject> enforceAction = mock(EnforceActions.class);
-		when(enforceAction.copy()).thenReturn(enforceAction);
-    	
-		
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerResuse.create("test", pool, rand, enforceAction);
-    		assertEquals(0, mocked.constructed().size());
-    	}
-    	verify(pool, times(1)).copy();
-    	verify(enforceAction, times(1)).copy();
-    	
 
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerResuse.createWithPoolAndEnforce("test", pool, rand);
-    		assertEquals(0, mocked.constructed().size());
-    	}
-    	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(1)).copy();
-
-
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerResuse.createPoolFromStream("test", rand, enforceAction);
-    		assertEquals(0, mocked.constructed().size());
-    	}
-    	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(2)).copy();
-    	
-    	
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerResuse.createPoolFromStreamNoEnforce("test", rand);
-    		assertEquals(0, mocked.constructed().size());
-    	}
-    	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(2)).copy();
-	}
-	
-	@Test
-	void seed() 
-	{
-		Randomizer<SimpleObject, Integer> test = RandomizerResuse.create("intField", null, null, null);
-		test.seed(0);
-		test.seed(new Random());
-	}
-
-	@Test
-	void perform_noEnforce_basic() 
+	public static void perform_noEnforce_basic(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn) 
 	{
 		final int POOL_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -124,7 +62,7 @@ class RanomizerReuseTests {
 
 		// Create test data and object
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerResuse.create("intField", pool, rand, null);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, null);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
@@ -132,8 +70,7 @@ class RanomizerReuseTests {
 		assertIterableEquals(expected, results);
 	}
 
-	@Test
-	void perform_noEnforce_someFailed() 
+	public static void perform_noEnforce_someFailed(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
 	{
 		final int LIST_SIZE = 10;
 		final List<Integer> POOL_VALS =     Arrays.asList(0, 1, 2, null, 4, null, 6, 7, 8, null);
@@ -150,7 +87,7 @@ class RanomizerReuseTests {
 		
 		// Create test data and object
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerResuse.create("intField", pool, rand, null);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, null);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream()));
@@ -158,8 +95,7 @@ class RanomizerReuseTests {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	@Test
-	void perform_enforce_null() 
+	public static void perform_enforce_null(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -178,10 +114,10 @@ class RanomizerReuseTests {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
-		EnforceActions<SimpleObject> enforce = new EnforceActions<>(neq5, 2, 0);
+		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerResuse.create("intField", pool, rand, enforce);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, enforce);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream()));
@@ -189,8 +125,7 @@ class RanomizerReuseTests {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	@Test
-	void perform_enforce_retries() 
+	public static void perform_enforce_retries(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -211,10 +146,10 @@ class RanomizerReuseTests {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
-		EnforceActions<SimpleObject> enforce = new EnforceActions<>(neq5, 2, 2);
+		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerResuse.create("intField", pool, rand, enforce);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, enforce);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
@@ -222,8 +157,7 @@ class RanomizerReuseTests {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	@Test
-	void perform_enforce_exhaustRetries_noResets() 
+	public static void perform_enforce_exhaustRetries_noResets(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -242,10 +176,10 @@ class RanomizerReuseTests {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
-		EnforceActions<SimpleObject> enforce = new EnforceActions<>(neq5, 2, 0);
+		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerResuse.create("intField", pool, rand, enforce);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, enforce);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream()));
@@ -253,8 +187,7 @@ class RanomizerReuseTests {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	@Test
-	void perform_enforce_exhaustRetries_resets() 
+	public static void perform_enforce_exhaustRetries_resets(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -275,10 +208,10 @@ class RanomizerReuseTests {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
-		EnforceActions<SimpleObject> enforce = new EnforceActions<>(neq5, 2, 2);
+		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerResuse.create("intField", pool, rand, enforce);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, enforce);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
@@ -286,8 +219,7 @@ class RanomizerReuseTests {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	@Test
-	void perform_noPool() 
+	public static void perform_noPool(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -297,7 +229,7 @@ class RanomizerReuseTests {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
-		EnforceActions<SimpleObject> enforce = new EnforceActions<>(neq5, 2, 0);
+		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = null;
@@ -318,8 +250,8 @@ class RanomizerReuseTests {
 	    	{
 	    		Random rand = new Random();
 	    		when(rand.nextInt(anyInt())).thenReturn(0);
-	    	
-	    		test = RandomizerResuse.create("intField", null, null, enforce);
+
+	    		test = createFn.create("intField", null, null, enforce);
    		 	}
 
 			// Perform test and check results

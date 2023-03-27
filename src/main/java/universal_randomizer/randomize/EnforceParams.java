@@ -4,13 +4,13 @@ package universal_randomizer.randomize;
 import universal_randomizer.condition.Condition;
 import universal_randomizer.wrappers.ReflectionObject;
 
-public class EnforceActions<T>
+public class EnforceParams<T>
 {
 	private Condition<T> enforce;
 	private int maxRetries;
 	private int maxResets;
 
-	public EnforceActions(Condition<T> enforce, int maxRetries, int maxResets)
+	public EnforceParams(Condition<T> enforce, int maxRetries, int maxResets)
 	{
 		if (enforce != null)
 		{
@@ -26,7 +26,7 @@ public class EnforceActions<T>
 		}
 	}
 	
-	public EnforceActions(EnforceActions<T> toCopy)
+	public EnforceParams(EnforceParams<T> toCopy)
 	{
 		if (toCopy.enforce != null)
 		{
@@ -40,14 +40,14 @@ public class EnforceActions<T>
 		this.maxResets = toCopy.maxResets;
 	}
 	
-	public static <U> EnforceActions<U> createNone() 
+	public static <U> EnforceParams<U> createNoEnforce() 
 	{
-		return new EnforceActions<U>(null, 0, 0);
+		return new EnforceParams<U>(null, 0, 0);
 	}
 
-	public EnforceActions<T> copy()
+	public EnforceParams<T> copy()
 	{
-		return new EnforceActions<>(this);
+		return new EnforceParams<>(this);
 	}
 
 	public boolean evaluateEnforce(ReflectionObject<T> obj) 

@@ -13,9 +13,9 @@ public abstract class Randomizer<T, P>
 	String pathToField;
 	Random rand;
 	Pool<P> pool;
-	EnforceActions<T> enforceActions;
+	EnforceParams<T> enforceActions;
 	
-	protected Randomizer(String pathToField, Pool<P> pool, Random rand, EnforceActions<T> enforce)
+	protected Randomizer(String pathToField, Pool<P> pool, Random rand, EnforceParams<T> enforce)
 	{
 		this.pathToField = pathToField;
 
@@ -39,7 +39,7 @@ public abstract class Randomizer<T, P>
 
 		if (enforce == null)
 		{
-			this.enforceActions = EnforceActions.createNone();
+			this.enforceActions = EnforceParams.createNoEnforce();
 		}
 		else
 		{
@@ -116,6 +116,7 @@ public abstract class Randomizer<T, P>
 	protected boolean attemptAssignValue(ReflectionObject<T> obj)
 	{
 		P selectedVal = peekNext(rand);
+		System.out.println(selectedVal);
 		
 		// While its a good index and fails the enforce check, retry if
 		// we have attempts left

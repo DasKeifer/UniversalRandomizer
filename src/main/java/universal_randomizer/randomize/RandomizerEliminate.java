@@ -1,5 +1,6 @@
 package universal_randomizer.randomize;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -8,54 +9,47 @@ import universal_randomizer.wrappers.ReflectionObject;
 
 public class RandomizerEliminate<T, P> extends Randomizer<T, P> 
 {	
-	private PoolEnforceActions poolEnforceActions;
+	private EliminateParams poolEnforceActions;
 	
 	// Internal tracking
 	private List<Pool<P>> workingPools;
 	private int lastPeekedIndex;
 	
-	protected RandomizerEliminate(String pathToField, Pool<P> pool, Random rand, EnforceActions<T> enforce, PoolEnforceActions poolEnforce)
+	protected RandomizerEliminate(String pathToField, Pool<P> pool, Random rand, EnforceParams<T> enforce, EliminateParams poolEnforce)
 	{
 		super(pathToField, pool, rand, enforce);
 
-		if (poolEnforce == null || enforce == null)
-		{
-			if (enforce == null)
-			{
-				//TODO: Error? Warning?
-			}
-			
-			this.poolEnforceActions = PoolEnforceActions.createNone();
+		if (poolEnforce != null)
+		{			
+			this.poolEnforceActions = poolEnforce.copy();
 		}
 		else
 		{
-			this.poolEnforceActions = poolEnforce.copy();
+			this.poolEnforceActions = EliminateParams.createNoAdditionalPools();
 		}
+		
+		workingPools = new ArrayList<>();
+		lastPeekedIndex = -1;
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> create(String pathToField, Pool<S> pool, Random rand, EnforceActions<V> enforce, PoolEnforceActions poolEnforce)
+	public static <V, S> RandomizerEliminate<V, S> create(String pathToField, Pool<S> pool, Random rand, EnforceParams<V> enforce, EliminateParams poolEnforce)
 	{
 		return new RandomizerEliminate<>(pathToField, pool, rand, enforce, poolEnforce);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamWithEnforce(String pathToField)
+	public static <V, S> RandomizerEliminate<V, S> createWithPoolNoEnforce(String pathToField, Pool<S> pool, Random rand)
 	{
-		return new RandomizerEliminate<>(pathToField, null, null, null, null);
+		return new RandomizerEliminate<>(pathToField, pool, rand, null, null);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool)
+	public static <V, S> RandomizerEliminate<V, S> createPoolFromStream(String pathToField, Random rand, EnforceParams<V> enforce, EliminateParams poolEnforce)
 	{
-		return new RandomizerEliminate<>(pathToField, pool, null, null, null);
+		return new RandomizerEliminate<>(pathToField, null, rand, enforce, poolEnforce);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamWithEnforce(String pathToField, EnforceActions<V> enforce, PoolEnforceActions poolEnforce)
+	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamNoEnforce(String pathToField, Random rand)
 	{
-		return new RandomizerEliminate<>(pathToField, null, null, enforce, poolEnforce);
-	}
-	
-	public static <V, S> RandomizerEliminate<V, S> createWithPoolAndEnforce(String pathToField, Pool<S> pool, EnforceActions<V> enforce, PoolEnforceActions poolEnforce)
-	{
-		return new RandomizerEliminate<>(pathToField, pool, null, enforce, poolEnforce);
+		return new RandomizerEliminate<>(pathToField, null, rand, null, null);
 	}
 	
 	@Override
@@ -63,9 +57,10 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 	{
 		boolean success = false;
 		clearPoolLocation();
-		for (int pool = 0; pool < poolEnforceActions.getMaxDepth(); pool++)
+		// We do a separate loop to make sure we don't get an index
+		// past the last pool
+		while (nextPool())
 		{
-			nextPool();
 			success = super.attemptAssignValue(obj);
 			if (success)
 			{
@@ -78,20 +73,17 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 	@Override
 	protected void resetPool() 
 	{
-		if (lastPeekedIndex >= 0)
+		for (Pool<P> pool : workingPools)
 		{
-			for (Pool<P> pool : workingPools)
-			{
-				pool.reset();
-			}
-			lastPeekedIndex = -1;
+			pool.reset();
 		}
+		lastPeekedIndex = -1;
 	}
 
 	@Override
 	protected P peekNext(Random rand) 
 	{
-		if (lastPeekedIndex >= 0 && lastPeekedIndex < workingPools.size())
+		if (lastPeekedIndex >= 0)
 		{
 			// Get an item from the next pool
 			return workingPools.get(lastPeekedIndex).peek(rand);
@@ -106,36 +98,39 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 	@Override
 	protected void selectPeeked() 
 	{
-		if (lastPeekedIndex >= 0 && lastPeekedIndex < workingPools.size())
+		if (lastPeekedIndex >= 0)
 		{
 			workingPools.get(lastPeekedIndex).popPeeked();
-			if (workingPools.isEmpty())
-			{
-				workingPools.remove(lastPeekedIndex);
-			}
 		}
 		clearPoolLocation();
 	}
 	
 	protected boolean nextPool()
 	{
-		lastPeekedIndex++;
-		if (lastPeekedIndex >= poolEnforceActions.getMaxDepth())
+		if (pool == null || lastPeekedIndex >= poolEnforceActions.getMaxDepth() - 1)
 		{
 			return false;
 		}
+		lastPeekedIndex++;
 		
 		// If we ran out of pools, add a new one
 		if (lastPeekedIndex >= workingPools.size())
 		{
-			workingPools.add(pool.copy());
+			if (workingPools.size() == 0)
+			{
+				workingPools.add(pool);
+			}
+			else
+			{
+				workingPools.add(pool.copy());
+			}
 		}
 		return true;
 	}
 
 	private void clearPoolLocation() 
 	{
-		for (int peeked = 0; peeked <= lastPeekedIndex && peeked < workingPools.size(); peeked++)
+		for (int peeked = 0; peeked <= lastPeekedIndex; peeked++)
 		{
 			workingPools.get(peeked).resetPeeked();
 		}

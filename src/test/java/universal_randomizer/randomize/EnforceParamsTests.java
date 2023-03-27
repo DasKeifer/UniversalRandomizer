@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import Support.SimpleObject;
 import universal_randomizer.condition.Condition;
 
-class EnforceActionTests {
+class EnforceParamsTests {
 
 	@Test
 	void constructor_nonNull() 
@@ -29,7 +29,7 @@ class EnforceActionTests {
 		// Set up chain to test dependencies
 		when(testCond.copy()).thenReturn(testCondCopy);
 		
-		EnforceActions<SimpleObject> test = new EnforceActions<>(testCond, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> test = new EnforceParams<>(testCond, MAX_RETRIES, MAX_RESETS);
 		
 		assertEquals(MAX_RETRIES, test.getMaxRetries());
 		assertEquals(MAX_RESETS, test.getMaxResets());
@@ -45,15 +45,15 @@ class EnforceActionTests {
 	{
 		final int MAX_RETRIES = 2;
 		final int MAX_RESETS = 3;
-		EnforceActions<SimpleObject> test = new EnforceActions<>(null, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> test = new EnforceParams<>(null, MAX_RETRIES, MAX_RESETS);
 		assertEquals(0, test.getMaxRetries());
 		assertEquals(0, test.getMaxResets());
 	}
 	
 	@Test
-	void none() 
+	void noEnforce() 
 	{
-		EnforceActions<SimpleObject> testNone = EnforceActions.createNone();
+		EnforceParams<SimpleObject> testNone = EnforceParams.createNoEnforce();
 		assertEquals(0, testNone.getMaxRetries());
 		assertEquals(0, testNone.getMaxResets());
 	}
@@ -69,13 +69,13 @@ class EnforceActionTests {
 		when(testCond.evaluate(any())).thenReturn(true).thenReturn(false);
 		when(testCond.copy()).thenReturn(testCond);
 		
-		EnforceActions<SimpleObject> test = new EnforceActions<>(testCond, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> test = new EnforceParams<>(testCond, MAX_RETRIES, MAX_RESETS);
 		verify(testCond, times(1)).copy();
 		
 		assertTrue(test.evaluateEnforce(null));	
 		assertFalse(test.evaluateEnforce(null));
 		
-		EnforceActions<SimpleObject> testNone = EnforceActions.createNone();
+		EnforceParams<SimpleObject> testNone = EnforceParams.createNoEnforce();
 		assertTrue(testNone.evaluateEnforce(null));
 	}
 
@@ -101,8 +101,8 @@ class EnforceActionTests {
 		when(testCondOrig.copy()).thenReturn(testCondTestObj);
 		when(testCondTestObj.copy()).thenReturn(testCondTestObjCopy);
 		
-		EnforceActions<SimpleObject> test = new EnforceActions<>(testCondOrig, MAX_RETRIES, MAX_RESETS);
-		EnforceActions<SimpleObject> copy = test.copy();
+		EnforceParams<SimpleObject> test = new EnforceParams<>(testCondOrig, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> copy = test.copy();
 		verify(testCondOrig, times(1)).copy();
 		verify(testCondTestObj, times(1)).copy();
 		verify(testCondTestObjCopy, times(0)).copy();
@@ -117,8 +117,8 @@ class EnforceActionTests {
 	{
 		final int MAX_RETRIES = 2;
 		final int MAX_RESETS = 3;
-		EnforceActions<SimpleObject> test = new EnforceActions<>(null, MAX_RETRIES, MAX_RESETS);
-		EnforceActions<SimpleObject> copy = test.copy();
+		EnforceParams<SimpleObject> test = new EnforceParams<>(null, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> copy = test.copy();
 		
 		assertEquals(0, copy.getMaxRetries());
 		assertEquals(0, copy.getMaxResets());
