@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import org.mockito.AdditionalAnswers;
 import org.mockito.MockedConstruction;
@@ -218,7 +219,8 @@ class CommonRandomizerTests {
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	public static void perform_noPool(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
@@ -238,12 +240,11 @@ class CommonRandomizerTests {
 		MockedStatic<Pool> intPool = Mockito.mockStatic(Pool.class)) 
 	    {
 			// Setup static function
-			@SuppressWarnings("unchecked")
 			Pool<Integer> pool = mock(Pool.class);
 			when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
 			when(pool.copy()).thenReturn(pool);
-			
-	    	intPool.when(() -> Pool.createFromStream(any(), any()))
+
+	    	intPool.when(() -> Pool.create(anyBoolean(), any(Stream.class)))
 	          .thenReturn(pool);
 	    	
 	    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 

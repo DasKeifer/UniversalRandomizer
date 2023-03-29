@@ -138,7 +138,46 @@ class RandomizerEliminateTests {
 	}
 	
 	@Test
-	void perform_enforce_pools() 
+	void perform_pools_noEnforce() 
+	{
+		final int LIST_SIZE = 10;
+		final List<Integer> POOL_1_VALS =     Arrays.asList(0, 1, 2, 3, 4, null);
+		final List<Integer> POOL_2_VALS =     Arrays.asList(			   5, 6, 7, 8, 9, null);
+		
+		// 5 will be excluded by the enforce
+		final List<Integer> EXPECTED_VALS = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+		
+		// Setup mocks
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+		
+		@SuppressWarnings("unchecked")
+		Pool<Integer> poolBase = mock(Pool.class);
+		@SuppressWarnings("unchecked")
+		Pool<Integer> pool1 = mock(Pool.class);
+		@SuppressWarnings("unchecked")
+		Pool<Integer> pool2 = mock(Pool.class);
+		
+		when(poolBase.copy()).thenReturn(pool1);
+		when(pool1.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_1_VALS));
+		when(pool1.copy()).thenReturn(pool2);
+		when(pool2.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_2_VALS));
+		when(pool2.copy()).thenReturn(null);
+
+		// Create test data and object
+		EliminateParams elimParams = new EliminateParams(2);
+		
+		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTests.createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, rand, null, elimParams);
+
+		// Perform test and check results
+		assertTrue(test.perform(list.stream()));
+		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
+		assertIterableEquals(EXPECTED_VALS, results);
+	}
+	
+	@Test
+	void perform_pools_enforce() 
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -180,7 +219,7 @@ class RandomizerEliminateTests {
 	}
 	
 	@Test
-	void perform_enforce_poolsExhaust() 
+	void perform_poolsExhaust_enforce() 
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -222,7 +261,7 @@ class RandomizerEliminateTests {
 	}
 	
 	@Test
-	void perform_enforce_poolsExhaust_resets() 
+	void perform_poolsExhaust_enforce_resets() 
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -265,7 +304,7 @@ class RandomizerEliminateTests {
 	}
 	
 	@Test
-	void perform_enforce_poolLocation_edges() 
+	void perform_poolLocation_edges() 
 	{
 		ExposeRandomizerEliminate nullPool = new ExposeRandomizerEliminate("intField", null, null, null, null);
 

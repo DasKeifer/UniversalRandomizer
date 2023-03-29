@@ -3,21 +3,11 @@ package universal_randomizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import universal_randomizer.user_object_apis.Sum;
-import universal_randomizer.user_object_apis.Sumable;
-import universal_randomizer.wrappers.ComparableAsComparator;
-import universal_randomizer.wrappers.ReflectionObject;
-import universal_randomizer.wrappers.SumableAsSum;
 
 public class Pool<T>
 {	
@@ -30,9 +20,17 @@ public class Pool<T>
 	protected LinkedList<T> peeked;
 	protected LinkedList<T> removed;
 	
-	protected Pool(Collection<T> valCollection)
+	protected Pool(boolean removeDuplicates, Collection<T> valCollection)
 	{
-		unpeeked = new ArrayList<>(valCollection);
+		if (removeDuplicates)
+		{
+			// Convert to a set first to remove duplicates
+			unpeeked = new ArrayList<>(new HashSet<>(valCollection));
+		}
+		else
+		{
+			unpeeked = new ArrayList<>(valCollection);
+		}
 		peeked = new LinkedList<>();
 		removed = new LinkedList<>();
 	}
@@ -48,137 +46,23 @@ public class Pool<T>
 	
 	public static <V> Pool<V> createEmpty()
 	{
-		return new Pool<>(new ArrayList<>());
+		return new Pool<>(false, new ArrayList<>());
 	}
 	
-	// TODO: Create weighted from array
-	
-	@SafeVarargs
-	public static <V> Pool<V> createUniformFromArray(V... values)
+	public static <V> Pool<V> create(boolean removeDuplicates, Collection<V> valCollection)
 	{
-		return createFromArray(true, values);
-	}
-	
-	@SafeVarargs
-	public static <V> Pool<V> createFromArray(V... values)
-	{
-		return createFromArray(false, values);
-	}
-	
-	@SafeVarargs
-	public static <V> Pool<V> createFromArray(boolean removeDuplicates, V... values)
-	{
-		if (removeDuplicates)
-		{
-			Set<V> asSet = new HashSet<>();
-			Collections.addAll(asSet, values);
-			return new Pool<>(asSet);
-		}
-		else
-		{
-			return new Pool<>(Arrays.asList(values));
-		}
-	}
-	
-	public static <V> Pool<V> createUniformFromList(List<V> values)
-	{
-		return createFromList(true, values);
-	}
-	
-	public static <V> Pool<V> createFromList(List<V> values)
-	{
-		return createFromList(false, values);
-	}
-	
-	public static <V> Pool<V> createFromList(boolean removeDuplicates, List<V> values)
-	{
-		if (removeDuplicates)
-		{
-			return new Pool<>(new HashSet<>(values));
-		}
-		else
-		{
-			return new Pool<>(values);
-		}
-	}
-	
-	public static <S, V> Pool<S> createUniformFromStream(String pathToField, Stream<ReflectionObject<V>> objStream)
-	{
-		return createFromStream(true, pathToField, objStream);
-	}
-	
-	public static <S, V> Pool<S> createFromStream(String pathToField, Stream<ReflectionObject<V>> objStream)
-	{
-		return createFromStream(false, pathToField, objStream);
-	}
-	
-	public static <S, V> Pool<S> createFromStream(boolean removeDuplicates, String pathToField, Stream<ReflectionObject<V>> objStream)
-	{
-		Stream<S> narrowed = objStream.flatMap(obj -> obj.getFieldStream(pathToField));
-		if (removeDuplicates)
-		{
-			return new Pool<>(narrowed.collect(Collectors.toSet()));
-		}
-		return new Pool<>(narrowed.collect(Collectors.toList()));
+		return new Pool<>(removeDuplicates, valCollection);
 	}
 
-	public static <S, V> Pool<S> createUniformFromMapValuesStream(String pathToField, Stream<ReflectionObject<V>> objStream)
+	@SafeVarargs
+	public static <V> Pool<V> create(boolean removeDuplicates, V... values)
 	{
-		return createFromMapValuesStream(true, pathToField, objStream);
-	}
-
-	public static <S, V> Pool<S> createFromMapValuesStream(String pathToField, Stream<ReflectionObject<V>> objStream)
-	{
-		return createFromMapValuesStream(false, pathToField, objStream);
+		return new Pool<>(removeDuplicates, Arrays.asList(values));
 	}
 	
-	public static <S, V> Pool<S> createFromMapValuesStream(boolean removeDuplicates, String pathToField, Stream<ReflectionObject<V>> objStream)
+	public static <V> Pool<V> create(boolean removeDuplicates, Stream<V> values)
 	{
-		return createFromMapStream(removeDuplicates, pathToField, objStream, true);
-	}
-
-	public static <S, V> Pool<S> createFromMapKeysStream(String pathToField, Stream<ReflectionObject<V>> objStream)
-	{
-		// Keys are already a set by definition
-		return createFromMapStream(false, pathToField, objStream, false);
-	}
-	
-	public static <S, V> Pool<S> createFromMapStream(
-			boolean removeDuplicates, String pathToField, Stream<ReflectionObject<V>> objStream, boolean valuesNotKeys)
-	{
-		Stream<S> narrowed = objStream.flatMap(obj -> obj.getMapFieldStream(pathToField, valuesNotKeys));
-		if (removeDuplicates)
-		{
-			return new Pool<>(narrowed.collect(Collectors.toSet()));
-		}
-		return new Pool<>(narrowed.collect(Collectors.toList()));
-	}
-	
-	public static <N extends Comparable<N> & Sumable<N>> Pool<N> createRange(N min, N max, N stepSize)
-	{
-		return createRange(min, max, stepSize, new SumableAsSum<>());
-	}
-	
-	public static <N extends Comparable<N>> Pool<N> createRange(N min, N max, N stepSize, Sum<N> sumFn)
-	{
-		return createRange(min, max, stepSize, new ComparableAsComparator<>(), sumFn);
-	}
-	
-	public static <N extends Sumable<N>> Pool<N> createRange(N min, N max, N stepSize, Comparator<N> comparator)
-	{
-		return createRange(min, max, stepSize, comparator, new SumableAsSum<>());
-	}
-	
-	public static <N> Pool<N> createRange(N min, N max, N stepSize, Comparator<N> comparator, Sum<N> sumtor)
-	{
-		List<N> vals = new LinkedList<>();
-		N nextVal = min;
-		while (comparator.compare(nextVal, max) <= 0)
-		{
-			vals.add(nextVal);
-			nextVal = sumtor.sum(nextVal, stepSize);
-		}
-		return new Pool<>(vals);
+		return new Pool<>(removeDuplicates, values.collect(Collectors.toList()));
 	}
 	
 	public Pool<T> copy()
@@ -275,5 +159,10 @@ public class Pool<T>
 	{
 		return (int) (peeked.stream().filter(s -> s == obj).count() +
 				unpeeked.stream().filter(s -> s == obj).count());
+	}
+	
+	public int instancesOfUnpeeked(T obj)
+	{
+		return (int) unpeeked.stream().filter(s -> s == obj).count();
 	}
 }

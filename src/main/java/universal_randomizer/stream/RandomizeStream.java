@@ -45,11 +45,6 @@ public interface RandomizeStream<T>
 	
 	public RandomizeStream<T> sortWrapped(Comparator<ReflectionObject<T>> wrappedSorter);
 
-//	public void randomize(Randomizer<T, ?> rand);
-	
-	
-	
-	
 	public Stream<T> toStream();
 	
 	public Stream<ReflectionObject<T>> toWrappedStream();

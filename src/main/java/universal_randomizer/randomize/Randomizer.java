@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import universal_randomizer.wrappers.ReflectionObject;
 import universal_randomizer.Pool;
+import universal_randomizer.Utils;
 
 public abstract class Randomizer<T, P> 
 {	
@@ -69,7 +70,8 @@ public abstract class Randomizer<T, P>
 		List<ReflectionObject<T>> streamAsList = objStream.collect(Collectors.toList());
 		if (pool == null)
 		{
-			pool = Pool.createFromStream(pathToField, streamAsList.stream());
+			// TODO: need some logic to handle map fields
+			pool = Pool.create(false, Utils.narrowToField(pathToField, streamAsList.stream()));
 		}
 		return attemptRandomization(streamAsList);
 	}
@@ -116,7 +118,6 @@ public abstract class Randomizer<T, P>
 	protected boolean attemptAssignValue(ReflectionObject<T> obj)
 	{
 		P selectedVal = peekNext(rand);
-		System.out.println(selectedVal);
 		
 		// While its a good index and fails the enforce check, retry if
 		// we have attempts left
