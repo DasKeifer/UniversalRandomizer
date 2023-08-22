@@ -1,45 +1,56 @@
 package universal_randomizer.condition;
 
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
+import java.util.Comparator;
+
+import universal_randomizer.wrappers.ComparableAsComparator;
 import universal_randomizer.wrappers.ReflectionObject;
 
-public class SimpleCondition <T, M> implements Condition<T>
+
+public class SimpleCondition <T, M, MComparator extends Comparator<M>> implements Condition<T>
 {
 	String variable;
 	Negate negate;
-	Compare comparator;
+	Comparison comparison;
 	M val;
+	MComparator comparator;
 
-	// TODO: Refactor to factory instead of constructor?
+	public static <TF, MF extends Comparable<MF>> 
+	SimpleCondition<TF, MF, ComparableAsComparator<MF>> create(
+			String variable, Comparison comparison, MF val)
+	{
+		return create(variable, Negate.NO, comparison, val);
+	}
 	
-	public SimpleCondition(String variable, Negate negate, Compare comparator, M val) 
+	public static <TF, MF extends Comparable<MF>> 
+	SimpleCondition<TF, MF, ComparableAsComparator<MF>> create(
+			String variable, Negate negate, Comparison comparison, MF val)
+	{
+		return new SimpleCondition<TF, MF, ComparableAsComparator<MF>>(variable, negate, comparison, val, new ComparableAsComparator<>());
+	}
+	
+	public static <TF, MF, MComparatorF extends Comparator<MF>> 
+	SimpleCondition<TF, MF, MComparatorF> create(
+			String variable, Comparison comparison, MF val, MComparatorF comparator)
+	{
+		return create(variable, Negate.NO, comparison, val, comparator);
+	}
+
+	public static <TF, MF, MComparatorF extends Comparator<MF>> 
+	SimpleCondition<TF, MF, MComparatorF> create(
+			String variable, Negate negate, Comparison comparison, MF val, MComparatorF comparator)
+	{
+		return new SimpleCondition<TF, MF, MComparatorF>(variable, negate, comparison, val, comparator);
+	}
+	
+	protected SimpleCondition(String variable, Negate negate, Comparison comparison, M val, MComparator comparator) 
 	{
 		this.variable = variable;
 		this.negate = negate;
+		this.comparison = comparison;
+		this.val = val;
 		this.comparator = comparator;
-		this.val = val; // TODO: How to copy? Enforce copy constructor?
-	}
-
-	public SimpleCondition(String variable, Compare comparator, M val) 
-	{
-		this(variable, Negate.NO, comparator, val);
-	}
-	
-	public SimpleCondition(SimpleCondition<T, M> toCopy) 
-	{
-		this.variable = toCopy.variable;
-		this.negate = toCopy.negate;
-		this.comparator = toCopy.comparator;
-		this.val = toCopy.val; // TODO: How to copy? Enforce copy constructor?
-	}
-	
-	@Override
-	public SimpleCondition<T, M> copy() 
-	{
-		return new SimpleCondition<>(this);
 	}
 	
 	@Override
@@ -49,12 +60,12 @@ public class SimpleCondition <T, M> implements Condition<T>
 		
 		// Get the var
 		Object var = obj.getField(variable);
-		if (var != null && val.getClass().isInstance(var))
+		if (var != null && val.getClass().isInstance(var)) // todo error or alert somehow
 		{
 			// Checked on the if above
 			@SuppressWarnings("unchecked")
 			M casted = (M) var;
-			result = invokeCompareTo(casted, comparator, val);
+			result = invokeCompareTo(casted, comparison, val);
 			if (negate == Negate.YES)
 			{
 				result = !result;
@@ -63,37 +74,19 @@ public class SimpleCondition <T, M> implements Condition<T>
 		return result;
 	}
 	
-	private boolean invokeCompareTo(M var, Compare comparator, M val)
+	private boolean invokeCompareTo(M var, Comparison comparison, M val)
 	{
-		// TODO: Use comapator/comparable interface instead?
-		try 
+		int compareResult = comparator.compare(var, val);
+		switch (comparison)
 		{
-			Method compareTo = var.getClass().getMethod("compareTo", var.getClass());
-			Integer compareResult = (Integer) compareTo.invoke(var, val);
-			if (compareResult != null)
-			{
-				switch (comparator)
-				{
-					case EQUAL: return 0 == compareResult;
-					case LESS_THAN: return 0 > compareResult;
-					case GREATER_THAN: return 0 < compareResult;
-					case LESS_THAN_OR_EQUAL: return 0 >= compareResult;
-					case GREATER_THAN_OR_EQUAL: return 0 <= compareResult;
-					default: System.out.println("compareWrappedPrimative - unknown Comparator value: " + comparator);
-				}
-			}
-		} 				
-		catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e)
-			{
-			// TODO Bad invoke
-			e.printStackTrace();
+			case EQUAL: return 0 == compareResult;
+			case LESS_THAN: return 0 > compareResult;
+			case GREATER_THAN: return 0 < compareResult;
+			case LESS_THAN_OR_EQUAL: return 0 >= compareResult;
+			case GREATER_THAN_OR_EQUAL: return 0 <= compareResult;
+			default: 
+				System.out.println("compareWrappedPrimative - unknown Comparator value: " + comparator);
+				return false;
 		}
-		catch (NoSuchMethodException | SecurityException e1) 
-		{
-			// TODO Doesn't implement compareTo
-			e1.printStackTrace();
-		}
-		
-		return false;
 	}
 }

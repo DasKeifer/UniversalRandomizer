@@ -22,7 +22,7 @@ import Support.RandomizerCommonTestsCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
 import universal_randomizer.Pool;
-import universal_randomizer.condition.Compare;
+import universal_randomizer.condition.Comparison;
 import universal_randomizer.condition.Condition;
 import universal_randomizer.condition.Negate;
 import universal_randomizer.condition.SimpleCondition;
@@ -49,10 +49,7 @@ class RandomizerEliminateTests {
 		
 		@SuppressWarnings("unchecked")
 		EnforceParams<SimpleObject> enforceAction = mock(EnforceParams.class);
-		when(enforceAction.copy()).thenReturn(enforceAction);
-
 		EliminateParams poolAction = mock(EliminateParams.class);
-		when(poolAction.copy()).thenReturn(poolAction);
     	
 		
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
@@ -61,8 +58,6 @@ class RandomizerEliminateTests {
     		assertEquals(0, mocked.constructed().size());
     	}
     	verify(pool, times(1)).copy();
-    	verify(enforceAction, times(1)).copy();
-    	verify(poolAction, times(1)).copy();
     	
 
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
@@ -71,8 +66,6 @@ class RandomizerEliminateTests {
     		assertEquals(0, mocked.constructed().size());
     	}
     	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(1)).copy();
-    	verify(poolAction, times(1)).copy();
 
 
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
@@ -81,8 +74,6 @@ class RandomizerEliminateTests {
     		assertEquals(0, mocked.constructed().size());
     	}
     	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(2)).copy();
-    	verify(poolAction, times(2)).copy();
     	
     	
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
@@ -91,8 +82,6 @@ class RandomizerEliminateTests {
     		assertEquals(0, mocked.constructed().size());
     	}
     	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(2)).copy();
-    	verify(poolAction, times(2)).copy();
 	}
 
 	@Test
@@ -205,7 +194,7 @@ class RandomizerEliminateTests {
 		when(pool2.copy()).thenReturn(null);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 0);
 		EliminateParams elimParams = new EliminateParams(2);
 		
@@ -247,7 +236,7 @@ class RandomizerEliminateTests {
 		when(pool2.copy()).thenReturn(null);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 0);
 		EliminateParams elimParams = new EliminateParams(2);
 		
@@ -290,7 +279,7 @@ class RandomizerEliminateTests {
 		when(pool2.copy()).thenReturn(null);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 1);
 		EliminateParams elimParams = new EliminateParams(2);
 		

@@ -1,12 +1,11 @@
 package Support;
 
-public class SimpleObject 
+public class BadObject 
 {
-	public UncomparableObject uncomparableObj;
 	public String stringField;
 	public int intField;
 	
-	public SimpleObject(String stringField, int intField)
+	public BadObject(String stringField, int intField)
 	{
 		this.setStringField(stringField);
 		this.setIntField(intField);

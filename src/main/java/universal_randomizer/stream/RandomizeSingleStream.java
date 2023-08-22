@@ -75,10 +75,6 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 		return this;
 	}
 	
-	
-	
-	
-
 	@Override
 	public Stream<T> toStream()
 	{

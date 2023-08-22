@@ -7,25 +7,23 @@ public class LogicConditionPair<T>
 	Negate negate;
 	Condition<T> cond;
 
-	// TODO: Refactor to factory instead of constructor
+	public static <TF> LogicConditionPair<TF> create(
+			Logic op, Condition<TF> cond)
+	{
+		return create(op, Negate.NO, cond);
+	}
 	
-	public LogicConditionPair(Logic op, Negate negate, Condition<T> cond)
+	public static <TF> LogicConditionPair<TF> create(
+			Logic op, Negate negate, Condition<TF> cond)
+	{
+		return new LogicConditionPair<TF>(op, negate, cond);
+	}
+	
+	protected LogicConditionPair(Logic op, Negate negate, Condition<T> cond)
 	{
 		this.op = op;
 		this.negate = negate;
 		this.cond = cond;
-	}
-	
-	public LogicConditionPair(Logic op, Condition<T> cond)
-	{
-		this(op, Negate.NO, cond);
-	}
-	
-	public LogicConditionPair(LogicConditionPair<T> toCopy)
-	{
-		this.op = toCopy.op;
-		this.negate = toCopy.negate;
-		this.cond = toCopy.cond;
 	}
 	
 	Logic getLogicOperator()

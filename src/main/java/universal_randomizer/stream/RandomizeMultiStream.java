@@ -60,9 +60,6 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 		streams = streams.map(stream -> stream.sortWrapped(wrappedSorter));
 		return this;
 	}
-	
-	
-	
 
 	@Override
 	public Stream<T> toStream()

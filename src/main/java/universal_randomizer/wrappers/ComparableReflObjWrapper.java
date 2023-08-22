@@ -2,7 +2,7 @@ package universal_randomizer.wrappers;
 
 import java.util.Comparator;
 
-public class ComaprableReflObjWrapper<T extends Comparable<T>> implements Comparator<ReflectionObject<T>>
+public class ComparableReflObjWrapper<T extends Comparable<T>> implements Comparator<ReflectionObject<T>>
 {	
 	@Override
 	public int compare(ReflectionObject<T> o1, ReflectionObject<T> o2) 

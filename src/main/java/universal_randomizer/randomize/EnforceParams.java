@@ -10,11 +10,13 @@ public class EnforceParams<T>
 	private int maxRetries;
 	private int maxResets;
 
+	// TODO refactor to factory
+	
 	public EnforceParams(Condition<T> enforce, int maxRetries, int maxResets)
 	{
 		if (enforce != null)
 		{
-			this.enforce = enforce.copy();
+			this.enforce = enforce;
 			this.maxRetries = maxRetries;
 			this.maxResets = maxResets;
 		}
@@ -26,28 +28,9 @@ public class EnforceParams<T>
 		}
 	}
 	
-	public EnforceParams(EnforceParams<T> toCopy)
-	{
-		if (toCopy.enforce != null)
-		{
-			this.enforce = toCopy.enforce.copy();
-		}
-		else
-		{
-			this.enforce = null;
-		}
-		this.maxRetries = toCopy.maxRetries;
-		this.maxResets = toCopy.maxResets;
-	}
-	
 	public static <U> EnforceParams<U> createNoEnforce() 
 	{
 		return new EnforceParams<U>(null, 0, 0);
-	}
-
-	public EnforceParams<T> copy()
-	{
-		return new EnforceParams<>(this);
 	}
 
 	public boolean evaluateEnforce(ReflectionObject<T> obj) 

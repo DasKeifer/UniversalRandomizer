@@ -60,40 +60,6 @@ class PoolTests {
 		
 		Pool<Integer> nonDupFromDup = Pool.create(true, DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
-		
-		
-		// TODO: Add from stream cretion test
-		
-		
-//		printPool(intArrayPool);
-//		
-//		Pool<Float> floatPool = Pool.createRange(-3.14f, 1.88f, 0.7152f, Float::sum);
-//		printPool(floatPool);
-//
-//		SimpleObject so1 = new SimpleObject("1", 2);
-//		SimpleObject so2 = new SimpleObject("2", 12);
-//		SimpleObject soStep = new SimpleObject("3", 2);
-//		Pool<SimpleObject> soPool = Pool.createRange(so1, so2, soStep, Test::sumSO);
-//		printSoPool(soPool);
-//		
-//		Pool<Integer> fromSo = Pool.createFromStream("intVal", soList.stream());
-//		printPool(fromSo);
-//
-//		// From Stream with complex types
-//		Pool<Integer> fromCoIv = Pool.createFromStream("intVal", soList.stream());
-//		printPool(fromCoIv);
-//		Pool<Integer> fromCoDwa = Pool.createFromStream("doubleWrapperArray", coList.stream());
-//		printPool(fromCoDwa);
-//		Pool<Integer> fromCoCra = Pool.createFromStream("charRawArray", coList.stream());
-//		printPool(fromCoCra);
-//		Pool<Integer> fromCoCc = Pool.createFromStream("charCollection", coList.stream());
-//		printPool(fromCoCc);
-//		Pool<Integer> fromCoFm = Pool.createFromStream("floatMap", coList.stream());
-//		printPool(fromCoFm);
-//		Pool<Integer> fromCoFmv = Pool.createFromMapValuesStream("floatMap", coList.stream());
-//		printPool(fromCoFmv);
-//		Pool<Integer> fromCoFmk = Pool.createFromMapKeysStream("floatMap", coList.stream());
-//		printPool(fromCoFmk);
 	}
 
 	@Test

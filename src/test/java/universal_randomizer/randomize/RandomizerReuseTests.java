@@ -34,7 +34,6 @@ class RandomizerReuseTests {
 		
 		@SuppressWarnings("unchecked")
 		EnforceParams<SimpleObject> enforceAction = mock(EnforceParams.class);
-		when(enforceAction.copy()).thenReturn(enforceAction);
     	
 		
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
@@ -43,7 +42,6 @@ class RandomizerReuseTests {
     		assertEquals(0, mocked.constructed().size());
     	}
     	verify(pool, times(1)).copy();
-    	verify(enforceAction, times(1)).copy();
     	
 
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
@@ -52,7 +50,6 @@ class RandomizerReuseTests {
     		assertEquals(0, mocked.constructed().size());
     	}
     	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(1)).copy();
 
 
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
@@ -61,7 +58,6 @@ class RandomizerReuseTests {
     		assertEquals(0, mocked.constructed().size());
     	}
     	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(2)).copy();
     	
     	
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
@@ -70,7 +66,6 @@ class RandomizerReuseTests {
     		assertEquals(0, mocked.constructed().size());
     	}
     	verify(pool, times(2)).copy();
-    	verify(enforceAction, times(2)).copy();
 	}
 	
 	@Test

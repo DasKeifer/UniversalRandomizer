@@ -1,5 +1,6 @@
 package universal_randomizer.condition;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,37 +11,23 @@ public class CompoundCondition <T> implements Condition<T>
 	Condition<T> baseCond;
 	List<LogicConditionPair<T>> additionalConds;
 
-	// TODO: Refactor to factory instead of constructor?
-	public CompoundCondition(Condition<T> baseCond, List<LogicConditionPair<T>> additionalConds)
+	public static <TF> CompoundCondition<TF> create(
+			Condition<TF> baseCond, List<LogicConditionPair<TF>> additionalConds)
 	{
-		this.baseCond = baseCond.copy();
-		this.additionalConds = new LinkedList<>();
-		for (LogicConditionPair<T> pair : additionalConds)
-		{
-			this.additionalConds.add(new LogicConditionPair<>(pair));
-		}
+		return new CompoundCondition<TF>(baseCond, additionalConds);
 	}
 	
 	@SafeVarargs
-	public CompoundCondition(Condition<T> baseCond, LogicConditionPair<T>... additionalConds)
+	public static <TF> CompoundCondition<TF> create(
+			Condition<TF> baseCond, LogicConditionPair<TF>... additionalConds)
 	{
-		this.baseCond = baseCond.copy();
-		this.additionalConds = new LinkedList<>();
-		for (LogicConditionPair<T> pair : additionalConds)
-		{
-			this.additionalConds.add(new LogicConditionPair<>(pair));
-		}
-	}
-	
-	public CompoundCondition(CompoundCondition<T> toCopy)
-	{
-		this(toCopy.baseCond, toCopy.additionalConds);
+		return new CompoundCondition<TF>(baseCond, Arrays.asList(additionalConds));
 	}
 
-	@Override
-	public CompoundCondition<T> copy() 
+	protected CompoundCondition(Condition<T> baseCond, List<LogicConditionPair<T>> additionalConds)
 	{
-		return new CompoundCondition<>(this);
+		this.baseCond = baseCond;
+		this.additionalConds = new LinkedList<>(additionalConds);
 	}
 	
 	@Override
@@ -50,13 +37,30 @@ public class CompoundCondition <T> implements Condition<T>
 		
 		for (LogicConditionPair<T> condOp : additionalConds)
 		{
-			switch (condOp.op)
+			boolean conditionResult = condOp.cond.evaluate(obj);
+			switch (condOp.negate)
 			{
-				case AND: result = result && condOp.cond.evaluate(obj); break;
-				case OR: result = result || condOp.cond.evaluate(obj); break;
+				case YES: conditionResult = !conditionResult; break;
+				case NO: break;
 				default:
 					//Error
-					result = false;
+					return false;
+			
+			}
+			
+			switch (condOp.op)
+			{
+				case AND: case NAND: result = result && conditionResult; break;
+				case OR: case NOR: result = result || conditionResult; break;
+				case XOR: case XNOR: result = result ^ conditionResult; break;
+				default:
+					//Error
+					return false;
+			}
+			
+			if (condOp.op.isNegationLogic())
+			{
+				result = !result;
 			}
 		}
 		return result;

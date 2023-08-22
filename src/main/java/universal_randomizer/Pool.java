@@ -35,8 +35,6 @@ public class Pool<T>
 		removed = new LinkedList<>();
 	}
 	
-	// TODO: Copy constructor vs function vs static
-	
 	protected Pool(Pool<T> toCopy)
 	{
 		unpeeked = new ArrayList<>(toCopy.unpeeked);

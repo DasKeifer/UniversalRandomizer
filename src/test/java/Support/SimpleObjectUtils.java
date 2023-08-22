@@ -12,7 +12,7 @@ public class SimpleObjectUtils
 		List<Integer> list = new ArrayList<>();
 		for (ReflectionObject<SimpleObject> ro : soList)
 		{
-			list.add(ro.getObject().intField);
+			list.add(ro.getObject().getIntField());
 		}
 		return list;
 	}

@@ -44,7 +44,7 @@ public abstract class Randomizer<T, P>
 		}
 		else
 		{
-			this.enforceActions = enforce.copy();
+			this.enforceActions = enforce;
 		}
 	}
 	

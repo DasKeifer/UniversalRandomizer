@@ -39,6 +39,7 @@ public class ReflectionObject <T> {
 		return null;
 	}
 	
+	// TODO try as a getting method first then as a raw field
 	public Object getField(String pathToField)
 	{
 		Object owningObj = getPenultimateObject(obj, pathToField);
@@ -53,7 +54,8 @@ public class ReflectionObject <T> {
 		
 		return null;
 	}
-	
+
+	// TODO try as a getting method first then as a raw field
 	public <M> Stream<M> getFieldStream(String pathToField)
 	{
 		Object owningObj = getPenultimateObject(obj, pathToField);
@@ -70,17 +72,20 @@ public class ReflectionObject <T> {
 		
 		return Stream.empty();
 	}
-	
+
+	// TODO try as a getting method first then as a raw field
 	public <M> Stream<M> getMapFieldValuesStream(String pathToMapField)
 	{
 		return getMapFieldStream(pathToMapField, true);
 	}
-	
+
+	// TODO try as a getting method first then as a raw field
 	public <M> Stream<M> getMapFieldKeysStream(String pathToMapField)
 	{
 		return getMapFieldStream(pathToMapField, false);
 	}
-	
+
+	// TODO try as a getting method first then as a raw field
 	public <M> Stream<M> getMapFieldStream(String pathToField, boolean valuesNotKeys)
 	{
 		Object owningObj = getPenultimateObject(obj, pathToField);

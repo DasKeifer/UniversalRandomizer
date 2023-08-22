@@ -20,7 +20,7 @@ import Support.RandomizerCommonTestsCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
 import universal_randomizer.Pool;
-import universal_randomizer.condition.Compare;
+import universal_randomizer.condition.Comparison;
 import universal_randomizer.condition.Condition;
 import universal_randomizer.condition.Negate;
 import universal_randomizer.condition.SimpleCondition;
@@ -114,7 +114,7 @@ class CommonRandomizerTests {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
@@ -146,7 +146,7 @@ class CommonRandomizerTests {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
@@ -176,7 +176,7 @@ class CommonRandomizerTests {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
@@ -208,7 +208,7 @@ class CommonRandomizerTests {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
@@ -230,7 +230,7 @@ class CommonRandomizerTests {
 		final List<Integer> EXPECTED_VALS = Arrays.asList(0, 1, 2, 3, 4,               6, 7, 8, 9, 10);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = new SimpleCondition<SimpleObject, Integer>("intField", Negate.YES, Compare.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);

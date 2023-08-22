@@ -21,7 +21,7 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 
 		if (poolEnforce != null)
 		{			
-			this.poolEnforceActions = poolEnforce.copy();
+			this.poolEnforceActions = poolEnforce;
 		}
 		else
 		{
