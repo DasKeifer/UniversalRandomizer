@@ -3,6 +3,7 @@ package universal_randomizer.randomize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.MockedConstruction;
 
-import Support.ExposeRandomizerEliminate;
 import Support.RandomizerCommonTestsCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
@@ -36,7 +36,7 @@ class RandomizerEliminateTests {
 	final List<Integer> DUPLICATE_VALS = List.of(1, -4, 5, 1, 99, 1, 5);
 	final Integer NON_EXISTING_VAL = 7;
 
-	private static RandomizerCommonTestsCreate<SimpleObject, Integer> randElimCreateFn = (p1, p2, p3, p4) -> { return RandomizerEliminate.create(p1, p2, p3, p4, null);};
+	private static RandomizerCommonTestsCreate<SimpleObject, Integer> randElimCreateFn = (p1, p2, p3) -> { return RandomizerEliminate.create(p1, p2, p3, null);};
 	
 	@Test
 	void create() 
@@ -45,85 +45,103 @@ class RandomizerEliminateTests {
 		Pool<Integer> pool = mock(Pool.class);
 		when(pool.copy()).thenReturn(pool);
 		
-		Random rand = mock(Random.class);
-		
 		@SuppressWarnings("unchecked")
 		EnforceParams<SimpleObject> enforceAction = mock(EnforceParams.class);
 		EliminateParams poolAction = mock(EliminateParams.class);
+		
+    	EnforceParams<?> defaultEA = EnforceParams.createNoEnforce();
     	
 		
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerEliminate.create("test", pool, rand, enforceAction, poolAction);
-    		assertEquals(0, mocked.constructed().size());
-    	}
+		RandomizerEliminate<SimpleObject, Integer> re = RandomizerEliminate.create("test1", pool, enforceAction, poolAction);
     	verify(pool, times(1)).copy();
+    	assertEquals("test1", re.getPathToField());
+    	assertEquals(pool, re.getPool());
+    	assertEquals(enforceAction, re.getEnforceActions());
     	
+		re = RandomizerEliminate.createWithPoolNoEnforce("test2", pool);
+    	verify(pool, times(2)).copy();
+    	assertEquals("test2", re.getPathToField());
+    	assertEquals(pool, re.getPool());
+    	assertEquals(defaultEA.getMaxResets(), re.getEnforceActions().getMaxResets());
+    	assertEquals(defaultEA.getMaxRetries(), re.getEnforceActions().getMaxRetries());
+
+    	re = RandomizerEliminate.createPoolFromStream("test3", enforceAction, poolAction);
+    	verify(pool, times(2)).copy();
+    	assertEquals("test3", re.getPathToField());
+    	assertNull(re.getPool());
+    	assertEquals(enforceAction, re.getEnforceActions());
+    	
+    	re = RandomizerEliminate.createPoolFromStreamNoEnforce("test4");
+    	verify(pool, times(2)).copy();
+    	assertEquals("test4", re.getPathToField());
+    	assertNull(re.getPool());
+    	assertEquals(defaultEA.getMaxResets(), re.getEnforceActions().getMaxResets());
+    	assertEquals(defaultEA.getMaxRetries(), re.getEnforceActions().getMaxRetries());
+	}
+	
+	@Test
+	void seed() 
+	{
+		RandomizerEliminate<SimpleObject, Integer> test = RandomizerEliminate.createPoolFromStreamNoEnforce("intField");
+		
+		Random rand0 = new Random(0);
+		test.setRandom(0);
+		assertEquals(rand0.nextLong(), test.getRandom().nextLong());
+				
+		Random randObj = new Random(42);
+		test.setRandom(new Random(42));
+		assertEquals(randObj.nextLong(), test.getRandom().nextLong());
 
     	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
     	{
-    		RandomizerEliminate.createWithPoolNoEnforce("test", pool, rand);
-    		assertEquals(0, mocked.constructed().size());
+    		Random rand = new Random();
+    		when(rand.nextLong()).thenReturn(0L);
+    		
+			test.unseedRandom();
+			assertNotEquals(randObj.nextLong(), test.getRandom().nextLong());
     	}
-    	verify(pool, times(2)).copy();
-
-
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerEliminate.createPoolFromStream("test", rand, enforceAction, poolAction);
-    		assertEquals(0, mocked.constructed().size());
-    	}
-    	verify(pool, times(2)).copy();
-    	
-    	
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerEliminate.createPoolFromStreamNoEnforce("test", rand);
-    		assertEquals(0, mocked.constructed().size());
-    	}
-    	verify(pool, times(2)).copy();
 	}
 
 	@Test
 	void perform_noEnforce_basic() 
 	{
-		CommonRandomizerTests.perform_noEnforce_basic(randElimCreateFn);
+		CommonRandomizerTestUtils.perform_noEnforce_basic(randElimCreateFn);
 	}
 
 	@Test
 	void perform_noEnforce_someFailed() 
 	{
-		CommonRandomizerTests.perform_noEnforce_someFailed(randElimCreateFn);
+		CommonRandomizerTestUtils.perform_noEnforce_someFailed(randElimCreateFn);
 	}
 	
 	@Test
 	void perform_enforce_null() 
 	{
-		CommonRandomizerTests.perform_enforce_null(randElimCreateFn);
+		CommonRandomizerTestUtils.perform_enforce_null(randElimCreateFn);
 	}
 	
 	@Test
 	void perform_enforce_retries() 
 	{
-		CommonRandomizerTests.perform_enforce_retries(randElimCreateFn);
+		CommonRandomizerTestUtils.perform_enforce_retries(randElimCreateFn);
 	}
 	
 	@Test
 	void perform_enforce_exhaustRetries_noResets() 
 	{
-		CommonRandomizerTests.perform_enforce_exhaustRetries_noResets(randElimCreateFn);
+		CommonRandomizerTestUtils.perform_enforce_exhaustRetries_noResets(randElimCreateFn);
 	}
 	
 	@Test
 	void perform_enforce_exhaustRetries_resets() 
 	{
-		CommonRandomizerTests.perform_enforce_exhaustRetries_resets(randElimCreateFn);
+		CommonRandomizerTestUtils.perform_enforce_exhaustRetries_resets(randElimCreateFn);
 	}
 	
 	@Test
 	void perform_noPool() 
 	{
-		CommonRandomizerTests.perform_noPool(randElimCreateFn);
+		CommonRandomizerTestUtils.perform_noPool(randElimCreateFn);
 	}
 	
 	@Test
@@ -156,8 +174,9 @@ class RandomizerEliminateTests {
 		// Create test data and object
 		EliminateParams elimParams = new EliminateParams(2);
 		
-		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTests.createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, rand, null, elimParams);
+		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTestUtils.createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, null, elimParams);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
@@ -198,9 +217,10 @@ class RandomizerEliminateTests {
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 0);
 		EliminateParams elimParams = new EliminateParams(2);
 		
-		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTests.createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, rand, enforce, elimParams);
-
+		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTestUtils.createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, enforce, elimParams);
+		test.setRandom(rand);
+		
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
@@ -240,8 +260,9 @@ class RandomizerEliminateTests {
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 0);
 		EliminateParams elimParams = new EliminateParams(2);
 		
-		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTests.createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, rand, enforce, elimParams);
+		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTestUtils.createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, enforce, elimParams);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream()));
@@ -283,8 +304,9 @@ class RandomizerEliminateTests {
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 1);
 		EliminateParams elimParams = new EliminateParams(2);
 		
-		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTests.createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, rand, enforce, elimParams);
+		List<ReflectionObject<SimpleObject>> list = CommonRandomizerTestUtils.createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create("intField", poolBase, enforce, elimParams);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
@@ -295,33 +317,33 @@ class RandomizerEliminateTests {
 	@Test
 	void perform_poolLocation_edges() 
 	{
-		ExposeRandomizerEliminate nullPool = new ExposeRandomizerEliminate("intField", null, null, null, null);
+		RandomizerEliminate<SimpleObject, Integer> nullPool = RandomizerEliminate.createPoolFromStreamNoEnforce("intField");
 
 		// Make sure it doesn't explode
-		nullPool.exposedSelectPeeked();
-		assertNull(nullPool.exposedPeekNext(null));
+		nullPool.selectPeeked();
+		assertNull(nullPool.peekNext(null));
 		
 		// Move past the valid pool (there is only one)
-		assertFalse(nullPool.exposedNextPool());
+		assertFalse(nullPool.nextPool());
 		
 
 		@SuppressWarnings("unchecked")
 		Pool<Integer> pool = mock(Pool.class);
 		when(pool.peek(any())).thenReturn(5);
 		when(pool.copy()).thenReturn(pool);
-		
-		ExposeRandomizerEliminate nonNullPool = new ExposeRandomizerEliminate("intField", pool, null, null, null);
+
+		RandomizerEliminate<SimpleObject, Integer> nonNullPool = RandomizerEliminate.createWithPoolNoEnforce("intField", pool);
 
 		// Make sure it doesn't explode
-		nonNullPool.exposedSelectPeeked();
-		assertNull(nonNullPool.exposedPeekNext(null));
+		nonNullPool.selectPeeked();
+		assertNull(nonNullPool.peekNext(null));
 		
 		// Move past the valid pool (there is only one)
-		assertTrue(nonNullPool.exposedNextPool());
-		assertFalse(nonNullPool.exposedNextPool());
+		assertTrue(nonNullPool.nextPool());
+		assertFalse(nonNullPool.nextPool());
 		
 		// Now try again
-		nonNullPool.exposedSelectPeeked();
-		assertNull(nonNullPool.exposedPeekNext(null));
+		nonNullPool.selectPeeked();
+		assertNull(nonNullPool.peekNext(null));
 	}
 }

@@ -1,13 +1,27 @@
 package universal_randomizer.condition;
 
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
+
+import Support.SimpleObject;
 
 class LogicConditionPairTests 
 {	
 	@Test
 	void create() 
 	{
-		//TODO
+		Condition<SimpleObject> eq5 = SimpleCondition.create("intField", Negate.NO, Comparison.EQUAL, 5);
+		
+		LogicConditionPair<SimpleObject> lcp = LogicConditionPair.create(Logic.OR, eq5);	
+		assertEquals(Logic.OR, lcp.getLogicOperator(), "Logic Operator was not created correctly");
+		assertEquals(Negate.NO, lcp.getNegateOperator(), "Negate was not created correctly");
+		assertEquals(eq5, lcp.getCondition(), "Condition was not created correctly");
+		
+		LogicConditionPair<SimpleObject> lcpNeg = LogicConditionPair.create(Logic.XNOR, Negate.YES, eq5);
+		assertEquals(Logic.XNOR, lcpNeg.getLogicOperator(), "Logic Operator was not created correctly");
+		assertEquals(Negate.YES, lcpNeg.getNegateOperator(), "Negate was not created correctly");
+		assertEquals(eq5, lcpNeg.getCondition(), "Condition was not created correctly");
 	}
 }

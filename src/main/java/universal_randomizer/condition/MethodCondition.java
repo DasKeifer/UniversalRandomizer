@@ -7,19 +7,19 @@ import universal_randomizer.wrappers.ReflectionObject;
 
 public class MethodCondition <T> implements Condition<T>
 {
-	String method;
-	Negate negate;
+	private String method;
+	private Negate negate;
 
-	public static <TF> MethodCondition<TF> create(
+	public static <T2> MethodCondition<T2> create(
 			String methodName)
 	{
 		return create(methodName, Negate.NO);
 	}
 	
-	public static <TF> MethodCondition<TF> create(
+	public static <T2> MethodCondition<T2> create(
 			String methodName, Negate negate)
 	{
-		return create(methodName, negate);
+		return new MethodCondition<>(methodName, negate);
 	}
 	
 	protected MethodCondition(String methodName, Negate negate) 
@@ -32,26 +32,45 @@ public class MethodCondition <T> implements Condition<T>
 	public boolean evaluate(ReflectionObject<T> obj) 
 	{
 		// Get the var
-		Method methObj = obj.getBooleanMethod(method);
-		try 
+		Method methodObj = obj.getBooleanMethod(method);
+		if (methodObj != null)
 		{
-			boolean result = (boolean) methObj.invoke(obj.getObject());
-			switch (negate)
+			try 
 			{
-				case YES: result = !result; break;
-				case NO: break;
-				default:
-					//error
-					return false;
+				boolean result = (boolean) methodObj.invoke(obj.getObject());
+				switch (negate)
+				{
+					case YES: result = !result; break;
+					case NO: break;
+					default:
+						//error
+						return false;
+				}
+				return result;
+			} 
+			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) 
+			{
+				System.err.println("evaluate failed to invoke method " + methodObj.getName() + 
+						". This should never happen as we ensure the funciton is found before calling");
 			}
-			return result;
-		} 
-		catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
 		return false;
+	}
+
+	public String getMethod() {
+		return method;
+	}
+
+	public Negate getNegate() {
+		return negate;
+	}
+
+	protected void setMethod(String method) {
+		this.method = method;
+	}
+
+	protected void setNegate(Negate negate) {
+		this.negate = negate;
 	}
 }

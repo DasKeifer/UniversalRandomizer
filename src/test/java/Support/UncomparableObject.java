@@ -3,6 +3,7 @@ package Support;
 public class UncomparableObject 
 {
 	public int val;
+	public SimpleObject recurse;
 	
 	public UncomparableObject(int val)
 	{

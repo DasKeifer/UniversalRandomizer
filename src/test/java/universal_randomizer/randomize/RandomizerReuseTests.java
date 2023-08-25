@@ -1,6 +1,8 @@
 package universal_randomizer.randomize;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -21,7 +23,7 @@ class RandomizerReuseTests {
 	final List<Integer> DUPLICATE_VALS = List.of(1, -4, 5, 1, 99, 1, 5);
 	final Integer NON_EXISTING_VAL = 7;
 	
-	private static RandomizerCommonTestsCreate<SimpleObject, Integer> randReuseCreateFn = (p1, p2, p3, p4) -> { return RandomizerReuse.create(p1, p2, p3, p4);};
+	private static RandomizerCommonTestsCreate<SimpleObject, Integer> randReuseCreateFn = (p1, p2, p3) -> { return RandomizerReuse.create(p1, p2, p3);};
 	
 	@Test
 	void create() 
@@ -30,91 +32,101 @@ class RandomizerReuseTests {
 		Pool<Integer> pool = mock(Pool.class);
 		when(pool.copy()).thenReturn(pool);
 		
-		Random rand = mock(Random.class);
-		
 		@SuppressWarnings("unchecked")
 		EnforceParams<SimpleObject> enforceAction = mock(EnforceParams.class);
+
+    	EnforceParams<?> defaultEA = EnforceParams.createNoEnforce();
     	
-		
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerReuse.create("test", pool, rand, enforceAction);
-    		assertEquals(0, mocked.constructed().size());
-    	}
+    	
+		RandomizerReuse<SimpleObject, Integer> rr = RandomizerReuse.create("test1", pool, enforceAction);
     	verify(pool, times(1)).copy();
+    	assertEquals("test1", rr.getPathToField());
+    	assertEquals(pool, rr.getPool());
+    	assertEquals(enforceAction, rr.getEnforceActions());
     	
-
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerReuse.createWithPoolNoEnforce("test", pool, rand);
-    		assertEquals(0, mocked.constructed().size());
-    	}
+    	rr = RandomizerReuse.createWithPoolNoEnforce("test2", pool);
     	verify(pool, times(2)).copy();
+    	assertEquals("test2", rr.getPathToField());
+    	assertEquals(pool, rr.getPool());
+    	assertEquals(defaultEA.getMaxResets(), rr.getEnforceActions().getMaxResets());
+    	assertEquals(defaultEA.getMaxRetries(), rr.getEnforceActions().getMaxRetries());
 
-
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerReuse.createPoolFromStream("test", rand, enforceAction);
-    		assertEquals(0, mocked.constructed().size());
-    	}
+    	rr = RandomizerReuse.createPoolFromStream("test3", enforceAction);
     	verify(pool, times(2)).copy();
+    	assertEquals("test3", rr.getPathToField());
+    	assertNull(rr.getPool());
+    	assertEquals(enforceAction, rr.getEnforceActions());
     	
-    	
-    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-    	{
-    		RandomizerReuse.createPoolFromStreamNoEnforce("test", rand);
-    		assertEquals(0, mocked.constructed().size());
-    	}
+    	rr = RandomizerReuse.createPoolFromStreamNoEnforce("test4");
     	verify(pool, times(2)).copy();
+    	assertEquals("test4", rr.getPathToField());
+    	assertNull(rr.getPool());
+    	assertEquals(defaultEA.getMaxResets(), rr.getEnforceActions().getMaxResets());
+    	assertEquals(defaultEA.getMaxRetries(), rr.getEnforceActions().getMaxRetries());
 	}
 	
 	@Test
 	void seed() 
 	{
-		Randomizer<SimpleObject, Integer> test = RandomizerReuse.create("intField", null, null, null);
-		test.seed(0);
-		test.seed(new Random());
+		RandomizerReuse<SimpleObject, Integer> test = RandomizerReuse.createPoolFromStreamNoEnforce("intField");
+		
+		Random rand0 = new Random(0);
+		test.setRandom(0);
+		assertEquals(rand0.nextLong(), test.getRandom().nextLong());
+				
+		Random randObj = new Random(42);
+		test.setRandom(new Random(42));
+		assertEquals(randObj.nextLong(), test.getRandom().nextLong());
+
+    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
+    	{
+    		Random rand = new Random();
+    		when(rand.nextLong()).thenReturn(0L);
+    		
+			test.unseedRandom();
+			assertNotEquals(randObj.nextLong(), test.getRandom().nextLong());
+    	}
 	}
 
 	@Test
 	void perform_noEnforce_basic() 
 	{
-		CommonRandomizerTests.perform_noEnforce_basic(randReuseCreateFn);
+		CommonRandomizerTestUtils.perform_noEnforce_basic(randReuseCreateFn);
 	}
 
 	@Test
 	void perform_noEnforce_someFailed() 
 	{
-		CommonRandomizerTests.perform_noEnforce_someFailed(randReuseCreateFn);
+		CommonRandomizerTestUtils.perform_noEnforce_someFailed(randReuseCreateFn);
 	}
 	
 	@Test
 	void perform_enforce_null() 
 	{
-		CommonRandomizerTests.perform_enforce_null(randReuseCreateFn);
+		CommonRandomizerTestUtils.perform_enforce_null(randReuseCreateFn);
 	}
 	
 	@Test
 	void perform_enforce_retries() 
 	{
-		CommonRandomizerTests.perform_enforce_retries(randReuseCreateFn);
+		CommonRandomizerTestUtils.perform_enforce_retries(randReuseCreateFn);
 	}
 	
 	@Test
 	void perform_enforce_exhaustRetries_noResets() 
 	{
-		CommonRandomizerTests.perform_enforce_exhaustRetries_noResets(randReuseCreateFn);
+		CommonRandomizerTestUtils.perform_enforce_exhaustRetries_noResets(randReuseCreateFn);
 	}
 	
 	@Test
 	void perform_enforce_exhaustRetries_resets() 
 	{
-		CommonRandomizerTests.perform_enforce_exhaustRetries_resets(randReuseCreateFn);
+		CommonRandomizerTestUtils.perform_enforce_exhaustRetries_resets(randReuseCreateFn);
 	}
 	
 	@Test
 	void perform_noPool() 
 	{
-		CommonRandomizerTests.perform_noPool(randReuseCreateFn);
+		CommonRandomizerTestUtils.perform_noPool(randReuseCreateFn);
 	}
 }

@@ -45,7 +45,8 @@ class PoolTests {
 		for (Entry<T, Integer> pair : expected.entrySet())
 		{
 			int foundCount = found.instancesOf(pair.getKey());
-			assertTrue(foundCount == pair.getValue(), "Found " + foundCount + " instances of " + pair.getKey() + " in pool but expected to find " + pair.getValue());
+			assertEquals(pair.getValue(), foundCount, "Found " + foundCount + " instances of " + 
+					pair.getKey() + " in pool but expected to find " + pair.getValue());
 		}
 	}
 	
@@ -263,11 +264,10 @@ class PoolTests {
 	}
 
 	@Test
-	void instancesOf_instancesOfUnpeeked_basic() 
+	void instancesOf_instancesOfUnpeeked_unpeeked() 
 	{
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
-		
 		Pool<Integer> pool = Pool.create(false, DUPLICATE_VALS);
 
 		// 1, -4, 5, 1, 99, 1, 5
@@ -283,6 +283,14 @@ class PoolTests {
 		assertEquals(2, pool.instancesOfUnpeeked(5));
 		assertEquals(1, pool.instancesOfUnpeeked(99));
 		assertEquals(0, pool.instancesOfUnpeeked(NOT_IN_POOL));
+	}
+	
+	@Test
+	void instancesOf_instancesOfUnpeeked_peeked_popped() 
+	{
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+		Pool<Integer> pool = Pool.create(false, DUPLICATE_VALS);
 		
 		assertEquals(DUPLICATE_VALS.get(0), pool.peek(rand), "peek did not return value based on passed Random");
 
@@ -307,9 +315,15 @@ class PoolTests {
 		assertEquals(1, pool.instancesOfUnpeeked(-4));
 		assertEquals(2, pool.instancesOfUnpeeked(5));
 		assertEquals(1, pool.instancesOfUnpeeked(99));
+	}
+
+	@Test
+	void instancesOf_instancesOfUnpeeked_peeked_selected() 
+	{
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+		Pool<Integer> pool = Pool.create(false, DUPLICATE_VALS);
 		
-		// Now try without pop'ing
-		pool = Pool.create(false, DUPLICATE_VALS);
 		assertEquals(DUPLICATE_VALS.get(0), pool.peek(rand), "peek did not return value based on passed Random");
 		pool.selectPeeked();
 
@@ -322,7 +336,6 @@ class PoolTests {
 		assertEquals(1, pool.instancesOfUnpeeked(-4));
 		assertEquals(2, pool.instancesOfUnpeeked(5));
 		assertEquals(1, pool.instancesOfUnpeeked(99));
-		
 	}
 	
 	// copy/deep copy tests with pop?

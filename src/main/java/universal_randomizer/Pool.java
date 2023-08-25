@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Pool<T>
@@ -60,7 +59,7 @@ public class Pool<T>
 	
 	public static <V> Pool<V> create(boolean removeDuplicates, Stream<V> values)
 	{
-		return new Pool<>(removeDuplicates, values.collect(Collectors.toList()));
+		return new Pool<>(removeDuplicates, values.toList());
 	}
 	
 	public Pool<T> copy()
@@ -85,7 +84,7 @@ public class Pool<T>
 
 	public T peek(Random rand)
 	{
-		if (unpeeked.size() <= 0)
+		if (unpeeked.isEmpty())
 		{
 			return null;
 		}
@@ -121,7 +120,7 @@ public class Pool<T>
 	
 	public T selectPeeked(boolean remove)
 	{
-		if (peeked.size() < 1)
+		if (peeked.isEmpty())
 		{
 			return null;
 		}

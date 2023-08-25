@@ -28,9 +28,9 @@ public class EnforceParams<T>
 		}
 	}
 	
-	public static <U> EnforceParams<U> createNoEnforce() 
+	public static <T2> EnforceParams<T2> createNoEnforce() 
 	{
-		return new EnforceParams<U>(null, 0, 0);
+		return new EnforceParams<>(null, 0, 0);
 	}
 
 	public boolean evaluateEnforce(ReflectionObject<T> obj) 

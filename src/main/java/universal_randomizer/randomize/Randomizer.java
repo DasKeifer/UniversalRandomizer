@@ -2,7 +2,6 @@ package universal_randomizer.randomize;
 
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import universal_randomizer.wrappers.ReflectionObject;
@@ -11,12 +10,12 @@ import universal_randomizer.Utils;
 
 public abstract class Randomizer<T, P> 
 {	
-	String pathToField;
-	Random rand;
-	Pool<P> pool;
-	EnforceParams<T> enforceActions;
+	private String pathToField;
+	private Random rand;
+	private Pool<P> pool;
+	private EnforceParams<T> enforceActions;
 	
-	protected Randomizer(String pathToField, Pool<P> pool, Random rand, EnforceParams<T> enforce)
+	protected Randomizer(String pathToField, Pool<P> pool, EnforceParams<T> enforce)
 	{
 		this.pathToField = pathToField;
 
@@ -29,14 +28,7 @@ public abstract class Randomizer<T, P>
 			this.pool = pool.copy();
 		}
 		
-		if (rand == null)
-		{
-			rand = new Random();
-		}
-		else
-		{
-			this.rand = rand;
-		}
+		rand = new Random();
 
 		if (enforce == null)
 		{
@@ -48,14 +40,19 @@ public abstract class Randomizer<T, P>
 		}
 	}
 	
-	public void seed(long seed)
+	public void setRandom(long seed)
 	{
 		this.rand = new Random(seed);
 	}
 	
-	public void seed(Random rand)
+	public void setRandom(Random rand)
 	{
-		this.rand = new Random(rand.nextLong());
+		this.rand = rand;
+	}
+	
+	public void unseedRandom()
+	{
+		this.rand = new Random();
 	}
 
 	protected abstract void resetPool();
@@ -67,8 +64,8 @@ public abstract class Randomizer<T, P>
 		// in order to "reuse" the stream, we need to convert it out of a stream
 		// and create new ones. We need to save off the list if we need to create
         // a source pool or if there is a RESET on fail action
-		List<ReflectionObject<T>> streamAsList = objStream.collect(Collectors.toList());
-		if (pool == null)
+		List<ReflectionObject<T>> streamAsList = objStream.toList();
+		if (getPool() == null)
 		{
 			// TODO: need some logic to handle map fields
 			pool = Pool.create(false, Utils.narrowToField(pathToField, streamAsList.stream()));
@@ -98,7 +95,7 @@ public abstract class Randomizer<T, P>
 
 	protected List<ReflectionObject<T>> randomize(Stream<ReflectionObject<T>> objStream)
 	{
-		return objStream.filter(this::assignValueNegated).collect(Collectors.toList());
+		return objStream.filter(this::assignValueNegated).toList();
 	}
 	
 	protected boolean assignValueNegated(ReflectionObject<T> obj)
@@ -134,13 +131,34 @@ public abstract class Randomizer<T, P>
 		return success;
 	}
 	
+	@SuppressWarnings("unchecked")
 	protected boolean assignAndCheckEnforce(ReflectionObject<T> obj, P value)
 	{
 		if (value == null)
 		{
 			return false;
 		}
-		obj.setVariableValue(pathToField, value);
+		obj.setField(pathToField, value, (Class<P>) value.getClass());
 		return enforceActions.evaluateEnforce(obj);
+	}
+
+	protected String getPathToField() 
+	{
+		return pathToField;
+	}
+
+	protected Random getRandom() 
+	{
+		return rand;
+	}
+
+	protected Pool<P> getPool() 
+	{
+		return pool;
+	}
+
+	protected EnforceParams<T> getEnforceActions() 
+	{
+		return enforceActions;
 	}
 }

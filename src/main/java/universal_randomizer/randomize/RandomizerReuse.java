@@ -6,46 +6,46 @@ import universal_randomizer.Pool;
 
 public class RandomizerReuse<T, P> extends Randomizer<T, P> 
 {
-	private RandomizerReuse(String pathToField, Pool<P> pool, Random rand, EnforceParams<T> enforce)
+	protected RandomizerReuse(String pathToField, Pool<P> pool, EnforceParams<T> enforce)
 	{
-		super(pathToField, pool, rand, enforce);
+		super(pathToField, pool, enforce);
 	}
 	
-	public static <V, S> RandomizerReuse<V, S> create(String pathToField, Pool<S> pool, Random rand, EnforceParams<V> enforce)
+	public static <V, S> RandomizerReuse<V, S> create(String pathToField, Pool<S> pool, EnforceParams<V> enforce)
 	{
-		return new RandomizerReuse<>(pathToField, pool, rand, enforce);
+		return new RandomizerReuse<>(pathToField, pool, enforce);
 	}
 	
-	public static <V, S> RandomizerReuse<V, S> createWithPoolNoEnforce(String pathToField, Pool<S> pool, Random rand)
+	public static <V, S> RandomizerReuse<V, S> createWithPoolNoEnforce(String pathToField, Pool<S> pool)
 	{
-		return new RandomizerReuse<>(pathToField, pool, rand, null);
+		return new RandomizerReuse<>(pathToField, pool, null);
 	}
 	
-	public static <V, S> RandomizerReuse<V, S> createPoolFromStream(String pathToField, Random rand, EnforceParams<V> enforce)
+	public static <V, S> RandomizerReuse<V, S> createPoolFromStream(String pathToField, EnforceParams<V> enforce)
 	{
-		return new RandomizerReuse<>(pathToField, null, rand, enforce);
+		return new RandomizerReuse<>(pathToField, null, enforce);
 	}
 
-	public static <V, S> RandomizerReuse<V, S> createPoolFromStreamNoEnforce(String pathToField, Random rand)
+	public static <V, S> RandomizerReuse<V, S> createPoolFromStreamNoEnforce(String pathToField)
 	{
-		return new RandomizerReuse<>(pathToField, null, rand, null);
+		return new RandomizerReuse<>(pathToField, null, null);
 	}
 
 	@Override
 	protected void resetPool() 
 	{
-		pool.reset();
+		getPool().reset();
 	}
 
 	@Override
 	protected P peekNext(Random rand) 
 	{
-		 return pool.peek(rand);
+		 return getPool().peek(rand);
 	}
 
 	@Override
 	protected void selectPeeked() 
 	{
-		pool.selectPeeked();
+		getPool().selectPeeked();
 	}
 }

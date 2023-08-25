@@ -49,8 +49,8 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 	public RandomizeSingleStream<T> shuffle(Random rand) 
 	{
 		stream = stream
-				.map(obj -> obj.setRandomValueReturnSelf(rand.nextInt()))
-				.sorted(ReflectionObject::sortByRandomValue);
+				.map(obj -> obj.setSortingValueReturnSelf(rand.nextInt()))
+				.sorted(ReflectionObject::sortBySortingValue);
 		return this;
 	}
 

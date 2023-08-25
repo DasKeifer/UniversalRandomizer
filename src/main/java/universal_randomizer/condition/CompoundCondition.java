@@ -8,20 +8,20 @@ import universal_randomizer.wrappers.ReflectionObject;
 
 public class CompoundCondition <T> implements Condition<T>
 {
-	Condition<T> baseCond;
-	List<LogicConditionPair<T>> additionalConds;
+	private Condition<T> baseCond;
+	private List<LogicConditionPair<T>> additionalConds;
 
-	public static <TF> CompoundCondition<TF> create(
-			Condition<TF> baseCond, List<LogicConditionPair<TF>> additionalConds)
+	public static <T2> CompoundCondition<T2> create(
+			Condition<T2> baseCond, List<LogicConditionPair<T2>> additionalConds)
 	{
-		return new CompoundCondition<TF>(baseCond, additionalConds);
+		return new CompoundCondition<>(baseCond, additionalConds);
 	}
 	
 	@SafeVarargs
-	public static <TF> CompoundCondition<TF> create(
-			Condition<TF> baseCond, LogicConditionPair<TF>... additionalConds)
+	public static <T2> CompoundCondition<T2> create(
+			Condition<T2> baseCond, LogicConditionPair<T2>... additionalConds)
 	{
-		return new CompoundCondition<TF>(baseCond, Arrays.asList(additionalConds));
+		return new CompoundCondition<>(baseCond, Arrays.asList(additionalConds));
 	}
 
 	protected CompoundCondition(Condition<T> baseCond, List<LogicConditionPair<T>> additionalConds)
@@ -50,9 +50,9 @@ public class CompoundCondition <T> implements Condition<T>
 			
 			switch (condOp.op)
 			{
-				case AND: case NAND: result = result && conditionResult; break;
-				case OR: case NOR: result = result || conditionResult; break;
-				case XOR: case XNOR: result = result ^ conditionResult; break;
+				case AND, NAND: result = result && conditionResult; break;
+				case OR, NOR: result = result || conditionResult; break;
+				case XOR, XNOR: result = result ^ conditionResult; break;
 				default:
 					//Error
 					return false;
@@ -64,5 +64,22 @@ public class CompoundCondition <T> implements Condition<T>
 			}
 		}
 		return result;
+	}
+
+	public Condition<T> getBaseCond() {
+		return baseCond;
+	}
+
+	public List<LogicConditionPair<T>> getAdditionalConds() {
+		
+		return additionalConds;
+	}
+
+	protected void setBaseCond(Condition<T> baseCond) {
+		this.baseCond = baseCond;
+	}
+
+	protected void setAdditionalConds(List<LogicConditionPair<T>> additionalConds) {
+		this.additionalConds = additionalConds;
 	}
 }

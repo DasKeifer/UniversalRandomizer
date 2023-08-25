@@ -12,7 +12,6 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import org.mockito.AdditionalAnswers;
-import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -28,14 +27,14 @@ import universal_randomizer.wrappers.ReflectionObject;
 
 // Tests the Randomizer Reuse class and by extension the Randomizer class since the
 // reuse class is the most simple of the classes
-class CommonRandomizerTests {
+class CommonRandomizerTestUtils {
 	
 	public static List<ReflectionObject<SimpleObject>> createSimpleObjects(int number)
 	{
 		List<ReflectionObject<SimpleObject>> list = new LinkedList<>();
 		for (int i = 0; i < number; i++)
 		{
-			list.add(new ReflectionObject<>(new SimpleObject("name" + i, i * 100)));
+			list.add(ReflectionObject.create(new SimpleObject("name" + i, i * 100)));
 		}
 		return list;
 	}
@@ -63,7 +62,8 @@ class CommonRandomizerTests {
 
 		// Create test data and object
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, null);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, null);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
@@ -88,7 +88,8 @@ class CommonRandomizerTests {
 		
 		// Create test data and object
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, null);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, null);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream()));
@@ -118,7 +119,8 @@ class CommonRandomizerTests {
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, enforce);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, enforce);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream()));
@@ -150,7 +152,8 @@ class CommonRandomizerTests {
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, enforce);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, enforce);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
@@ -180,7 +183,8 @@ class CommonRandomizerTests {
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, enforce);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, enforce);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream()));
@@ -212,7 +216,8 @@ class CommonRandomizerTests {
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
 		
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, rand, enforce);
+		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, enforce);
+		test.setRandom(rand);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
@@ -236,6 +241,9 @@ class CommonRandomizerTests {
 		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = null;
 		
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+		
 	    try (@SuppressWarnings("rawtypes")
 		MockedStatic<Pool> intPool = Mockito.mockStatic(Pool.class)) 
 	    {
@@ -247,14 +255,9 @@ class CommonRandomizerTests {
 	    	intPool.when(() -> Pool.create(anyBoolean(), any(Stream.class)))
 	          .thenReturn(pool);
 	    	
-	    	try (MockedConstruction<Random> mocked = mockConstruction(Random.class)) 
-	    	{
-	    		Random rand = new Random();
-	    		when(rand.nextInt(anyInt())).thenReturn(0);
-
-	    		test = createFn.create("intField", null, null, enforce);
-   		 	}
-
+	    	test = createFn.create("intField", null, enforce);
+    		test.setRandom(rand);
+    		
 			// Perform test and check results
 			assertTrue(test.perform(list.stream()));
 	    }

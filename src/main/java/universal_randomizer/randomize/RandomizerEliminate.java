@@ -15,9 +15,9 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 	private List<Pool<P>> workingPools;
 	private int lastPeekedIndex;
 	
-	protected RandomizerEliminate(String pathToField, Pool<P> pool, Random rand, EnforceParams<T> enforce, EliminateParams poolEnforce)
+	protected RandomizerEliminate(String pathToField, Pool<P> pool, EnforceParams<T> enforce, EliminateParams poolEnforce)
 	{
-		super(pathToField, pool, rand, enforce);
+		super(pathToField, pool, enforce);
 
 		if (poolEnforce != null)
 		{			
@@ -32,24 +32,24 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 		lastPeekedIndex = -1;
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> create(String pathToField, Pool<S> pool, Random rand, EnforceParams<V> enforce, EliminateParams poolEnforce)
+	public static <V, S> RandomizerEliminate<V, S> create(String pathToField, Pool<S> pool, EnforceParams<V> enforce, EliminateParams poolEnforce)
 	{
-		return new RandomizerEliminate<>(pathToField, pool, rand, enforce, poolEnforce);
+		return new RandomizerEliminate<>(pathToField, pool, enforce, poolEnforce);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createWithPoolNoEnforce(String pathToField, Pool<S> pool, Random rand)
+	public static <V, S> RandomizerEliminate<V, S> createWithPoolNoEnforce(String pathToField, Pool<S> pool)
 	{
-		return new RandomizerEliminate<>(pathToField, pool, rand, null, null);
+		return new RandomizerEliminate<>(pathToField, pool, null, null);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createPoolFromStream(String pathToField, Random rand, EnforceParams<V> enforce, EliminateParams poolEnforce)
+	public static <V, S> RandomizerEliminate<V, S> createPoolFromStream(String pathToField, EnforceParams<V> enforce, EliminateParams poolEnforce)
 	{
-		return new RandomizerEliminate<>(pathToField, null, rand, enforce, poolEnforce);
+		return new RandomizerEliminate<>(pathToField, null, enforce, poolEnforce);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamNoEnforce(String pathToField, Random rand)
+	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamNoEnforce(String pathToField)
 	{
-		return new RandomizerEliminate<>(pathToField, null, rand, null, null);
+		return new RandomizerEliminate<>(pathToField, null, null, null);
 	}
 	
 	@Override
@@ -107,7 +107,7 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 	
 	protected boolean nextPool()
 	{
-		if (pool == null || lastPeekedIndex >= poolEnforceActions.getMaxDepth() - 1)
+		if (getPool() == null || lastPeekedIndex >= poolEnforceActions.getMaxDepth() - 1)
 		{
 			return false;
 		}
@@ -116,13 +116,13 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 		// If we ran out of pools, add a new one
 		if (lastPeekedIndex >= workingPools.size())
 		{
-			if (workingPools.size() == 0)
+			if (workingPools.isEmpty())
 			{
-				workingPools.add(pool);
+				workingPools.add(getPool());
 			}
 			else
 			{
-				workingPools.add(pool.copy());
+				workingPools.add(getPool().copy());
 			}
 		}
 		return true;

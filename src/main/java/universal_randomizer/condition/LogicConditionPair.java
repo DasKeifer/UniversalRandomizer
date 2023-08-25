@@ -7,16 +7,16 @@ public class LogicConditionPair<T>
 	Negate negate;
 	Condition<T> cond;
 
-	public static <TF> LogicConditionPair<TF> create(
-			Logic op, Condition<TF> cond)
+	public static <T2> LogicConditionPair<T2> create(
+			Logic op, Condition<T2> cond)
 	{
 		return create(op, Negate.NO, cond);
 	}
 	
-	public static <TF> LogicConditionPair<TF> create(
-			Logic op, Negate negate, Condition<TF> cond)
+	public static <T2> LogicConditionPair<T2> create(
+			Logic op, Negate negate, Condition<T2> cond)
 	{
-		return new LogicConditionPair<TF>(op, negate, cond);
+		return new LogicConditionPair<>(op, negate, cond);
 	}
 	
 	protected LogicConditionPair(Logic op, Negate negate, Condition<T> cond)

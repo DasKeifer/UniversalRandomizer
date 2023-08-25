@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Comparator;
+
 import org.junit.jupiter.api.Test;
 
 import Support.SimpleObject;
@@ -13,13 +15,45 @@ import universal_randomizer.wrappers.ReflectionObject;
 
 class SimpleConditionTests 
 {	
-	// TODO Consturctors
+	@Test
+	void create()
+	{
+		SimpleCondition<SimpleObject, Integer> sc1 = SimpleCondition.create("intField", Comparison.EQUAL, 5);
+		assertEquals("intField", sc1.getVariable());
+		assertEquals(Negate.NO, sc1.getNegate());
+		assertEquals(Comparison.EQUAL, sc1.getComparison());
+		assertEquals(5, sc1.getVal());
+		assertNotNull(sc1.getComparator());
+		
+		SimpleCondition<SimpleObject, Integer> sc2 = SimpleCondition.create("intField", Negate.YES, Comparison.GREATER_THAN, 5);
+		assertEquals("intField", sc2.getVariable());
+		assertEquals(Negate.YES, sc2.getNegate());
+		assertEquals(Comparison.GREATER_THAN, sc2.getComparison());
+		assertEquals(5, sc2.getVal());
+		assertNotNull(sc2.getComparator());
+		
+		Comparator<UncomparableObject> customComp = (lhs,rhs)-> {return Integer.compare(lhs.val, rhs.val);};
+		UncomparableObject uo = new UncomparableObject(3);
+		SimpleCondition<SimpleObject, UncomparableObject> sc3 = SimpleCondition.create("uncomparableObj", Comparison.LESS_THAN_OR_EQUAL, uo, customComp);
+		assertEquals("uncomparableObj", sc3.getVariable());
+		assertEquals(Negate.NO, sc3.getNegate());
+		assertEquals(Comparison.LESS_THAN_OR_EQUAL, sc3.getComparison());
+		assertEquals(uo, sc3.getVal());
+		assertEquals(customComp, sc3.getComparator());
+		
+		SimpleCondition<SimpleObject, UncomparableObject> sc4 = SimpleCondition.create("uncomparableObj", Negate.YES, Comparison.LESS_THAN, uo, customComp);
+		assertEquals("uncomparableObj", sc4.getVariable());
+		assertEquals(Negate.YES, sc4.getNegate());
+		assertEquals(Comparison.LESS_THAN, sc4.getComparison());
+		assertEquals(uo, sc4.getVal());
+		assertEquals(customComp, sc4.getComparator());
+	}
 	
 	@Test
-	void evaluate_eq_neq() 
+	void evaluate_eq_neq()
 	{
-		ReflectionObject<SimpleObject> testObj3 = new ReflectionObject<>(new SimpleObject("test obj", 3));
-		ReflectionObject<SimpleObject> testObj5 = new ReflectionObject<>(new SimpleObject("test obj", 5));
+		ReflectionObject<SimpleObject> testObj3 = ReflectionObject.create(new SimpleObject("test obj", 3));
+		ReflectionObject<SimpleObject> testObj5 = ReflectionObject.create(new SimpleObject("test obj", 5));
 
 		Condition<SimpleObject> eq5 = SimpleCondition.create("intField", Negate.NO, Comparison.EQUAL, 5);
 		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, 5);
@@ -31,11 +65,11 @@ class SimpleConditionTests
 	}
 	
 	@Test
-	void evaluate_lt_lte_nlt_nlte() 
+	void evaluate_lt_lte_nlt_nlte()
 	{
-		ReflectionObject<SimpleObject> testObj3 = new ReflectionObject<>(new SimpleObject("test obj", 3));
-		ReflectionObject<SimpleObject> testObj5 = new ReflectionObject<>(new SimpleObject("test obj", 5));
-		ReflectionObject<SimpleObject> testObj7 = new ReflectionObject<>(new SimpleObject("test obj", 7));
+		ReflectionObject<SimpleObject> testObj3 = ReflectionObject.create(new SimpleObject("test obj", 3));
+		ReflectionObject<SimpleObject> testObj5 = ReflectionObject.create(new SimpleObject("test obj", 5));
+		ReflectionObject<SimpleObject> testObj7 = ReflectionObject.create(new SimpleObject("test obj", 7));
 
 		Condition<SimpleObject> lt5 = SimpleCondition.create("intField", Negate.NO, Comparison.LESS_THAN, 5);
 		Condition<SimpleObject> nlt5 = SimpleCondition.create("intField", Negate.YES, Comparison.LESS_THAN, 5);
@@ -59,11 +93,11 @@ class SimpleConditionTests
 	}
 	
 	@Test
-	void evaluate_gt_gte_ngt_ngte() 
+	void evaluate_gt_gte_ngt_ngte()
 	{
-		ReflectionObject<SimpleObject> testObj3 = new ReflectionObject<>(new SimpleObject("test obj", 3));
-		ReflectionObject<SimpleObject> testObj5 = new ReflectionObject<>(new SimpleObject("test obj", 5));
-		ReflectionObject<SimpleObject> testObj7 = new ReflectionObject<>(new SimpleObject("test obj", 7));
+		ReflectionObject<SimpleObject> testObj3 = ReflectionObject.create(new SimpleObject("test obj", 3));
+		ReflectionObject<SimpleObject> testObj5 = ReflectionObject.create(new SimpleObject("test obj", 5));
+		ReflectionObject<SimpleObject> testObj7 = ReflectionObject.create(new SimpleObject("test obj", 7));
 
 		Condition<SimpleObject> gt5 = SimpleCondition.create("intField", Negate.NO, Comparison.GREATER_THAN, 5);
 		Condition<SimpleObject> ngt5 = SimpleCondition.create("intField", Negate.YES, Comparison.GREATER_THAN, 5);
@@ -87,7 +121,7 @@ class SimpleConditionTests
 	}
 	
 	@Test
-	void evaluate_null() 
+	void evaluate_null()
 	{
 		@SuppressWarnings("unchecked")
 		ReflectionObject<SimpleObject> ro = mock(ReflectionObject.class);
@@ -98,9 +132,9 @@ class SimpleConditionTests
 	}
 	
 	@Test
-	void evaluate_wrong_object() 
+	void evaluate_wrong_object()
 	{
-		ReflectionObject<SimpleObject> testObj = new ReflectionObject<>(new SimpleObject("test obj", 0));
+		ReflectionObject<SimpleObject> testObj = ReflectionObject.create(new SimpleObject("test obj", 0));
 		testObj.getObject().uncomparableObj = new UncomparableObject(5);
 		Condition<SimpleObject> eq5 = SimpleCondition.create("uncomparableObj", Negate.NO, Comparison.EQUAL, 5);
 		assertFalse(eq5.evaluate(testObj)); // todo should error somehow?

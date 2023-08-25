@@ -17,6 +17,11 @@ import universal_randomizer.wrappers.SumableAsSum;
 
 public class Utils 
 {	
+	private Utils() 
+	{
+	    throw new IllegalStateException("Utility class");
+	}
+	
 	public static <N extends Comparable<N> & Sumable<N>> Collection<N> createRange(N min, N max, N stepSize)
 	{
 		return createRange(min, max, stepSize, new SumableAsSum<>());
@@ -46,12 +51,14 @@ public class Utils
 	
 	public static <S, V> Stream<V> narrowToField(String pathToField, Stream<ReflectionObject<S>> objStream)
 	{
-		return objStream.flatMap(obj -> obj.getFieldStream(pathToField));
+		// TODO: Type safety
+		return (Stream<V>) objStream.flatMap(obj -> obj.getFieldStream(pathToField));
 	}
 	
 	public static <S, V> Stream<V> narrowToMapField(String pathToField, Stream<ReflectionObject<S>> objStream, boolean valuesNotKeys)
 	{
-		return objStream.flatMap(obj -> obj.getMapFieldStream(pathToField, valuesNotKeys));
+		// TODO: Type safety
+		return (Stream<V>) objStream.flatMap(obj -> obj.getMapFieldStream(pathToField, valuesNotKeys));
 	}
 	
 	public static <S, V> Stream<V> narrowToMapKeyField(String pathToField, Stream<ReflectionObject<S>> objStream)
@@ -65,7 +72,7 @@ public class Utils
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> Stream<T> convertToStream(Object obj)
+	public static Stream<Object> convertToStream(Object obj)
 	{
 		if (obj == null)
 		{
@@ -73,6 +80,33 @@ public class Utils
 		}
 		else if (obj instanceof Collection)
 		{
+			return ((Collection<Object>) obj).stream();
+		}
+		else if (obj.getClass().isArray())
+		{
+			return convertArrayToStream(obj);
+		}
+		else if (obj instanceof Map)
+		{
+			return ((Map<?,Object>) obj).values().stream();
+		}
+		return Stream.of(obj);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> Stream<T> convertToStream(Object obj, Class<T> tClass)
+	{
+		if (obj == null || tClass == null)
+		{
+			return Stream.empty();
+		}
+		else if (obj instanceof Collection)
+		{
+			Collection<?> asCol = (Collection<?>) obj;
+			if (asCol.isEmpty() || !tClass.isInstance(asCol.iterator().next()))
+			{
+				return Stream.empty();
+			}
 			return ((Collection<T>) obj).stream();
 		}
 		else if (obj.getClass().isArray())
@@ -81,6 +115,11 @@ public class Utils
 		}
 		else if (obj instanceof Map)
 		{
+			Map<?,?> asCol = (Map<?,?>) obj;
+			if (asCol.isEmpty() || !tClass.isInstance(asCol.values().iterator().next()))
+			{
+				return Stream.empty();
+			}
 			return ((Map<?,T>) obj).values().stream();
 		}
 		return Stream.of((T) obj);
@@ -89,17 +128,23 @@ public class Utils
 	@SuppressWarnings("unchecked")
 	public static <T> Stream<T> convertArrayToStream(Object array)
 	{
-		if (array == null)
+		if (array != null)
 		{
-			return Stream.empty();
+			if (array.getClass().getComponentType().isPrimitive())
+			{
+				return convertPrimativeArrayToStream(array);
+			}
+			
+			// Non primatives can be casted safely
+			// TODO: Can I legally do this or will I need to pass in
+			// the type?
+			T[] casted = (T[]) array;
+			if (array.getClass().getComponentType().isAssignableFrom(casted.getClass().getComponentType()))
+			{
+				return Arrays.stream(casted);
+			}
 		}
-		if (array.getClass().getComponentType().isPrimitive())
-		{
-			return convertPrimativeArrayToStream(array);
-		}
-		
-		// Non primatives can be casted safely
-		return Arrays.stream((T[]) array);
+		return Stream.empty();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -165,5 +210,76 @@ public class Utils
 	public static <T> T deepCopy(T obj)
 	{
 		return obj;
+	}
+	
+	public static String classArrayToString(Class<?>... classes)
+	{
+		if (classes != null && classes.length > 0)
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.append(classes[0] != null ? classes[0].getName() : "null");
+			for (int classIdx = 1; classIdx < classes.length; classIdx++)
+			{
+				sb.append(", ");
+				sb.append(classes[classIdx] != null ? classes[classIdx].getName() : "null");
+			}
+			return sb.toString();
+		}
+		else
+		{
+			return "None";
+		}
+	}
+
+	public static Class<?> tryUnboxToPrimitive(Class<?> classToTry) 
+	{
+		return tryUnboxToPrimitive(classToTry, true);
+	}
+
+	public static Class<?> tryUnboxToPrimitive(Class<?> classToTry, boolean returnIfAlreadyPrimitive) 
+	{
+		if (classToTry != null)
+		{
+			if (classToTry.isPrimitive())
+			{
+				if (returnIfAlreadyPrimitive)
+				{
+					return classToTry;
+				}
+			}
+			else if (classToTry == Byte.class)
+			{
+				return Byte.TYPE;
+			}
+			else if (classToTry == Short.class)
+			{
+				return Short.TYPE;
+			}
+			else if (classToTry == Integer.class)
+			{
+				return Integer.TYPE;
+			}
+			else if (classToTry == Float.class)
+			{
+				return Float.TYPE;
+			}
+			else if (classToTry == Double.class)
+			{
+				return Double.TYPE;
+			}
+			else if (classToTry == Boolean.class)
+			{
+				return Boolean.TYPE;
+			}
+			else if (classToTry == Character.class)
+			{
+				return Character.TYPE;
+			}
+			else if (classToTry == Void.class)
+			{
+				return Void.TYPE;
+			}
+		}
+		return null;
 	}
 }
