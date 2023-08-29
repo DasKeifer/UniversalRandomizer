@@ -1,12 +1,13 @@
 package universal_randomizer.stream;
 
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Random;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-import universal_randomizer.condition.Condition;
-import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.user_object_apis.Condition;
+import universal_randomizer.user_object_apis.Getter;
 
 public class RandomizeMultiStream<T> implements RandomizeStream<T>
 {
@@ -27,9 +28,9 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
-	public RandomizeMultiStream<T> group(String groupingVar) 
+	public <R> RandomizeMultiStream<T> group(Getter<T, R> groupingFn)
 	{
-		streams = streams.map(stream -> stream.group(groupingVar));
+		streams = streams.map(stream -> stream.group(groupingFn));
 		return this;
 	}
 
@@ -55,33 +56,68 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
-	public RandomizeStream<T> sortWrapped(Comparator<ReflectionObject<T>> wrappedSorter)
-	{
-		streams = streams.map(stream -> stream.sortWrapped(wrappedSorter));
-		return this;
-	}
-
-	@Override
 	public Stream<T> toStream()
 	{
 		return streams.flatMap(RandomizeStream::toStream);
 	}
 
 	@Override
-	public Stream<ReflectionObject<T>> toWrappedStream()
+	public <R> RandomizeStream<R> convertToField(Getter<T, R> getter) 
 	{
-		return streams.flatMap(RandomizeStream::toWrappedStream);
-	}
-	
-	@Override
-	public <A, R> R collect(Collector<? super T, A, R> collector)
-	{
-		return toStream().collect(collector);
+		if (getter == null)
+		{
+			return null;
+		}
+		return new RandomizeMultiStream<>(streams.map(stream -> stream.convertToField(getter)));
 	}
 
 	@Override
-	public <A, R> R collectWrapped(Collector<? super ReflectionObject<T>, A, R> collector)
+	public <R> RandomizeStream<R> convertToFieldArray(Getter<T, R[]> getter)
 	{
-		return toWrappedStream().collect(collector);
+		if (getter == null)
+		{
+			return null;
+		}
+		return new RandomizeMultiStream<>(streams.map(stream -> stream.convertToFieldArray(getter)));
+	}
+
+	@Override
+	public <C extends Collection<R>, R> RandomizeStream<R> convertToFieldCollection(Getter<T, C> getter) 
+	{
+		if (getter == null)
+		{
+			return null;
+		}
+		return new RandomizeMultiStream<>(streams.map(stream -> stream.convertToFieldCollection(getter)));
+	}
+
+	@Override
+	public <S extends Stream<R>, R> RandomizeStream<R> convertToFieldStream(Getter<T, S> getter) 
+	{
+		if (getter == null)
+		{
+			return null;
+		}
+		return new RandomizeMultiStream<>(streams.map(stream -> stream.convertToFieldStream(getter)));
+	}
+
+	@Override
+	public <M extends Map<R, ?>, R> RandomizeStream<R> convertToFieldMapKeys(Getter<T, M> getter) 
+	{
+		if (getter == null)
+		{
+			return null;
+		}
+		return new RandomizeMultiStream<>(streams.map(stream -> stream.convertToFieldMapKeys(getter)));
+	}
+
+	@Override
+	public <M extends Map<?, R>, R> RandomizeStream<R> convertToFieldMapValues(Getter<T, M> getter) 
+	{
+		if (getter == null)
+		{
+			return null;
+		}
+		return new RandomizeMultiStream<>(streams.map(stream -> stream.convertToFieldMapValues(getter)));
 	}
 }

@@ -20,21 +20,32 @@ import Support.SimpleObject;
 import Support.SimpleObjectUtils;
 import universal_randomizer.Pool;
 import universal_randomizer.condition.Comparison;
-import universal_randomizer.condition.Condition;
 import universal_randomizer.condition.Negate;
 import universal_randomizer.condition.SimpleCondition;
-import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.user_object_apis.Condition;
+import universal_randomizer.user_object_apis.Getter;
+import universal_randomizer.user_object_apis.Setter;
 
 // Tests the Randomizer Reuse class and by extension the Randomizer class since the
 // reuse class is the most simple of the classes
 class CommonRandomizerTestUtils {
 	
-	public static List<ReflectionObject<SimpleObject>> createSimpleObjects(int number)
+	final static Setter<SimpleObject, Integer> setterInt = (o, v) -> {
+		if (v == null)
+		{
+			return false;
+		}
+		o.intField = v;
+		return true;
+	};
+	final static Getter<SimpleObject, Integer> getterInt = o -> o.intField;
+	
+	public static List<SimpleObject> createSimpleObjects(int number)
 	{
-		List<ReflectionObject<SimpleObject>> list = new LinkedList<>();
+		List<SimpleObject> list = new LinkedList<>();
 		for (int i = 0; i < number; i++)
 		{
-			list.add(ReflectionObject.create(new SimpleObject("name" + i, i * 100)));
+			list.add(new SimpleObject("name" + i, i * 100));
 		}
 		return list;
 	}
@@ -61,14 +72,20 @@ class CommonRandomizerTestUtils {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, null);
+		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, null);
 		test.setRandom(rand);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream()));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(expected, results);
+
+		// Can't pass a getter if a pool is defined
+		assertFalse(test.perform(list.stream(), getterInt));
+		
+		// Passing null for the getter arg will work if a pool is defined
+		assertTrue(test.perform(list.stream(), null));
 	}
 
 	public static void perform_noEnforce_someFailed(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
@@ -87,8 +104,8 @@ class CommonRandomizerTestUtils {
 		when(pool.copy()).thenReturn(pool);
 		
 		// Create test data and object
-		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, null);
+		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, null);
 		test.setRandom(rand);
 
 		// Perform test and check results
@@ -115,11 +132,11 @@ class CommonRandomizerTestUtils {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
-		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, enforce);
+		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
 		test.setRandom(rand);
 
 		// Perform test and check results
@@ -148,11 +165,11 @@ class CommonRandomizerTestUtils {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
 		
-		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, enforce);
+		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
 		test.setRandom(rand);
 
 		// Perform test and check results
@@ -179,11 +196,11 @@ class CommonRandomizerTestUtils {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
-		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, enforce);
+		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
 		test.setRandom(rand);
 
 		// Perform test and check results
@@ -212,11 +229,11 @@ class CommonRandomizerTestUtils {
 		when(pool.copy()).thenReturn(pool);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
 		
-		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create("intField", pool, enforce);
+		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
+		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
 		test.setRandom(rand);
 
 		// Perform test and check results
@@ -235,10 +252,10 @@ class CommonRandomizerTestUtils {
 		final List<Integer> EXPECTED_VALS = Arrays.asList(0, 1, 2, 3, 4,               6, 7, 8, 9, 10);
 
 		// Create test data and object
-		Condition<SimpleObject> neq5 = SimpleCondition.create("intField", Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
+		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
 		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
 		
-		List<ReflectionObject<SimpleObject>> list = createSimpleObjects(LIST_SIZE);
+		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = null;
 		
 		Random rand = mock(Random.class);
@@ -255,11 +272,15 @@ class CommonRandomizerTestUtils {
 	    	intPool.when(() -> Pool.create(anyBoolean(), any(Stream.class)))
 	          .thenReturn(pool);
 	    	
-	    	test = createFn.create("intField", null, enforce);
+	    	test = createFn.create(setterInt, null, enforce);
     		test.setRandom(rand);
+
+    		// No pool and no getter should always return false
+    		assertFalse(test.perform(list.stream()));
+    		assertFalse(test.perform(list.stream(), null));
     		
 			// Perform test and check results
-			assertTrue(test.perform(list.stream()));
+			assertTrue(test.perform(list.stream(), getterInt));
 	    }
 	    
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);

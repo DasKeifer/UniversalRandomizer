@@ -1,8 +1,7 @@
 package universal_randomizer.randomize;
 
 
-import universal_randomizer.condition.Condition;
-import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.user_object_apis.Condition;
 
 public class EnforceParams<T>
 {
@@ -33,7 +32,7 @@ public class EnforceParams<T>
 		return new EnforceParams<>(null, 0, 0);
 	}
 
-	public boolean evaluateEnforce(ReflectionObject<T> obj) 
+	public boolean evaluateEnforce(T obj) 
 	{
 		if (enforce == null)
 		{

@@ -8,7 +8,7 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.Test;
 
 import Support.SimpleObject;
-import universal_randomizer.condition.Condition;
+import universal_randomizer.user_object_apis.Condition;
 
 class EnforceParamsTests {
 

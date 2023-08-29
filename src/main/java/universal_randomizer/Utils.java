@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.Sum;
 import universal_randomizer.user_object_apis.Sumable;
 import universal_randomizer.wrappers.ComparableAsComparator;
-import universal_randomizer.wrappers.ReflectionObject;
 import universal_randomizer.wrappers.SumableAsSum;
 
 public class Utils 
@@ -48,103 +48,74 @@ public class Utils
 		}
 		return vals;
 	}
-	
-	public static <S, V> Stream<V> narrowToField(String pathToField, Stream<ReflectionObject<S>> objStream)
+
+	public static <T, R> Stream<R> convertToField(Getter<T, R> getter, Stream<T> stream)
 	{
-		// TODO: Type safety
-		return (Stream<V>) objStream.flatMap(obj -> obj.getFieldStream(pathToField));
+		if (getter == null || stream == null)
+		{
+			return null;
+		}
+		return stream.map(getter::get);
+	}
+
+	public static <T, R> Stream<R> convertToFieldArray(Getter<T, R[]> getter, Stream<T> stream)
+	{
+		if (getter == null || stream == null)
+		{
+			return null;
+		}
+		return stream.flatMap(o -> convertArrayToStream(getter.get(o)));
+	}
+
+	public static <T, C extends Collection<R>, R> Stream<R> convertToFieldCollection(Getter<T, C> getter, Stream<T> stream)
+	{
+		if (getter == null || stream == null)
+		{
+			return null;
+		}
+		return stream.flatMap(obj -> getter.get(obj).stream());
+	}
+
+	public static <T, S extends Stream<R>, R> Stream<R> convertToFieldStream(Getter<T, S> getter, Stream<T> stream)
+	{
+		if (getter == null || stream == null)
+		{
+			return null;
+		}
+		return stream.flatMap(getter::get);
+	}
+
+	public static <T, M extends Map<R, ?>, R> Stream<R> convertToFieldMapKeys(Getter<T, M> getter, Stream<T> stream)
+	{
+		if (getter == null || stream == null)
+		{
+			return null;
+		}
+		return stream.flatMap(obj -> getter.get(obj).keySet().stream());
+	}
+
+	public static <T, M extends Map<?, R>, R> Stream<R> convertToFieldMapValues(Getter<T, M> getter, Stream<T> stream)
+	{
+		if (getter == null || stream == null)
+		{
+			return null;
+		}
+		return stream.flatMap(obj -> getter.get(obj).values().stream());
 	}
 	
-	public static <S, V> Stream<V> narrowToMapField(String pathToField, Stream<ReflectionObject<S>> objStream, boolean valuesNotKeys)
-	{
-		// TODO: Type safety
-		return (Stream<V>) objStream.flatMap(obj -> obj.getMapFieldStream(pathToField, valuesNotKeys));
-	}
-	
-	public static <S, V> Stream<V> narrowToMapKeyField(String pathToField, Stream<ReflectionObject<S>> objStream)
-	{
-		return narrowToMapField(pathToField, objStream, false);
-	}
-	
-	public static <S, V> Stream<V> narrowToMapValueField(String pathToField, Stream<ReflectionObject<S>> objStream)
-	{
-		return narrowToMapField(pathToField, objStream, true);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static Stream<Object> convertToStream(Object obj)
-	{
-		if (obj == null)
-		{
-			return Stream.empty();
-		}
-		else if (obj instanceof Collection)
-		{
-			return ((Collection<Object>) obj).stream();
-		}
-		else if (obj.getClass().isArray())
-		{
-			return convertArrayToStream(obj);
-		}
-		else if (obj instanceof Map)
-		{
-			return ((Map<?,Object>) obj).values().stream();
-		}
-		return Stream.of(obj);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static <T> Stream<T> convertToStream(Object obj, Class<T> tClass)
-	{
-		if (obj == null || tClass == null)
-		{
-			return Stream.empty();
-		}
-		else if (obj instanceof Collection)
-		{
-			Collection<?> asCol = (Collection<?>) obj;
-			if (asCol.isEmpty() || !tClass.isInstance(asCol.iterator().next()))
-			{
-				return Stream.empty();
-			}
-			return ((Collection<T>) obj).stream();
-		}
-		else if (obj.getClass().isArray())
-		{
-			return convertArrayToStream(obj);
-		}
-		else if (obj instanceof Map)
-		{
-			Map<?,?> asCol = (Map<?,?>) obj;
-			if (asCol.isEmpty() || !tClass.isInstance(asCol.values().iterator().next()))
-			{
-				return Stream.empty();
-			}
-			return ((Map<?,T>) obj).values().stream();
-		}
-		return Stream.of((T) obj);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static <T> Stream<T> convertArrayToStream(Object array)
+	public static <T> Stream<T> convertArrayToStream(T[] array)
 	{
 		if (array != null)
 		{
+			// Primitives have to be handled specially so we can convert
+			// them to their boxed types
 			if (array.getClass().getComponentType().isPrimitive())
 			{
 				return convertPrimativeArrayToStream(array);
 			}
-			
-			// Non primatives can be casted safely
-			// TODO: Can I legally do this or will I need to pass in
-			// the type?
-			T[] casted = (T[]) array;
-			if (array.getClass().getComponentType().isAssignableFrom(casted.getClass().getComponentType()))
-			{
-				return Arrays.stream(casted);
-			}
+			return Arrays.stream(array);
 		}
-		return Stream.empty();
+		return null;
 	}
 	
 	@SuppressWarnings("unchecked")

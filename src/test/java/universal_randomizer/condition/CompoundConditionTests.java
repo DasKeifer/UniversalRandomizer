@@ -14,35 +14,34 @@ import java.util.Map.Entry;
 import org.junit.jupiter.api.Test;
 
 import Support.SimpleObject;
-import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.user_object_apis.Condition;
 
 class CompoundConditionTests 
 {	
 	@SuppressWarnings("serial")
-	final Map<String, ReflectionObject<SimpleObject>> OBJ_LIST = Collections.unmodifiableMap(new LinkedHashMap<String, ReflectionObject<SimpleObject>>() {
+	final Map<String, SimpleObject> OBJ_LIST = Collections.unmodifiableMap(new LinkedHashMap<String, SimpleObject>() {
 	    {
-	        put("1 5", ReflectionObject.create(new SimpleObject("1", 5)));
-	        put("1 7", ReflectionObject.create(new SimpleObject("1", 7)));
-	        put("2 5", ReflectionObject.create(new SimpleObject("2", 5)));
-	        put("2 7", ReflectionObject.create(new SimpleObject("2", 7)));
+	        put("1 5", new SimpleObject("1", 5));
+	        put("1 7", new SimpleObject("1", 7));
+	        put("2 5", new SimpleObject("2", 5));
+	        put("2 7", new SimpleObject("2", 7));
 	    }
 	});
 
 	@SuppressWarnings("serial")
 	final Map<String, Condition<SimpleObject>> SIMPLE_CONDS = Collections.unmodifiableMap(new LinkedHashMap<String, Condition<SimpleObject>>() {
 	    {
-	        put("intEq5", SimpleCondition.create("intField", Negate.NO, Comparison.EQUAL, 5));
-	        put("strEq2", SimpleCondition.create("stringField", Negate.NO, Comparison.EQUAL, "2"));
+	        put("intEq5", SimpleCondition.create(o -> o.intField, Negate.NO, Comparison.EQUAL, 5));
+	        put("strEq2", SimpleCondition.create(o -> o.stringField, Negate.NO, Comparison.EQUAL, "2"));
 	    }
 	});
-	
 
-	public void assertExpectedResults(String label, CompoundCondition<SimpleObject> cond, Map<String, ReflectionObject<SimpleObject>> toTest, List<Boolean> expectedResults)
+	public void assertExpectedResults(String label, CompoundCondition<SimpleObject> cond, Map<String, SimpleObject> toTest, List<Boolean> expectedResults)
 	{
 		assert(toTest.size() == expectedResults.size());
 		
 		Iterator<Boolean> itr = expectedResults.iterator();
-		for (Entry<String, ReflectionObject<SimpleObject>> pair : toTest.entrySet())
+		for (Entry<String, SimpleObject> pair : toTest.entrySet())
 		{
 			boolean expected = itr.next();
 			assertEquals(expected, cond.evaluate(pair.getValue()), label + " expected " + expected + " but failed for simple object " + pair.getKey());
@@ -70,13 +69,54 @@ class CompoundConditionTests
 	}
 	
 	@Test
+	void create_badInput() 
+	{	
+		LogicConditionPair<SimpleObject> lcp = LogicConditionPair.create(Logic.NAND, SIMPLE_CONDS.get("strEq2"));
+		LogicConditionPair<SimpleObject> lcpNull = null;
+		List<LogicConditionPair<SimpleObject>> nullList = null;
+		List<LogicConditionPair<SimpleObject>> listWithNull = new LinkedList<>();
+		listWithNull.add(null);
+		listWithNull.add(lcp);
+		
+		assertNull(CompoundCondition.create(null, lcp));
+		assertNull(CompoundCondition.create(SIMPLE_CONDS.get("intEq5"), lcpNull));
+		assertNull(CompoundCondition.create(SIMPLE_CONDS.get("intEq5"), nullList));
+		assertNull(CompoundCondition.create(SIMPLE_CONDS.get("intEq5"), listWithNull));
+	}
+	
+	@Test
+	void enforceNonNull() 
+	{
+		CompoundCondition<SimpleObject> ccArray = CompoundCondition.create(SIMPLE_CONDS.get("intEq5"), 
+				LogicConditionPair.create(Logic.NAND, SIMPLE_CONDS.get("strEq2")));
+		
+		assertTrue(ccArray.setBaseCond(SIMPLE_CONDS.get("strEq2")));
+		assertEquals(SIMPLE_CONDS.get("strEq2"), ccArray.getBaseCond());
+		assertFalse(ccArray.setBaseCond(null));
+		assertEquals(SIMPLE_CONDS.get("strEq2"), ccArray.getBaseCond());
+
+
+		List<LogicConditionPair<SimpleObject>> empty = new LinkedList<>();
+		assertTrue(ccArray.setAdditionalConds(empty));
+		assertEquals(empty, ccArray.getAdditionalConds());
+		assertFalse(ccArray.setAdditionalConds(null));
+		assertEquals(empty, ccArray.getAdditionalConds());
+		
+		List<LogicConditionPair<SimpleObject>> listWithNull = new LinkedList<>();
+		listWithNull.add(null);
+		listWithNull.add(LogicConditionPair.create(Logic.NAND, SIMPLE_CONDS.get("strEq2")));
+		assertFalse(ccArray.setAdditionalConds(listWithNull));
+		assertEquals(empty, ccArray.getAdditionalConds());
+	}
+	
+	@Test
 	void evaluate_many() 
 	{	
 		LogicConditionPair<SimpleObject> lcp1 = LogicConditionPair.create(Logic.AND, SIMPLE_CONDS.get("strEq2"));
 		LogicConditionPair<SimpleObject> lcp2 = LogicConditionPair.create(Logic.AND, 
-				SimpleCondition.create("list.size", Comparison.LESS_THAN_OR_EQUAL, 3));
+				SimpleCondition.create(o -> o.list.size(), Comparison.LESS_THAN_OR_EQUAL, 3));
 		LogicConditionPair<SimpleObject> lcp3 = LogicConditionPair.create(Logic.AND, 
-				SimpleCondition.create("map.size", Comparison.EQUAL, 0));
+				SimpleCondition.create(o -> o.map.size(), Comparison.EQUAL, 0));
 		CompoundCondition<SimpleObject> cc = CompoundCondition.create(SIMPLE_CONDS.get("intEq5"), lcp1, lcp2, lcp3);
 		
 		assertExpectedResults("compound condition many args", cc, OBJ_LIST, List.of(false, false, true, false));
@@ -89,9 +129,9 @@ class CompoundConditionTests
 				LogicConditionPair.create(Logic.AND, SIMPLE_CONDS.get("strEq2")));
 		
 		CompoundCondition<SimpleObject> ccRightFalse = CompoundCondition.create(
-				SimpleCondition.create("list.size", Negate.YES, Comparison.EQUAL, 0),
+				SimpleCondition.create(o -> o.list.size(), Negate.YES, Comparison.EQUAL, 0),
 				LogicConditionPair.create(Logic.OR, 
-						 SimpleCondition.create("map.size", Negate.YES, Comparison.EQUAL, 0)));
+						 SimpleCondition.create(o -> o.map.size(), Negate.YES, Comparison.EQUAL, 0)));
 		
 		CompoundCondition<SimpleObject> ccAnd = CompoundCondition.create(ccLeftTrue25,
 				LogicConditionPair.create(Logic.AND, Negate.YES, ccRightFalse));

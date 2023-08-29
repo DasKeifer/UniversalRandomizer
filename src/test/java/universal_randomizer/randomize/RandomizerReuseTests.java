@@ -14,6 +14,7 @@ import org.mockito.MockedConstruction;
 import Support.RandomizerCommonTestsCreate;
 import Support.SimpleObject;
 import universal_randomizer.Pool;
+import universal_randomizer.user_object_apis.SetterNoReturn;
 
 // Tests the Randomizer Reuse class and by extension the Randomizer class since the
 // reuse class is the most simple of the classes
@@ -37,38 +38,56 @@ class RandomizerReuseTests {
 
     	EnforceParams<?> defaultEA = EnforceParams.createNoEnforce();
     	
+    	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
     	
-		RandomizerReuse<SimpleObject, Integer> rr = RandomizerReuse.create("test1", pool, enforceAction);
+		RandomizerReuse<SimpleObject, Integer> rr = RandomizerReuse.create(setter, pool, enforceAction);
     	verify(pool, times(1)).copy();
-    	assertEquals("test1", rr.getPathToField());
+    	assertEquals(setter, rr.getSetter());
     	assertEquals(pool, rr.getPool());
     	assertEquals(enforceAction, rr.getEnforceActions());
     	
-    	rr = RandomizerReuse.createWithPoolNoEnforce("test2", pool);
+    	rr = RandomizerReuse.createWithPoolNoEnforce(setter, pool);
     	verify(pool, times(2)).copy();
-    	assertEquals("test2", rr.getPathToField());
+    	assertEquals(setter, rr.getSetter());
     	assertEquals(pool, rr.getPool());
     	assertEquals(defaultEA.getMaxResets(), rr.getEnforceActions().getMaxResets());
     	assertEquals(defaultEA.getMaxRetries(), rr.getEnforceActions().getMaxRetries());
 
-    	rr = RandomizerReuse.createPoolFromStream("test3", enforceAction);
+    	rr = RandomizerReuse.createPoolFromStream(setter, enforceAction);
     	verify(pool, times(2)).copy();
-    	assertEquals("test3", rr.getPathToField());
+    	assertEquals(setter, rr.getSetter());
     	assertNull(rr.getPool());
     	assertEquals(enforceAction, rr.getEnforceActions());
     	
-    	rr = RandomizerReuse.createPoolFromStreamNoEnforce("test4");
+    	rr = RandomizerReuse.createPoolFromStreamNoEnforce(setter);
     	verify(pool, times(2)).copy();
-    	assertEquals("test4", rr.getPathToField());
+    	assertEquals(setter, rr.getSetter());
     	assertNull(rr.getPool());
     	assertEquals(defaultEA.getMaxResets(), rr.getEnforceActions().getMaxResets());
     	assertEquals(defaultEA.getMaxRetries(), rr.getEnforceActions().getMaxRetries());
 	}
 	
 	@Test
+	void create_badInput() 
+	{
+		@SuppressWarnings("unchecked")
+		Pool<Integer> pool = mock(Pool.class);
+		when(pool.copy()).thenReturn(pool);
+		
+		@SuppressWarnings("unchecked")
+		EnforceParams<SimpleObject> enforceAction = mock(EnforceParams.class);
+    	
+    	assertNull(RandomizerReuse.create(null, pool, enforceAction));
+    	assertNull(RandomizerReuse.createWithPoolNoEnforce(null, pool));
+    	assertNull(RandomizerReuse.createPoolFromStream(null, enforceAction));
+    	assertNull(RandomizerReuse.createPoolFromStreamNoEnforce(null));
+	}
+	
+	@Test
 	void seed() 
 	{
-		RandomizerReuse<SimpleObject, Integer> test = RandomizerReuse.createPoolFromStreamNoEnforce("intField");
+    	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
+		RandomizerReuse<SimpleObject, Integer> test = RandomizerReuse.createPoolFromStreamNoEnforce(setter);
 		
 		Random rand0 = new Random(0);
 		test.setRandom(0);

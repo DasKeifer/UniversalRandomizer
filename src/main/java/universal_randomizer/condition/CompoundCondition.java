@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.user_object_apis.Condition;
 
 public class CompoundCondition <T> implements Condition<T>
 {
@@ -14,6 +14,10 @@ public class CompoundCondition <T> implements Condition<T>
 	public static <T2> CompoundCondition<T2> create(
 			Condition<T2> baseCond, List<LogicConditionPair<T2>> additionalConds)
 	{
+		if (baseCond == null || additionalConds == null || additionalConds.contains(null))
+		{
+			return null;
+		}
 		return new CompoundCondition<>(baseCond, additionalConds);
 	}
 	
@@ -21,7 +25,7 @@ public class CompoundCondition <T> implements Condition<T>
 	public static <T2> CompoundCondition<T2> create(
 			Condition<T2> baseCond, LogicConditionPair<T2>... additionalConds)
 	{
-		return new CompoundCondition<>(baseCond, Arrays.asList(additionalConds));
+		return create(baseCond, Arrays.asList(additionalConds));
 	}
 
 	protected CompoundCondition(Condition<T> baseCond, List<LogicConditionPair<T>> additionalConds)
@@ -31,7 +35,7 @@ public class CompoundCondition <T> implements Condition<T>
 	}
 	
 	@Override
-	public boolean evaluate(ReflectionObject<T> obj) 
+	public boolean evaluate(T obj) 
 	{
 		boolean result = baseCond.evaluate(obj);
 		
@@ -66,20 +70,34 @@ public class CompoundCondition <T> implements Condition<T>
 		return result;
 	}
 
-	public Condition<T> getBaseCond() {
+	public Condition<T> getBaseCond()
+	{
 		return baseCond;
 	}
 
-	public List<LogicConditionPair<T>> getAdditionalConds() {
+	public List<LogicConditionPair<T>> getAdditionalConds() 
+	{
 		
 		return additionalConds;
 	}
 
-	protected void setBaseCond(Condition<T> baseCond) {
+	protected boolean setBaseCond(Condition<T> baseCond) 
+	{
+		if (baseCond == null)
+		{
+			return false;
+		}
 		this.baseCond = baseCond;
+		return true;
 	}
 
-	protected void setAdditionalConds(List<LogicConditionPair<T>> additionalConds) {
+	protected boolean setAdditionalConds(List<LogicConditionPair<T>> additionalConds) 
+	{
+		if (additionalConds == null || additionalConds.contains(null))
+		{
+			return false;
+		}
 		this.additionalConds = additionalConds;
+		return true;
 	}
 }

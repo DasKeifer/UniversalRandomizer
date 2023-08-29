@@ -6,13 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import Support.SimpleObject;
+import universal_randomizer.user_object_apis.Condition;
 
 class LogicConditionPairTests 
 {	
 	@Test
 	void create() 
 	{
-		Condition<SimpleObject> eq5 = SimpleCondition.create("intField", Negate.NO, Comparison.EQUAL, 5);
+		Condition<SimpleObject> eq5 = SimpleCondition.create(o -> o.intField, Negate.NO, Comparison.EQUAL, 5);
 		
 		LogicConditionPair<SimpleObject> lcp = LogicConditionPair.create(Logic.OR, eq5);	
 		assertEquals(Logic.OR, lcp.getLogicOperator(), "Logic Operator was not created correctly");

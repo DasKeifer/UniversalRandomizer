@@ -4,20 +4,21 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import universal_randomizer.wrappers.ReflectionObject;
 import universal_randomizer.Pool;
 import universal_randomizer.Utils;
+import universal_randomizer.user_object_apis.Getter;
+import universal_randomizer.user_object_apis.Setter;
 
 public abstract class Randomizer<T, P> 
 {	
-	private String pathToField;
+	private Setter<T, P> setter;
 	private Random rand;
 	private Pool<P> pool;
 	private EnforceParams<T> enforceActions;
 	
-	protected Randomizer(String pathToField, Pool<P> pool, EnforceParams<T> enforce)
+	protected Randomizer(Setter<T, P> setter, Pool<P> pool, EnforceParams<T> enforce)
 	{
-		this.pathToField = pathToField;
+		this.setter = setter;
 
 		if (pool == null)
 		{
@@ -59,25 +60,45 @@ public abstract class Randomizer<T, P>
 	protected abstract P peekNext(Random rand);
 	protected abstract void selectPeeked();
 
-	public boolean perform(Stream<ReflectionObject<T>> objStream) 
+	public  boolean perform(Stream<T> objStream) 
 	{
 		// in order to "reuse" the stream, we need to convert it out of a stream
 		// and create new ones. We need to save off the list if we need to create
         // a source pool or if there is a RESET on fail action
-		List<ReflectionObject<T>> streamAsList = objStream.toList();
+		List<T> streamAsList = objStream.toList();
 		if (getPool() == null)
 		{
-			// TODO: need some logic to handle map fields
-			pool = Pool.create(false, Utils.narrowToField(pathToField, streamAsList.stream()));
+			return false;
 		}
 		return attemptRandomization(streamAsList);
 	}
 	
+	public  boolean perform(Stream<T> objStream, Getter<T, P> getter) 
+	{
+		boolean result = false;
+		
+		// in order to "reuse" the stream, we need to convert it out of a stream
+		// and create new ones. We need to save off the list if we need to create
+        // a source pool or if there is a RESET on fail action
+		List<T> streamAsList = objStream.toList();
+		if (getPool() == null && getter != null)
+		{
+			// TODO: need some logic to other field types - maybe pass in the function to use?
+			pool = Pool.create(false, Utils.convertToField(getter, streamAsList.stream()));
+			result = attemptRandomization(streamAsList);
+		}
+		else if (getPool() != null && getter == null)
+		{
+			result = attemptRandomization(streamAsList);
+		}
+		return result;
+	}
+	
 	// Handles RESET
-	protected boolean attemptRandomization(List<ReflectionObject<T>> streamAsList)
+	protected boolean attemptRandomization(List<T> streamAsList)
 	{		
 		// Attempt to assign randomized values for each item in the stream
-		List<ReflectionObject<T>> failed = randomize(streamAsList.stream());
+		List<T> failed = randomize(streamAsList.stream());
 		
 		// While we have failed and have resets left
 		for (int reset = 0; reset < enforceActions.getMaxResets(); reset++)
@@ -93,17 +114,17 @@ public abstract class Randomizer<T, P>
 		return failed.isEmpty();
 	}
 
-	protected List<ReflectionObject<T>> randomize(Stream<ReflectionObject<T>> objStream)
+	protected List<T> randomize(Stream<T> objStream)
 	{
 		return objStream.filter(this::assignValueNegated).toList();
 	}
 	
-	protected boolean assignValueNegated(ReflectionObject<T> obj)
+	protected boolean assignValueNegated(T obj)
 	{
 		return !assignValue(obj);
 	}
 	
-	protected boolean assignValue(ReflectionObject<T> obj)
+	protected boolean assignValue(T obj)
 	{
 		boolean success = attemptAssignValue(obj);
 		
@@ -112,7 +133,7 @@ public abstract class Randomizer<T, P>
 		return success;
 	}
 
-	protected boolean attemptAssignValue(ReflectionObject<T> obj)
+	protected boolean attemptAssignValue(T obj)
 	{
 		P selectedVal = peekNext(rand);
 		
@@ -131,20 +152,14 @@ public abstract class Randomizer<T, P>
 		return success;
 	}
 	
-	@SuppressWarnings("unchecked")
-	protected boolean assignAndCheckEnforce(ReflectionObject<T> obj, P value)
+	protected boolean assignAndCheckEnforce(T obj, P value)
 	{
-		if (value == null)
-		{
-			return false;
-		}
-		obj.setField(pathToField, value, (Class<P>) value.getClass());
-		return enforceActions.evaluateEnforce(obj);
+		return setter.setReturn(obj, value) && enforceActions.evaluateEnforce(obj);
 	}
 
-	protected String getPathToField() 
+	protected Setter<T, P> getSetter() 
 	{
-		return pathToField;
+		return setter;
 	}
 
 	protected Random getRandom() 

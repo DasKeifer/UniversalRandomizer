@@ -35,6 +35,11 @@ public class SimpleObject
     {
         return true;
     }
+    
+    public Boolean returnNull()
+    {
+        return null;
+    }
 
 
 	public String getStringField() {

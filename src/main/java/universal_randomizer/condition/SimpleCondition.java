@@ -4,45 +4,50 @@ package universal_randomizer.condition;
 
 import java.util.Comparator;
 
+import universal_randomizer.user_object_apis.Condition;
+import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.wrappers.ComparableAsComparator;
-import universal_randomizer.wrappers.ReflectionObject;
 
 
 public class SimpleCondition <T, M> implements Condition<T>
 {
-	private String variable;
+	private Getter<T, M> getter;
 	private Negate negate;
 	private Comparison comparison;
 	private M compareToVal;
 	private Comparator<M> comparator;
 
-	public static <T2, M2 extends Comparable<M2>> SimpleCondition<T2, M2> create(
-			String variable, Comparison comparison, M2 compareToVal)
+	public static <T2, R2 extends Comparable<R2>> SimpleCondition<T2, R2> create(
+			Getter<T2, R2> getter, Comparison comparison, R2 compareToVal)
 	{
-		return create(variable, Negate.NO, comparison, compareToVal);
+		return create(getter, Negate.NO, comparison, compareToVal);
 	}
 	
-	public static <T2, M2 extends Comparable<M2>> SimpleCondition<T2, M2> create(
-			String variable, Negate negate, Comparison comparison, M2 compareToVal)
+	public static <T2, R2 extends Comparable<R2>> SimpleCondition<T2, R2> create(
+			Getter<T2, R2> getter, Negate negate, Comparison comparison, R2 compareToVal)
 	{
-		return new SimpleCondition<>(variable, negate, comparison, compareToVal, new ComparableAsComparator<>());
-	}
-
-	public static <T2, M2> SimpleCondition<T2, M2> create(
-			String variable, Comparison comparison, M2 compareToVal, Comparator<M2> comparator)
-	{
-		return create(variable, Negate.NO, comparison, compareToVal, comparator);
-	}
-
-	public static <T2, M2> SimpleCondition<T2, M2> create(
-			String variable, Negate negate, Comparison comparison, M2 compareToVal, Comparator<M2> comparator)
-	{
-		return new SimpleCondition<>(variable, negate, comparison, compareToVal, comparator);
+		return create(getter, negate, comparison, compareToVal, new ComparableAsComparator<>());
 	}
 	
-	protected SimpleCondition(String variable, Negate negate, Comparison comparison, M compareToVal, Comparator<M> comparator) 
+	public static <T2, R2> SimpleCondition<T2, R2> create(
+			Getter<T2, R2> getter, Comparison comparison, R2 compareToVal, Comparator<R2> comparator)
 	{
-		this.variable = variable;
+		return create(getter, Negate.NO, comparison, compareToVal, comparator);
+	}
+	
+	public static <T2, R2> SimpleCondition<T2, R2> create(
+			Getter<T2, R2> getter, Negate negate, Comparison comparison, R2 compareToVal, Comparator<R2> comparator)
+	{
+		if (getter == null || negate == null || comparison == null)
+		{
+			return null;
+		}
+		return new SimpleCondition<>(getter, negate, comparison, compareToVal, comparator);
+	}
+	
+	protected SimpleCondition(Getter<T, M> getter, Negate negate, Comparison comparison, M compareToVal, Comparator<M> comparator) 
+	{
+		this.getter = getter;
 		this.negate = negate;
 		this.comparison = comparison;
 		this.compareToVal = compareToVal;
@@ -50,23 +55,16 @@ public class SimpleCondition <T, M> implements Condition<T>
 	}
 	
 	@Override
-	public boolean evaluate(ReflectionObject<T> obj)
-	{
-		boolean result = false;
+	public boolean evaluate(T obj)
+	{		
+		M ret = getter.get(obj);
 		
-		// Get the var
-		Object objVal = obj.getField(variable);
-		if (objVal != null && compareToVal.getClass().isInstance(objVal)) // todo error or alert somehow
+		boolean result = invokeCompareTo(ret, comparison, compareToVal);
+		if (negate == Negate.YES)
 		{
-			// Checked on the if above
-			@SuppressWarnings("unchecked")
-			M valCasted = (M) objVal;
-			result = invokeCompareTo(valCasted, comparison, compareToVal);
-			if (negate == Negate.YES)
-			{
-				result = !result;
-			}
+			result = !result;
 		}
+			
 		return result;
 	}
 	
@@ -81,13 +79,13 @@ public class SimpleCondition <T, M> implements Condition<T>
 			case LESS_THAN_OR_EQUAL: return 0 >= compareResult;
 			case GREATER_THAN_OR_EQUAL: return 0 <= compareResult;
 			default: 
-				System.out.println("compareWrappedPrimative - unknown Comparator value: " + comparator);
+				System.out.println("invokeCompareTo - unknown Comparator value: " + comparator);
 				return false;
 		}
 	}
 	
-	public String getVariable() {
-		return variable;
+	public Getter<T, M> getGetter() {
+		return getter;
 	}
 
 	public Negate getNegate() {
@@ -98,7 +96,7 @@ public class SimpleCondition <T, M> implements Condition<T>
 		return comparison;
 	}
 
-	public M getVal() {
+	public M getCompareToVal() {
 		return compareToVal;
 	}
 
@@ -106,23 +104,48 @@ public class SimpleCondition <T, M> implements Condition<T>
 		return comparator;
 	}
 
-	protected void setVariable(String variable) {
-		this.variable = variable;
+	protected boolean setGetter(Getter<T, M> getter) 
+	{
+		if (getter == null)
+		{
+			return false;
+		}
+		this.getter = getter;
+		return true;
 	}
 
-	protected void setNegate(Negate negate) {
+	protected boolean setNegate(Negate negate) 
+	{
+		if (negate == null)
+		{
+			return false;
+		}
 		this.negate = negate;
+		return true;
 	}
 
-	protected void setComparison(Comparison comparison) {
+	protected boolean setComparison(Comparison comparison) 
+	{
+		if (comparison == null)
+		{
+			return false;
+		}
 		this.comparison = comparison;
+		return true;
 	}
 
-	protected void setVal(M val) {
+	protected void setCompareToVal(M val) 
+	{
 		this.compareToVal = val;
 	}
 
-	protected void setComparator(Comparator<M> comparator) {
+	protected boolean setComparator(Comparator<M> comparator) 
+	{
+		if (comparator == null)
+		{
+			return false;
+		}
 		this.comparator = comparator;
+		return true;
 	}
 }

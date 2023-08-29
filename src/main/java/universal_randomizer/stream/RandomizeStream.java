@@ -2,30 +2,29 @@ package universal_randomizer.stream;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Map;
 import java.util.Random;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import universal_randomizer.condition.Condition;
-import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.user_object_apis.Condition;
+import universal_randomizer.user_object_apis.Getter;
+
 
 public interface RandomizeStream<T>
 {
-	public static <S> RandomizeStream<S> createRandomizeStream(Collection<ReflectionObject<S>> source)
+	public static <S> RandomizeStream<S> createRandomizeStream(Collection<S> source)
 	{
 		return new RandomizeSingleStream<>(source);
 	}
 	
-	public static <S> RandomizeStream<S> createRandomizeStream(Stream<ReflectionObject<S>> source)
+	public static <S> RandomizeStream<S> createRandomizeStream(Stream<S> source)
 	{
 		return new RandomizeSingleStream<>(source);
 	}
 	
 	public RandomizeStream<T> select(Condition<T> varExpr);
 	
-	public RandomizeMultiStream<T> group(String groupingVar);
+	public <R> RandomizeMultiStream<T> group(Getter<T, R> groupingFn);
 
 	public default RandomizeStream<T> shuffle()
 	{
@@ -42,24 +41,18 @@ public interface RandomizeStream<T>
 	public RandomizeStream<T> sort();
 	
 	public RandomizeStream<T> sort(Comparator<T> sorter);
-	
-	public RandomizeStream<T> sortWrapped(Comparator<ReflectionObject<T>> wrappedSorter);
 
 	public Stream<T> toStream();
 	
-	public Stream<ReflectionObject<T>> toWrappedStream();
+	public <R> RandomizeStream<R> convertToField(Getter<T, R> getter);
 	
-	public default List<T> toList()
-	{
-		return collect(Collectors.toList());
-	}
-	
-	public default List<ReflectionObject<T>> toWrappedList()
-	{
-		return collectWrapped(Collectors.toList());
-	}
+	public <R> RandomizeStream<R> convertToFieldArray(Getter<T, R[]> getter);
 
-	public <A, R> R collect(Collector<? super T, A, R> collector);
+	public <S extends Stream<R>, R> RandomizeStream<R> convertToFieldStream(Getter<T, S> getter);
 	
-	public <A, R> R collectWrapped(Collector<? super ReflectionObject<T>, A, R> collector);
+	public <C extends Collection<R>, R> RandomizeStream<R> convertToFieldCollection(Getter<T, C> getter);
+	
+	public <M extends Map<R, ?>, R> RandomizeStream<R> convertToFieldMapKeys(Getter<T, M> getter);
+	
+	public <M extends Map<?, R>, R> RandomizeStream<R> convertToFieldMapValues(Getter<T, M> getter);
 }

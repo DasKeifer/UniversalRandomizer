@@ -1,5 +1,6 @@
 package universal_randomizer.condition;
 
+import universal_randomizer.user_object_apis.Condition;
 
 public class LogicConditionPair<T>
 {

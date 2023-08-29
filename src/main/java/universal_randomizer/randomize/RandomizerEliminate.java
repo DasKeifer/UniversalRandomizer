@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Random;
 
 import universal_randomizer.Pool;
-import universal_randomizer.wrappers.ReflectionObject;
+import universal_randomizer.user_object_apis.Setter;
+import universal_randomizer.user_object_apis.SetterNoReturn;
 
 public class RandomizerEliminate<T, P> extends Randomizer<T, P> 
 {	
@@ -15,10 +16,10 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 	private List<Pool<P>> workingPools;
 	private int lastPeekedIndex;
 	
-	protected RandomizerEliminate(String pathToField, Pool<P> pool, EnforceParams<T> enforce, EliminateParams poolEnforce)
+	protected RandomizerEliminate(Setter<T, P> setter, Pool<P> pool, EnforceParams<T> enforce, EliminateParams poolEnforce)
 	{
-		super(pathToField, pool, enforce);
-
+		super(setter, pool, enforce);
+		
 		if (poolEnforce != null)
 		{			
 			this.poolEnforceActions = poolEnforce;
@@ -32,28 +33,52 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 		lastPeekedIndex = -1;
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> create(String pathToField, Pool<S> pool, EnforceParams<V> enforce, EliminateParams poolEnforce)
+	public static <T2, P2> RandomizerEliminate<T2, P2> create(Setter<T2, P2> setter, Pool<P2> pool, EnforceParams<T2> enforce, EliminateParams poolEnforce)
 	{
-		return new RandomizerEliminate<>(pathToField, pool, enforce, poolEnforce);
+		if (setter == null)
+		{
+			return null;
+		}
+		return new RandomizerEliminate<>(setter, pool, enforce, poolEnforce);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createWithPoolNoEnforce(String pathToField, Pool<S> pool)
+	public static <T2, P2> RandomizerEliminate<T2, P2> create(SetterNoReturn<T2, P2> setter, Pool<P2> pool, EnforceParams<T2> enforce, EliminateParams poolEnforce)
 	{
-		return new RandomizerEliminate<>(pathToField, pool, null, null);
+		return create((Setter<T2, P2>)setter, pool, enforce, poolEnforce);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createPoolFromStream(String pathToField, EnforceParams<V> enforce, EliminateParams poolEnforce)
+	public static <T2, P2> RandomizerEliminate<T2, P2> createWithPoolNoEnforce(Setter<T2, P2> setter, Pool<P2> pool)
 	{
-		return new RandomizerEliminate<>(pathToField, null, enforce, poolEnforce);
+		return create(setter, pool, null, null);
 	}
 	
-	public static <V, S> RandomizerEliminate<V, S> createPoolFromStreamNoEnforce(String pathToField)
+	public static <T2, P2> RandomizerEliminate<T2, P2> createWithPoolNoEnforce(SetterNoReturn<T2, P2> setter, Pool<P2> pool)
 	{
-		return new RandomizerEliminate<>(pathToField, null, null, null);
+		return createWithPoolNoEnforce((Setter<T2, P2>)setter, pool);
+	}
+	
+	public static <T2, P2> RandomizerEliminate<T2, P2> createPoolFromStream(Setter<T2, P2> setter, EnforceParams<T2> enforce, EliminateParams poolEnforce)
+	{
+		return create(setter, null, enforce, poolEnforce);
+	}
+	
+	public static <T2, P2> RandomizerEliminate<T2, P2> createPoolFromStream(SetterNoReturn<T2, P2> setter, EnforceParams<T2> enforce, EliminateParams poolEnforce)
+	{
+		return createPoolFromStream((Setter<T2, P2>)setter, enforce, poolEnforce);
+	}
+	
+	public static <T2, P2> RandomizerEliminate<T2, P2> createPoolFromStreamNoEnforce(Setter<T2, P2> setter)
+	{
+		return create(setter, null, null, null);
+	}
+	
+	public static <T2, P2> RandomizerEliminate<T2, P2> createPoolFromStreamNoEnforce(SetterNoReturn<T2, P2> setter)
+	{
+		return createPoolFromStreamNoEnforce((Setter<T2, P2>)setter);
 	}
 	
 	@Override
-	protected boolean attemptAssignValue(ReflectionObject<T> obj)
+	protected boolean attemptAssignValue(T obj)
 	{
 		boolean success = false;
 		clearPoolLocation();
