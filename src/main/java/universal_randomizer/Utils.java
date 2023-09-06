@@ -64,7 +64,7 @@ public class Utils
 		{
 			return null;
 		}
-		return stream.flatMap(o -> convertArrayToStream(getter.get(o)));
+		return stream.flatMap(o -> Arrays.stream(getter.get(o)));
 	}
 
 	public static <T, C extends Collection<R>, R> Stream<R> convertToFieldCollection(Getter<T, C> getter, Stream<T> stream)
@@ -105,151 +105,73 @@ public class Utils
 	
 	public static <T> Stream<T> convertArrayToStream(T[] array)
 	{
-		if (array != null)
-		{
-			// Primitives have to be handled specially so we can convert
-			// them to their boxed types
-			if (array.getClass().getComponentType().isPrimitive())
-			{
-				return convertPrimativeArrayToStream(array);
-			}
-			return Arrays.stream(array);
+		return Arrays.stream(array);
+	}
+	
+	public static Stream<Byte> convertPrimitiveArrayToStream(byte[] primitiveArray)
+	{
+		if (primitiveArray != null)
+		{	
+			return IntStream.range(0, primitiveArray.length)
+                    .mapToObj(idx -> primitiveArray[idx]);
 		}
 		return null;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public static <T> Stream<T> convertPrimativeArrayToStream(Object primativeArray)
+	public static Stream<Short> convertPrimitiveArrayToStream(short[] primitiveArray)
 	{
-		if (primativeArray == null)
-		{
-			return Stream.empty();
-		}
-		
-		Class<?> primType = primativeArray.getClass().getComponentType();
-		if (primType == byte.class)
-		{
-			byte[] narrowed = (byte[]) primativeArray;
-			return IntStream.range(0, narrowed.length)
-                    .mapToObj(idx -> (T) Byte.valueOf(narrowed[idx]));
-		}
-		else if (primType == short.class)
-		{
-			short[] narrowed = (short[]) primativeArray;
-			return IntStream.range(0, narrowed.length)
-                    .mapToObj(idx -> (T) Short.valueOf(narrowed[idx]));
-		}
-		else if (primType == int.class)
-		{
-			return (Stream<T>) Arrays.stream((int[]) primativeArray).boxed();
-		}
-		else if (primType == float.class)
-		{
-			float[] narrowed = (float[]) primativeArray;
-			return IntStream.range(0, narrowed.length)
-                    .mapToObj(idx -> (T) Float.valueOf(narrowed[idx]));
-		}
-		else if (primType == double.class)
-		{
-			return (Stream<T>) Arrays.stream((double[]) primativeArray).boxed();
-		}
-		else if (primType == boolean.class)
-		{
-			boolean[] narrowed = (boolean[]) primativeArray;
-			return IntStream.range(0, narrowed.length)
-                    .mapToObj(idx -> (T) Boolean.valueOf(narrowed[idx]));
-		}
-		else if (primType == char.class)
-		{
-			char[] narrowed = (char[]) primativeArray;
-			return IntStream.range(0, narrowed.length)
-                    .mapToObj(idx -> (T) Character.valueOf(narrowed[idx]));
-		}
-		return Stream.empty();
-	}
-	
-	public static <M> M safeCast(Class<M> clazz, Object obj)
-	{
-		if (obj.getClass().equals(clazz))
-		{
-			return clazz.cast(obj);
+		if (primitiveArray != null)
+		{	
+			return IntStream.range(0, primitiveArray.length)
+                    .mapToObj(idx -> primitiveArray[idx]);
 		}
 		return null;
 	}
 	
-	// TODO: implement?
-	public static <T> T deepCopy(T obj)
+	public static Stream<Integer> convertPrimitiveArrayToStream(int[] primitiveArray)
 	{
-		return obj;
+		if (primitiveArray != null)
+		{	
+			return Arrays.stream(primitiveArray).boxed();
+		}
+		return null;
 	}
 	
-	public static String classArrayToString(Class<?>... classes)
+	public static Stream<Float> convertPrimitiveArrayToStream(float[] primitiveArray)
 	{
-		if (classes != null && classes.length > 0)
-		{
-			StringBuilder sb = new StringBuilder();
-			sb.append(classes[0] != null ? classes[0].getName() : "null");
-			for (int classIdx = 1; classIdx < classes.length; classIdx++)
-			{
-				sb.append(", ");
-				sb.append(classes[classIdx] != null ? classes[classIdx].getName() : "null");
-			}
-			return sb.toString();
+		if (primitiveArray != null)
+		{	
+			return IntStream.range(0, primitiveArray.length)
+                    .mapToObj(idx -> primitiveArray[idx]);
 		}
-		else
-		{
-			return "None";
+		return null;
+	}
+	
+	public static Stream<Double> convertPrimitiveArrayToStream(double[] primitiveArray)
+	{
+		if (primitiveArray != null)
+		{	
+			return Arrays.stream(primitiveArray).boxed();
 		}
+		return null;
 	}
-
-	public static Class<?> tryUnboxToPrimitive(Class<?> classToTry) 
+	
+	public static Stream<Boolean> convertPrimitiveArrayToStream(boolean[] primitiveArray)
 	{
-		return tryUnboxToPrimitive(classToTry, true);
+		if (primitiveArray != null)
+		{	
+			return IntStream.range(0, primitiveArray.length)
+                    .mapToObj(idx -> primitiveArray[idx]);
+		}
+		return null;
 	}
-
-	public static Class<?> tryUnboxToPrimitive(Class<?> classToTry, boolean returnIfAlreadyPrimitive) 
+	
+	public static Stream<Character> convertPrimitiveArrayToStream(char[] primitiveArray)
 	{
-		if (classToTry != null)
-		{
-			if (classToTry.isPrimitive())
-			{
-				if (returnIfAlreadyPrimitive)
-				{
-					return classToTry;
-				}
-			}
-			else if (classToTry == Byte.class)
-			{
-				return Byte.TYPE;
-			}
-			else if (classToTry == Short.class)
-			{
-				return Short.TYPE;
-			}
-			else if (classToTry == Integer.class)
-			{
-				return Integer.TYPE;
-			}
-			else if (classToTry == Float.class)
-			{
-				return Float.TYPE;
-			}
-			else if (classToTry == Double.class)
-			{
-				return Double.TYPE;
-			}
-			else if (classToTry == Boolean.class)
-			{
-				return Boolean.TYPE;
-			}
-			else if (classToTry == Character.class)
-			{
-				return Character.TYPE;
-			}
-			else if (classToTry == Void.class)
-			{
-				return Void.TYPE;
-			}
+		if (primitiveArray != null)
+		{	
+			return IntStream.range(0, primitiveArray.length)
+                    .mapToObj(idx -> primitiveArray[idx]);
 		}
 		return null;
 	}

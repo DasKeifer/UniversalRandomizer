@@ -12,36 +12,35 @@ import universal_randomizer.user_object_apis.Getter;
 
 public interface RandomizeStream<T>
 {
-	public static <S> RandomizeStream<S> createRandomizeStream(Collection<S> source)
+	public static <T2> RandomizeStream<T2> create(Stream<T2> source)
 	{
-		return new RandomizeSingleStream<>(source);
+		return RandomizeSingleStream.create(source);
 	}
 	
-	public static <S> RandomizeStream<S> createRandomizeStream(Stream<S> source)
+	public static <T2> RandomizeStream<T2> create(Collection<T2> source)
 	{
-		return new RandomizeSingleStream<>(source);
+		return RandomizeSingleStream.create(source);
+	}
+	
+	public static <T2> RandomizeStream<T2> create(T2[] source)
+	{
+		return RandomizeSingleStream.create(source);
 	}
 	
 	public RandomizeStream<T> select(Condition<T> varExpr);
 	
 	public <R> RandomizeMultiStream<T> group(Getter<T, R> groupingFn);
 
-	public default RandomizeStream<T> shuffle()
-	{
-		return shuffle(new Random());
-	}
+	public RandomizeStream<T> shuffle();
 	
-	public default RandomizeStream<T> shuffle(long seed)
-	{
-		return shuffle(new Random(seed));
-	}
+	public RandomizeStream<T> shuffle(long seed);
 	
 	public RandomizeStream<T> shuffle(Random rand);
 	
 	public RandomizeStream<T> sort();
 	
 	public RandomizeStream<T> sort(Comparator<T> sorter);
-
+	
 	public Stream<T> toStream();
 	
 	public <R> RandomizeStream<R> convertToField(Getter<T, R> getter);

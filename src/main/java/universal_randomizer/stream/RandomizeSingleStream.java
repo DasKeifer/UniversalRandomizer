@@ -1,5 +1,6 @@
 package universal_randomizer.stream;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -15,21 +16,47 @@ import universal_randomizer.wrappers.RandomOrdering;
 
 public class RandomizeSingleStream<T> implements RandomizeStream<T>
 {
-	Stream<T> stream;
+	private Stream<T> stream;
 
-	public RandomizeSingleStream(Collection<T> source)
-	{
-		this.stream = source.stream();
-	}
-	
-	public RandomizeSingleStream(Stream<T> source)
+	protected RandomizeSingleStream(Stream<T> source)
 	{
 		this.stream = source;
+	}
+
+	public static <T2> RandomizeSingleStream<T2> create(Stream<T2> source)
+	{
+		if (source == null)
+		{
+			return null;
+		}
+		return new RandomizeSingleStream<>(source);
+	}
+	
+	public static <T2> RandomizeSingleStream<T2> create(Collection<T2> source)
+	{
+		if (source == null)
+		{
+			return null;
+		}
+		return create(source.stream());
+	}
+	
+	public static <T2> RandomizeSingleStream<T2> create(T2[] source)
+	{
+		if (source == null)
+		{
+			return null;
+		}
+		return create(Utils.convertArrayToStream(source));
 	}
 
 	@Override
 	public RandomizeSingleStream<T> select(Condition<T> varExpr)
 	{
+		if (varExpr == null)
+		{
+			return null;
+		}
 		stream = stream.filter(varExpr::evaluate);
 		return this;
 	}
@@ -37,7 +64,12 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 	@Override
 	public <R> RandomizeMultiStream<T> group(Getter<T, R> groupingFn)
 	{
-		Map<Object, List<T>> grouped = stream
+		if (groupingFn == null)
+		{
+			return null;
+		}
+		
+		Map<R, List<T>> grouped = stream
 				.collect(Collectors.groupingBy(groupingFn::get));
 		
 		return new RandomizeMultiStream<>(
@@ -46,27 +78,75 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
+	public RandomizeSingleStream<T> shuffle()
+	{
+		return shuffle(null);
+	}
+
+	@Override
+	public RandomizeSingleStream<T> shuffle(long seed)
+	{
+		return shuffle(new Random(seed));
+	}
+	
+	@Override
 	public RandomizeSingleStream<T> shuffle(Random rand) 
 	{
+		final Random nonNull = rand != null ? rand : new Random();
 		stream = stream
-				.map(o -> RandomOrdering.create(o, rand.nextLong()))
+				.map(o -> RandomOrdering.create(o, nonNull.nextLong()))
 				.sorted(RandomOrdering::sortBySortingValue)
 				.map(RandomOrdering::getObject);
 		return this;
 	}
+	
+	@Override
+	public RandomizeSingleStream<T> sort()
+	{
+		return sort(null);
+	}
 
 	@Override
-	public RandomizeStream<T> sort() 
+	public RandomizeSingleStream<T> sort(Comparator<T> sorter)
 	{
-		stream = stream.sorted();
+		stream = sorter != null ? stream.sorted(sorter) : stream.sorted();
 		return this;
 	}
 
 	@Override
-	public RandomizeStream<T> sort(Comparator<T> sorter)
+	public <R> RandomizeSingleStream<R> convertToField(Getter<T, R> getter)
 	{
-		stream = stream.sorted(sorter);
-		return this;
+		return getter != null ? RandomizeSingleStream.create(stream.map(getter::get)) : null;
+	}
+
+	@Override
+	public <R> RandomizeSingleStream<R> convertToFieldArray(Getter<T, R[]> getter)
+	{
+		return getter != null ? RandomizeSingleStream.create(stream.flatMap(o -> Arrays.stream(getter.get(o)))) : null;
+	}
+
+	@Override
+	public <C extends Collection<R>, R> RandomizeSingleStream<R> convertToFieldCollection(Getter<T, C> getter)
+	{
+		return getter != null ? RandomizeSingleStream.create(stream.flatMap(obj -> getter.get(obj).stream())) : null;
+	}
+
+	@Override
+	public <S extends Stream<R>, R> RandomizeSingleStream<R> convertToFieldStream(Getter<T, S> getter) 
+	{
+		return getter != null ? RandomizeSingleStream.create(stream.flatMap(getter::get)) : null;
+	}
+
+	@Override
+	public <M extends Map<R, ?>, R> RandomizeSingleStream<R> convertToFieldMapKeys(Getter<T, M> getter)
+	{
+		return getter != null ? RandomizeSingleStream.create(stream.flatMap(obj -> getter.get(obj).keySet().stream())) : null;
+	}
+
+	@Override
+	public <M extends Map<?, R>, R> RandomizeSingleStream<R> convertToFieldMapValues(Getter<T, M> getter)
+	{
+		return getter != null ? RandomizeSingleStream.create(stream.flatMap(obj -> getter.get(obj).values().stream())) : null;
 	}
 	
 	@Override
@@ -75,63 +155,13 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 		return stream;
 	}
 
-	@Override
-	public <R> RandomizeStream<R> convertToField(Getter<T, R> getter)
+	protected boolean setStream(Stream<T> stream) 
 	{
-		if (getter == null)
+		if (stream == null)
 		{
-			return null;
+			return false;
 		}
-		return new RandomizeSingleStream<>(stream.map(getter::get));
-	}
-
-	@Override
-	public <R> RandomizeSingleStream<R> convertToFieldArray(Getter<T, R[]> getter)
-	{
-		if (getter == null)
-		{
-			return null;
-		}
-		return new RandomizeSingleStream<>(stream.flatMap(o -> Utils.convertArrayToStream(getter.get(o))));
-	}
-
-	@Override
-	public <C extends Collection<R>, R> RandomizeStream<R> convertToFieldCollection(Getter<T, C> getter)
-	{
-		if (getter == null)
-		{
-			return null;
-		}
-		return new RandomizeSingleStream<>(stream.flatMap(obj -> getter.get(obj).stream()));
-	}
-
-	@Override
-	public <S extends Stream<R>, R> RandomizeStream<R> convertToFieldStream(Getter<T, S> getter) 
-	{
-		if (getter == null)
-		{
-			return null;
-		}
-		return new RandomizeSingleStream<>(stream.flatMap(getter::get));
-	}
-
-	@Override
-	public <M extends Map<R, ?>, R> RandomizeStream<R> convertToFieldMapKeys(Getter<T, M> getter)
-	{
-		if (getter == null)
-		{
-			return null;
-		}
-		return new RandomizeSingleStream<>(stream.flatMap(obj -> getter.get(obj).keySet().stream()));
-	}
-
-	@Override
-	public <M extends Map<?, R>, R> RandomizeStream<R> convertToFieldMapValues(Getter<T, M> getter)
-	{
-		if (getter == null)
-		{
-			return null;
-		}
-		return new RandomizeSingleStream<>(stream.flatMap(obj -> getter.get(obj).values().stream()));
+		this.stream = stream;
+		return true;
 	}
 }

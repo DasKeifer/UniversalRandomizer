@@ -12,6 +12,8 @@ public class SimpleObject
 	public int intField;
 	public List<Integer> list;
 	public Map<Integer, String> map;
+	public int[] array;
+	public Integer[] wrappedArray;
 	
 	public SimpleObject(String stringField, int intField)
 	{
@@ -19,6 +21,8 @@ public class SimpleObject
 		this.setIntField(intField);
 		list = new LinkedList<>();
 		map = new LinkedHashMap<>();
+		array = new int[0];
+		wrappedArray = new Integer[0];
 	}
 	
     public boolean intBetween2And5Excl()

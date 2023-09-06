@@ -23,6 +23,10 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	@Override
 	public RandomizeMultiStream<T> select(Condition<T> varExpr)
 	{
+		if (varExpr == null)
+		{
+			return null;
+		}
 		streams = streams.map(stream -> stream.select(varExpr));
 		return this;
 	}
@@ -30,26 +34,41 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	@Override
 	public <R> RandomizeMultiStream<T> group(Getter<T, R> groupingFn)
 	{
+		if (groupingFn == null)
+		{
+			return null;
+		}
 		streams = streams.map(stream -> stream.group(groupingFn));
 		return this;
 	}
 
 	@Override
-	public RandomizeStream<T> shuffle(Random rand)
+	public RandomizeMultiStream<T> shuffle()
+	{
+		return shuffle(null);
+	}
+
+	@Override
+	public RandomizeMultiStream<T> shuffle(long seed)
+	{
+		return shuffle(new Random(seed));
+	}
+
+	@Override
+	public RandomizeMultiStream<T> shuffle(Random rand)
 	{
 		streams = streams.map(stream -> stream.shuffle(rand));
 		return this;
 	}
 
 	@Override
-	public RandomizeStream<T> sort()
+	public RandomizeMultiStream<T> sort()
 	{
-		streams = streams.map(RandomizeStream::sort);
-		return this;
+		return sort(null);
 	}
 
 	@Override
-	public RandomizeStream<T> sort(Comparator<T> sorter)
+	public RandomizeMultiStream<T> sort(Comparator<T> sorter)
 	{
 		streams = streams.map(stream -> stream.sort(sorter));
 		return this;
@@ -62,7 +81,7 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
-	public <R> RandomizeStream<R> convertToField(Getter<T, R> getter) 
+	public <R> RandomizeMultiStream<R> convertToField(Getter<T, R> getter) 
 	{
 		if (getter == null)
 		{
@@ -72,7 +91,7 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
-	public <R> RandomizeStream<R> convertToFieldArray(Getter<T, R[]> getter)
+	public <R> RandomizeMultiStream<R> convertToFieldArray(Getter<T, R[]> getter)
 	{
 		if (getter == null)
 		{
@@ -82,7 +101,7 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
-	public <C extends Collection<R>, R> RandomizeStream<R> convertToFieldCollection(Getter<T, C> getter) 
+	public <C extends Collection<R>, R> RandomizeMultiStream<R> convertToFieldCollection(Getter<T, C> getter) 
 	{
 		if (getter == null)
 		{
@@ -92,7 +111,7 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
-	public <S extends Stream<R>, R> RandomizeStream<R> convertToFieldStream(Getter<T, S> getter) 
+	public <S extends Stream<R>, R> RandomizeMultiStream<R> convertToFieldStream(Getter<T, S> getter) 
 	{
 		if (getter == null)
 		{
@@ -102,7 +121,7 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
-	public <M extends Map<R, ?>, R> RandomizeStream<R> convertToFieldMapKeys(Getter<T, M> getter) 
+	public <M extends Map<R, ?>, R> RandomizeMultiStream<R> convertToFieldMapKeys(Getter<T, M> getter) 
 	{
 		if (getter == null)
 		{
@@ -112,7 +131,7 @@ public class RandomizeMultiStream<T> implements RandomizeStream<T>
 	}
 
 	@Override
-	public <M extends Map<?, R>, R> RandomizeStream<R> convertToFieldMapValues(Getter<T, M> getter) 
+	public <M extends Map<?, R>, R> RandomizeMultiStream<R> convertToFieldMapValues(Getter<T, M> getter) 
 	{
 		if (getter == null)
 		{
