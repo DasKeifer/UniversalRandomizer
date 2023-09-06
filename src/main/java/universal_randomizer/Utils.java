@@ -103,9 +103,76 @@ public class Utils
 		return stream.flatMap(obj -> getter.get(obj).values().stream());
 	}
 	
+	@SuppressWarnings("unchecked")
+	public static <T> Stream<T> convertToStream(Object obj)
+	{
+		if (obj instanceof Collection)
+		{
+			return ((Collection<T>) obj).stream();
+		}
+		else if (obj.getClass().isArray())
+		{
+			return convertArrayToStream(obj);
+		}
+		else if (obj instanceof Map)
+		{
+			return ((Map<?,T>) obj).values().stream();
+		}
+		return (Stream<T>) Stream.of(obj);
+	}
+	
 	public static <T> Stream<T> convertArrayToStream(T[] array)
 	{
 		return Arrays.stream(array);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> Stream<T> convertArrayToStream(Object array)
+	{
+		if (array.getClass().getComponentType().isPrimitive())
+		{
+			return (Stream<T>) convertPrimativeArrayToStream(array);
+		}
+		else
+		{
+			return Arrays.stream((T[]) array);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> Stream<T> convertPrimativeArrayToStream(Object primativeArray)
+	{
+		Class<?> primType = primativeArray.getClass().getComponentType();
+		if (primType == byte.class)
+		{
+			return (Stream<T>) convertPrimitiveArrayToStream((byte[])primativeArray);
+		}
+		else if (primType == short.class)
+		{
+			return (Stream<T>) convertPrimitiveArrayToStream((short[])primativeArray);
+		}
+		else if (primType == int.class)
+		{
+			return (Stream<T>) convertPrimitiveArrayToStream((int[])primativeArray);
+		}
+		else if (primType == float.class)
+		{
+			return (Stream<T>) convertPrimitiveArrayToStream((float[])primativeArray);
+		}
+		else if (primType == double.class)
+		{
+			return (Stream<T>) convertPrimitiveArrayToStream((double[])primativeArray);
+		}
+		else if (primType == boolean.class)
+		{
+			return (Stream<T>) convertPrimitiveArrayToStream((boolean[])primativeArray);
+		}
+		else if (primType == char.class)
+		{
+			return (Stream<T>) convertPrimitiveArrayToStream((char[])primativeArray);
+		}
+		
+		throw new IllegalArgumentException();
 	}
 	
 	public static Stream<Byte> convertPrimitiveArrayToStream(byte[] primitiveArray)
@@ -174,5 +241,11 @@ public class Utils
                     .mapToObj(idx -> primitiveArray[idx]);
 		}
 		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> Stream<T> castStream(Stream<Object> stream)
+	{
+		return stream.map(o -> (T) o);
 	}
 }
