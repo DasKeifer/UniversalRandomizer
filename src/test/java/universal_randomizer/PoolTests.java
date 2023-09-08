@@ -3,6 +3,8 @@ package universal_randomizer;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -51,22 +53,79 @@ class PoolTests {
 	}
 	
 	@Test
-	void create_FromArray() 
+	void create() 
 	{
+		//Array
 		Pool<Integer> nonDup = Pool.create(false, NON_DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDup);
+		assertEquals(EXPECTED_NON_DUPLICATE.size(), nonDup.getUnpeeked().size());
+		assertTrue(nonDup.getPeeked().isEmpty());
+		assertTrue(nonDup.getRemoved().isEmpty());
 		
 		Pool<Integer> dup = Pool.create(false, DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_DUPLICATE, dup);
+		assertEquals(DUPLICATE_ARRAY.length, dup.getUnpeeked().size());
+		assertTrue(dup.getPeeked().isEmpty());
+		assertTrue(dup.getRemoved().isEmpty());
 		
 		Pool<Integer> nonDupFromDup = Pool.create(true, DUPLICATE_ARRAY);
+		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
+		assertEquals(EXPECTED_NON_DUPLICATE.size(), nonDup.getUnpeeked().size());
+		assertTrue(nonDupFromDup.getPeeked().isEmpty());
+		assertTrue(nonDupFromDup.getRemoved().isEmpty());
+
+		//Collection
+		nonDup = Pool.create(false, Arrays.asList(NON_DUPLICATE_ARRAY));
+		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDup);
+		
+		dup = Pool.create(false, Arrays.asList(DUPLICATE_ARRAY));
+		assertPoolEquals(EXPECTED_DUPLICATE, dup);
+		
+		nonDupFromDup = Pool.create(true, Arrays.asList(DUPLICATE_ARRAY));
+		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
+
+		//Stream
+		nonDup = Pool.create(false, Arrays.stream(NON_DUPLICATE_ARRAY));
+		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDup);
+		
+		dup = Pool.create(false, Arrays.stream(DUPLICATE_ARRAY));
+		assertPoolEquals(EXPECTED_DUPLICATE, dup);
+		
+		nonDupFromDup = Pool.create(true, Arrays.stream(DUPLICATE_ARRAY));
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
 	}
 
 	@Test
 	void copy() 
 	{
-		// TODO:
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+		
+		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		
+		pool.peek(rand);
+		pool.popPeeked();
+		pool.peek(rand);
+		pool.popPeeked();
+		pool.peek(rand);
+		
+		ArrayList<Integer> poolUnpeeked = new ArrayList<>(pool.getUnpeeked());
+		ArrayList<Integer> poolPeeked = new ArrayList<>(pool.getPeeked());
+		ArrayList<Integer> poolRemoved = new ArrayList<>(pool.getRemoved());
+		
+		Pool<Integer> copy = pool.copy();
+		assertIterableEquals(poolUnpeeked, copy.getUnpeeked());
+		assertIterableEquals(poolPeeked, copy.getPeeked());
+		assertIterableEquals(poolRemoved, copy.getRemoved());
+		
+		copy.reset();
+		assertIterableEquals(poolUnpeeked, pool.getUnpeeked());
+		assertIterableEquals(poolPeeked, pool.getPeeked());
+		assertIterableEquals(poolRemoved, pool.getRemoved());
+		
+		assertEquals(NON_DUPLICATE_VALS.size(), copy.getUnpeeked().size());
+		assertTrue(copy.getPeeked().isEmpty());
+		assertTrue(copy.getRemoved().isEmpty());
 	}
 	
 	@Test

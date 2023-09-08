@@ -15,9 +15,9 @@ public class Pool<T>
 	// TODO: Allow creation by reference, shallow, deep and reflection copy?
 	// TODO: Make into more specific subclasses, make Pool an interface/abstract class?
 	
-	protected ArrayList<T> unpeeked;
-	protected LinkedList<T> peeked;
-	protected LinkedList<T> removed;
+	private ArrayList<T> unpeeked;
+	private LinkedList<T> peeked;
+	private LinkedList<T> removed;
 	
 	protected Pool(boolean removeDuplicates, Collection<T> valCollection)
 	{
@@ -161,5 +161,17 @@ public class Pool<T>
 	public int instancesOfUnpeeked(T obj)
 	{
 		return (int) unpeeked.stream().filter(s -> s == obj).count();
+	}
+
+	protected ArrayList<T> getUnpeeked() {
+		return unpeeked;
+	}
+
+	protected LinkedList<T> getPeeked() {
+		return peeked;
+	}
+
+	protected LinkedList<T> getRemoved() {
+		return removed;
 	}
 }

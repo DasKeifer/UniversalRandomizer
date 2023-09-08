@@ -133,7 +133,7 @@ class CommonRandomizerTestUtils {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
@@ -166,7 +166,7 @@ class CommonRandomizerTestUtils {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 2);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
@@ -197,7 +197,7 @@ class CommonRandomizerTestUtils {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
@@ -230,7 +230,7 @@ class CommonRandomizerTestUtils {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 2);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 2);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
@@ -253,7 +253,7 @@ class CommonRandomizerTestUtils {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 2, 0);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = null;

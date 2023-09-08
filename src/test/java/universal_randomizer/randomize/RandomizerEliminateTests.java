@@ -192,7 +192,7 @@ class RandomizerEliminateTests {
 		when(pool2.copy()).thenReturn(null);
 
 		// Create test data and object
-		EliminateParams elimParams = new EliminateParams(2);
+		EliminateParams elimParams = EliminateParams.create(2);
 		
 		Setter<SimpleObject, Integer> setterInt = (o, v) -> {
 			if (v == null)
@@ -243,8 +243,8 @@ class RandomizerEliminateTests {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = SimpleCondition.create(o -> o.intField, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 0);
-		EliminateParams elimParams = new EliminateParams(2);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 0, 0);
+		EliminateParams elimParams = EliminateParams.create(2);
 		
 		List<SimpleObject> list = CommonRandomizerTestUtils.createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create((o, v) -> o.intField = v, poolBase, enforce, elimParams);
@@ -286,8 +286,8 @@ class RandomizerEliminateTests {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = SimpleCondition.create(o -> o.intField, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 0);
-		EliminateParams elimParams = new EliminateParams(2);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 0, 0);
+		EliminateParams elimParams = EliminateParams.create(2);
 		
 		List<SimpleObject> list = CommonRandomizerTestUtils.createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create((o, v) -> o.intField = v, poolBase, enforce, elimParams);
@@ -330,8 +330,8 @@ class RandomizerEliminateTests {
 
 		// Create test data and object
 		Condition<SimpleObject> neq5 = SimpleCondition.create(o -> o.intField, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = new EnforceParams<>(neq5, 0, 1);
-		EliminateParams elimParams = new EliminateParams(2);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 0, 1);
+		EliminateParams elimParams = EliminateParams.create(2);
 		
 		List<SimpleObject> list = CommonRandomizerTestUtils.createSimpleObjects(LIST_SIZE);
 		Randomizer<SimpleObject, Integer> test = RandomizerEliminate.create((o, v) -> o.intField = v, poolBase, enforce, elimParams);

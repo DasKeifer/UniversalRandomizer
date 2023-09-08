@@ -113,10 +113,6 @@ public class RandomizerEliminate<T, P> extends Randomizer<T, P>
 			// Get an item from the next pool
 			return workingPools.get(lastPeekedIndex).peek(rand);
 		}
-		else
-		{
-			// TODO: Warning of unset pool and whatnot
-		}
 		return null;
 	}
 

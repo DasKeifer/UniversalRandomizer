@@ -84,7 +84,7 @@ public abstract class Randomizer<T, P>
 		if (getPool() == null && getter != null)
 		{
 			// TODO: need some logic to other field types - maybe pass in the function to use?
-			pool = Pool.create(false, Utils.convertToField(getter, streamAsList.stream()));
+			pool = Pool.create(false, Utils.convertToField(streamAsList.stream(), getter));
 			result = attemptRandomization(streamAsList);
 		}
 		else if (getPool() != null && getter == null)

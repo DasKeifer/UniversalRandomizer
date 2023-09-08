@@ -84,6 +84,19 @@ public class SimpleObject
 		return false;
 	}
 	
+	public void setIntAndStringField(int intField, String stringField) {
+		this.intField = intField;
+		this.stringField = stringField;
+	}
+	
+	public void setField(int intField) {
+		this.intField = intField;
+	}
+	
+	public void setField(String stringField) {
+		this.stringField = stringField;
+	}
+	
 	public UncomparableObject getUncomparableObject()
 	{
 		return uncomparableObj;

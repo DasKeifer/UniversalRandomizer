@@ -79,8 +79,7 @@ public class SimpleCondition <T, M> implements Condition<T>
 			case LESS_THAN_OR_EQUAL: return 0 >= compareResult;
 			case GREATER_THAN_OR_EQUAL: return 0 <= compareResult;
 			default: 
-				System.out.println("invokeCompareTo - unknown Comparator value: " + comparator);
-				return false;
+				throw new IllegalArgumentException("Unknown comparison value: " + comparison);
 		}
 	}
 	

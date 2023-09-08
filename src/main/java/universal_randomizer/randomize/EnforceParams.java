@@ -9,9 +9,7 @@ public class EnforceParams<T>
 	private int maxRetries;
 	private int maxResets;
 
-	// TODO refactor to factory
-	
-	public EnforceParams(Condition<T> enforce, int maxRetries, int maxResets)
+	private EnforceParams(Condition<T> enforce, int maxRetries, int maxResets)
 	{
 		if (enforce != null)
 		{
@@ -25,6 +23,15 @@ public class EnforceParams<T>
 			this.maxRetries = 0;
 			this.maxResets = 0;
 		}
+	}
+	
+	public static <T2> EnforceParams<T2> create(Condition<T2> enforce, int maxRetries, int maxResets) 
+	{
+		if (maxRetries < 0 || maxResets < 0)
+		{
+			return null;
+		}
+		return new EnforceParams<>(enforce, maxRetries, maxResets);
 	}
 	
 	public static <T2> EnforceParams<T2> createNoEnforce() 

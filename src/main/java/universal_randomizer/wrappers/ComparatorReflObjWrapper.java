@@ -15,5 +15,4 @@ public class ComparatorReflObjWrapper<T> implements Comparator<ReflectionObject<
 	public int compare(ReflectionObject<T> o1, ReflectionObject<T> o2) {
 		return unwrapped.compare(o1.getObject(), o2.getObject());
 	}
-
 }

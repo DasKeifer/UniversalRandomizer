@@ -2,6 +2,7 @@ package universal_randomizer.randomize;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -21,10 +22,13 @@ class EnforceParamsTests {
 		@SuppressWarnings("unchecked")
 		Condition<SimpleObject> testCond = mock(Condition.class);
 		
-		EnforceParams<SimpleObject> test = new EnforceParams<>(testCond, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> test = EnforceParams.create(testCond, MAX_RETRIES, MAX_RESETS);
 		
 		assertEquals(MAX_RETRIES, test.getMaxRetries());
 		assertEquals(MAX_RESETS, test.getMaxResets());
+		
+		assertNull(EnforceParams.create(testCond, -1, MAX_RESETS));
+		assertNull(EnforceParams.create(testCond, MAX_RETRIES, -1));
 	}
 	
 	@Test
@@ -33,7 +37,7 @@ class EnforceParamsTests {
 		final int MAX_RETRIES = 2;
 		final int MAX_RESETS = 3;
 		
-		EnforceParams<SimpleObject> test = new EnforceParams<>(null, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> test = EnforceParams.create(null, MAX_RETRIES, MAX_RESETS);
 		
 		assertEquals(0, test.getMaxRetries());
 		assertEquals(0, test.getMaxResets());
@@ -57,7 +61,7 @@ class EnforceParamsTests {
 		Condition<SimpleObject> testCond = mock(Condition.class);
 		when(testCond.evaluate(any())).thenReturn(true).thenReturn(false);
 		
-		EnforceParams<SimpleObject> test = new EnforceParams<>(testCond, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> test = EnforceParams.create(testCond, MAX_RETRIES, MAX_RESETS);
 		
 		assertTrue(test.evaluateEnforce(null));	
 		assertFalse(test.evaluateEnforce(null));
@@ -71,7 +75,7 @@ class EnforceParamsTests {
 	{
 		final int MAX_RETRIES = 2;
 		final int MAX_RESETS = 3;
-		EnforceParams<SimpleObject> test = new EnforceParams<>(null, MAX_RETRIES, MAX_RESETS);
+		EnforceParams<SimpleObject> test = EnforceParams.create(null, MAX_RETRIES, MAX_RESETS);
 		
 		assertTrue(test.evaluateEnforce(null));
 	}

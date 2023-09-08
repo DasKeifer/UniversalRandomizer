@@ -48,8 +48,92 @@ public class Utils
 		}
 		return vals;
 	}
-
-	public static <T, R> Stream<R> convertToField(Getter<T, R> getter, Stream<T> stream)
+	
+	public static Class<?> convertToWrapperClass(Class<?> toCheck)
+	{
+		if (byte.class.equals(toCheck))
+		{
+			return Byte.class;
+		}
+		else if (short.class.equals(toCheck))
+		{
+			return Short.class;
+		}
+		else if (int.class.equals(toCheck))
+		{
+			return Integer.class;
+		}
+		else if (long.class.equals(toCheck))
+		{
+			return Long.class;
+		}
+		else if (float.class.equals(toCheck))
+		{
+			return Float.class;
+		}
+		else if (double.class.equals(toCheck))
+		{
+			return Double.class;
+		}
+		else if (boolean.class.equals(toCheck))
+		{
+			return Boolean.class;
+		}
+		else if (char.class.equals(toCheck))
+		{
+			return Character.class;
+		}
+		else if (void.class.equals(toCheck))
+		{
+			return Void.class;
+		}
+		
+		return null;
+	}
+	
+	public static Class<?> convertToPrimitiveClass(Class<?> toCheck)
+	{
+		if (Byte.class.equals(toCheck))
+		{
+			return byte.class;
+		}
+		else if (Short.class.equals(toCheck))
+		{
+			return short.class;
+		}
+		else if (Integer.class.equals(toCheck))
+		{
+			return int.class;
+		}
+		else if (Long.class.equals(toCheck))
+		{
+			return long.class;
+		}
+		else if (Float.class.equals(toCheck))
+		{
+			return float.class;
+		}
+		else if (Double.class.equals(toCheck))
+		{
+			return double.class;
+		}
+		else if (Boolean.class.equals(toCheck))
+		{
+			return boolean.class;
+		}
+		else if (Character.class.equals(toCheck))
+		{
+			return char.class;
+		}
+		else if (Void.class.equals(toCheck))
+		{
+			return void.class;
+		}
+		
+		return null;
+	}
+	
+	public static <T, R> Stream<R> convertToField(Stream<T> stream, Getter<T, R> getter)
 	{
 		if (getter == null || stream == null)
 		{
@@ -58,7 +142,7 @@ public class Utils
 		return stream.map(getter::get);
 	}
 
-	public static <T, R> Stream<R> convertToFieldArray(Getter<T, R[]> getter, Stream<T> stream)
+	public static <T, R> Stream<R> convertToFieldArray(Stream<T> stream, Getter<T, R[]> getter)
 	{
 		if (getter == null || stream == null)
 		{
@@ -67,7 +151,7 @@ public class Utils
 		return stream.flatMap(o -> Arrays.stream(getter.get(o)));
 	}
 
-	public static <T, C extends Collection<R>, R> Stream<R> convertToFieldCollection(Getter<T, C> getter, Stream<T> stream)
+	public static <T, C extends Collection<R>, R> Stream<R> convertToFieldCollection(Stream<T> stream, Getter<T, C> getter)
 	{
 		if (getter == null || stream == null)
 		{
@@ -76,7 +160,7 @@ public class Utils
 		return stream.flatMap(obj -> getter.get(obj).stream());
 	}
 
-	public static <T, S extends Stream<R>, R> Stream<R> convertToFieldStream(Getter<T, S> getter, Stream<T> stream)
+	public static <T, S extends Stream<R>, R> Stream<R> convertToFieldStream(Stream<T> stream, Getter<T, S> getter)
 	{
 		if (getter == null || stream == null)
 		{
@@ -85,7 +169,7 @@ public class Utils
 		return stream.flatMap(getter::get);
 	}
 
-	public static <T, M extends Map<R, ?>, R> Stream<R> convertToFieldMapKeys(Getter<T, M> getter, Stream<T> stream)
+	public static <T, M extends Map<R, ?>, R> Stream<R> convertToFieldMapKeys(Stream<T> stream, Getter<T, M> getter)
 	{
 		if (getter == null || stream == null)
 		{
@@ -94,7 +178,7 @@ public class Utils
 		return stream.flatMap(obj -> getter.get(obj).keySet().stream());
 	}
 
-	public static <T, M extends Map<?, R>, R> Stream<R> convertToFieldMapValues(Getter<T, M> getter, Stream<T> stream)
+	public static <T, M extends Map<?, R>, R> Stream<R> convertToFieldMapValues(Stream<T> stream, Getter<T, M> getter)
 	{
 		if (getter == null || stream == null)
 		{
@@ -131,7 +215,7 @@ public class Utils
 	{
 		if (array.getClass().getComponentType().isPrimitive())
 		{
-			return (Stream<T>) convertPrimativeArrayToStream(array);
+			return (Stream<T>) convertPrimitiveArrayToStream(array);
 		}
 		else
 		{
@@ -140,7 +224,7 @@ public class Utils
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> Stream<T> convertPrimativeArrayToStream(Object primativeArray)
+	public static <T> Stream<T> convertPrimitiveArrayToStream(Object primativeArray)
 	{
 		Class<?> primType = primativeArray.getClass().getComponentType();
 		if (primType == byte.class)
@@ -154,6 +238,10 @@ public class Utils
 		else if (primType == int.class)
 		{
 			return (Stream<T>) convertPrimitiveArrayToStream((int[])primativeArray);
+		}
+		else if (primType == long.class)
+		{
+			return (Stream<T>) convertPrimitiveArrayToStream((long[])primativeArray);
 		}
 		else if (primType == float.class)
 		{
@@ -175,76 +263,54 @@ public class Utils
 		throw new IllegalArgumentException();
 	}
 	
-	public static Stream<Byte> convertPrimitiveArrayToStream(byte[] primitiveArray)
+	public static Stream<Byte> convertPrimitiveArrayToStream(byte... primitiveArray)
 	{
-		if (primitiveArray != null)
-		{	
-			return IntStream.range(0, primitiveArray.length)
+		return IntStream.range(0, primitiveArray.length)
                     .mapToObj(idx -> primitiveArray[idx]);
-		}
-		return null;
 	}
 	
-	public static Stream<Short> convertPrimitiveArrayToStream(short[] primitiveArray)
+	public static Stream<Short> convertPrimitiveArrayToStream(short... primitiveArray)
 	{
-		if (primitiveArray != null)
-		{	
-			return IntStream.range(0, primitiveArray.length)
+		return IntStream.range(0, primitiveArray.length)
                     .mapToObj(idx -> primitiveArray[idx]);
-		}
-		return null;
 	}
 	
-	public static Stream<Integer> convertPrimitiveArrayToStream(int[] primitiveArray)
+	public static Stream<Integer> convertPrimitiveArrayToStream(int... primitiveArray)
 	{
-		if (primitiveArray != null)
-		{	
-			return Arrays.stream(primitiveArray).boxed();
-		}
-		return null;
+		return Arrays.stream(primitiveArray).boxed();
 	}
 	
-	public static Stream<Float> convertPrimitiveArrayToStream(float[] primitiveArray)
+	public static Stream<Long> convertPrimitiveArrayToStream(long... primitiveArray)
 	{
-		if (primitiveArray != null)
-		{	
-			return IntStream.range(0, primitiveArray.length)
+		return IntStream.range(0, primitiveArray.length)
                     .mapToObj(idx -> primitiveArray[idx]);
-		}
-		return null;
 	}
 	
-	public static Stream<Double> convertPrimitiveArrayToStream(double[] primitiveArray)
+	public static Stream<Float> convertPrimitiveArrayToStream(float... primitiveArray)
 	{
-		if (primitiveArray != null)
-		{	
-			return Arrays.stream(primitiveArray).boxed();
-		}
-		return null;
-	}
-	
-	public static Stream<Boolean> convertPrimitiveArrayToStream(boolean[] primitiveArray)
-	{
-		if (primitiveArray != null)
-		{	
-			return IntStream.range(0, primitiveArray.length)
+		return IntStream.range(0, primitiveArray.length)
                     .mapToObj(idx -> primitiveArray[idx]);
-		}
-		return null;
 	}
 	
-	public static Stream<Character> convertPrimitiveArrayToStream(char[] primitiveArray)
+	public static Stream<Double> convertPrimitiveArrayToStream(double... primitiveArray)
 	{
-		if (primitiveArray != null)
-		{	
-			return IntStream.range(0, primitiveArray.length)
+		return Arrays.stream(primitiveArray).boxed();
+	}
+	
+	public static Stream<Boolean> convertPrimitiveArrayToStream(boolean... primitiveArray)
+	{
+		return IntStream.range(0, primitiveArray.length)
                     .mapToObj(idx -> primitiveArray[idx]);
-		}
-		return null;
+	}
+	
+	public static Stream<Character> convertPrimitiveArrayToStream(char... primitiveArray)
+	{
+		return IntStream.range(0, primitiveArray.length)
+                    .mapToObj(idx -> primitiveArray[idx]);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> Stream<T> castStream(Stream<Object> stream)
+	public static <T> Stream<T> castStream(Stream<?> stream)
 	{
 		return stream.map(o -> (T) o);
 	}
