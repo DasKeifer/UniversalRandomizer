@@ -6,17 +6,22 @@ import java.util.stream.Stream;
 
 import universal_randomizer.Pool;
 import universal_randomizer.Utils;
+import universal_randomizer.stream.RandomizeMultiStream;
+import universal_randomizer.stream.RandomizeStream;
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.Setter;
 
 public abstract class Randomizer<T, P> 
 {	
+	// TODO multiRandomizer - set multiple at a time or take a collection/array
+	
 	private Setter<T, P> setter;
 	private Random rand;
 	private Pool<P> pool;
+	private Getter<T, P> poolGetter;
 	private EnforceParams<T> enforceActions;
 	
-	protected Randomizer(Setter<T, P> setter, Pool<P> pool, EnforceParams<T> enforce)
+	protected Randomizer(Setter<T, P> setter, Pool<P> pool, Getter<T, P> poolGetter, EnforceParams<T> enforce)
 	{
 		this.setter = setter;
 
@@ -28,6 +33,7 @@ public abstract class Randomizer<T, P>
 		{
 			this.pool = pool.copy();
 		}
+		this.poolGetter = poolGetter;
 		
 		rand = new Random();
 
@@ -60,38 +66,33 @@ public abstract class Randomizer<T, P>
 	protected abstract P peekNext(Random rand);
 	protected abstract void selectPeeked();
 
+	// Multi stream ->  multi  pool (Try mapping 1:1, or have an arg)
+	// MultiStream ->   single pool (collapse and treat as single stream)
+	// single stream -> multi  pool (need arg or way to downselect)
+	public boolean perform(RandomizeMultiStream<T> objStream) 
+	{
+		// Extract streams instead?
+		RandomizeStream<Boolean> results = objStream.mapStreams(this::perform);
+		return results.toStream().allMatch(b -> b);
+	}
+	
+	public boolean perform(RandomizeStream<T> objStream) 
+	{
+		return perform(objStream.toStream());
+	}
+	
 	public  boolean perform(Stream<T> objStream) 
 	{
 		// in order to "reuse" the stream, we need to convert it out of a stream
 		// and create new ones. We need to save off the list if we need to create
         // a source pool or if there is a RESET on fail action
 		List<T> streamAsList = objStream.toList();
-		if (getPool() == null)
+		if (poolGetter != null)
 		{
-			return false;
+			pool = Pool.create(false, Utils.convertToField(streamAsList.stream(), poolGetter));
+			return attemptRandomization(streamAsList);
 		}
 		return attemptRandomization(streamAsList);
-	}
-	
-	public  boolean perform(Stream<T> objStream, Getter<T, P> getter) 
-	{
-		boolean result = false;
-		
-		// in order to "reuse" the stream, we need to convert it out of a stream
-		// and create new ones. We need to save off the list if we need to create
-        // a source pool or if there is a RESET on fail action
-		List<T> streamAsList = objStream.toList();
-		if (getPool() == null && getter != null)
-		{
-			// TODO: need some logic to other field types - maybe pass in the function to use?
-			pool = Pool.create(false, Utils.convertToField(streamAsList.stream(), getter));
-			result = attemptRandomization(streamAsList);
-		}
-		else if (getPool() != null && getter == null)
-		{
-			result = attemptRandomization(streamAsList);
-		}
-		return result;
 	}
 	
 	// Handles RESET
@@ -170,6 +171,10 @@ public abstract class Randomizer<T, P>
 	protected Pool<P> getPool() 
 	{
 		return pool;
+	}
+	
+	protected Getter<T, P> getPoolGetter() {
+		return poolGetter;
 	}
 
 	protected EnforceParams<T> getEnforceActions() 

@@ -2,8 +2,11 @@ package universal_randomizer.stream;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import universal_randomizer.user_object_apis.Condition;
@@ -27,8 +30,22 @@ public interface RandomizeStream<T>
 		return RandomizeSingleStream.create(source);
 	}
 	
+	public static <T2> RandomizeStream<T2> create(T2 item)
+	{
+		return RandomizeSingleStream.create(item);
+	}
+	
+	public boolean isMultiStream();
+	
 	public RandomizeStream<T> select(Condition<T> varExpr);
 	
+	// Consumes underlying stream and recreates it
+	public RandomizeStream<T> duplicate();
+
+	// Consumes underlying stream and recreates it
+	public List<RandomizeStream<T>> duplicate(int numCopies);
+
+	// Consumes underlying stream and recreates it
 	public <R> RandomizeMultiStream<T> group(Getter<T, R> groupingFn);
 
 	public RandomizeStream<T> shuffle();
@@ -40,8 +57,24 @@ public interface RandomizeStream<T>
 	public RandomizeStream<T> sort();
 	
 	public RandomizeStream<T> sort(Comparator<T> sorter);
+
+	// Consumes this object
+	public void forEach(Consumer<? super T> action);
+
+	// Consumes this object
+	public void forEachStream(Consumer<? super RandomizeSingleStream<T>> action);
+
+	public <R> RandomizeStream<R> map(Function<? super T, ? extends R> mapper);
 	
+	public <R> RandomizeStream<R> mapStreams(Function<? super RandomizeSingleStream<T>, ? extends R> mapper);
+	
+	// Consumes this object
 	public Stream<T> toStream();
+	
+	// public List<RandomizeStream<T>> split();
+	
+	// TODO
+//	public Map<?, RandomizeStream<T>> splitMap();
 	
 	public <R> RandomizeStream<R> convertToField(Getter<T, R> getter);
 	

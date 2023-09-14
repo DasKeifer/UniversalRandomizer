@@ -18,7 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.MockedConstruction;
 
-import Support.RandomizerCommonTestsCreate;
+import Support.RandomizerCommonTestsGetterCreate;
+import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
 import universal_randomizer.Pool;
@@ -26,6 +27,7 @@ import universal_randomizer.condition.Comparison;
 import universal_randomizer.condition.Negate;
 import universal_randomizer.condition.SimpleCondition;
 import universal_randomizer.user_object_apis.Condition;
+import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.Setter;
 import universal_randomizer.user_object_apis.SetterNoReturn;
 
@@ -37,7 +39,10 @@ class RandomizerEliminateTests {
 	final List<Integer> DUPLICATE_VALS = List.of(1, -4, 5, 1, 99, 1, 5);
 	final Integer NON_EXISTING_VAL = 7;
 
-	private static RandomizerCommonTestsCreate<SimpleObject, Integer> randElimCreateFn = (p1, p2, p3) -> { return RandomizerEliminate.create(p1, p2, p3, null);};
+	private static RandomizerCommonTestsPoolCreate<SimpleObject, Integer> randElimCreateFn = 
+			(p1, p2, p3) -> { return RandomizerEliminate.create(p1, p2, p3, null);};
+	private static RandomizerCommonTestsGetterCreate<SimpleObject, Integer> randElimGetterCreateFn = 
+			(p1, p2, p3) -> { return RandomizerEliminate.createPoolFromStream(p1, p2, p3, null);};
 	
 	@Test
 	void create() 
@@ -53,6 +58,7 @@ class RandomizerEliminateTests {
     	EnforceParams<?> defaultEA = EnforceParams.createNoEnforce();
 
     	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
+    	Getter<SimpleObject, Integer> getter = o -> o.intField;
     	
 		
 		RandomizerEliminate<SimpleObject, Integer> re = RandomizerEliminate.create(setter, pool, enforceAction, poolAction);
@@ -68,13 +74,13 @@ class RandomizerEliminateTests {
     	assertEquals(defaultEA.getMaxResets(), re.getEnforceActions().getMaxResets());
     	assertEquals(defaultEA.getMaxRetries(), re.getEnforceActions().getMaxRetries());
 
-    	re = RandomizerEliminate.createPoolFromStream(setter, enforceAction, poolAction);
+    	re = RandomizerEliminate.createPoolFromStream(setter, getter, enforceAction, poolAction);
     	verify(pool, times(2)).copy();
     	assertEquals(setter, re.getSetter());
     	assertNull(re.getPool());
     	assertEquals(enforceAction, re.getEnforceActions());
     	
-    	re = RandomizerEliminate.createPoolFromStreamNoEnforce(setter);
+    	re = RandomizerEliminate.createPoolFromStreamNoEnforce(setter, getter);
     	verify(pool, times(2)).copy();
     	assertEquals(setter, re.getSetter());
     	assertNull(re.getPool());
@@ -92,17 +98,26 @@ class RandomizerEliminateTests {
 		@SuppressWarnings("unchecked")
 		EnforceParams<SimpleObject> enforceAction = mock(EnforceParams.class);
 		EliminateParams poolAction = mock(EliminateParams.class);
+
+    	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
+    	Getter<SimpleObject, Integer> getter = o -> o.intField;
     	
     	assertNull(RandomizerEliminate.create(null, pool, enforceAction, poolAction));
+    	assertNull(RandomizerEliminate.create(setter, null, enforceAction, poolAction));
     	assertNull(RandomizerEliminate.createWithPoolNoEnforce(null, pool));
-    	assertNull(RandomizerEliminate.createPoolFromStream(null, enforceAction, poolAction));
-    	assertNull(RandomizerEliminate.createPoolFromStreamNoEnforce(null));
+    	assertNull(RandomizerEliminate.createWithPoolNoEnforce(setter, null));
+    	assertNull(RandomizerEliminate.createPoolFromStream(null, getter, enforceAction, poolAction));
+    	assertNull(RandomizerEliminate.createPoolFromStream(setter, null, enforceAction, poolAction));
+    	assertNull(RandomizerEliminate.createPoolFromStreamNoEnforce(null, getter));
+    	assertNull(RandomizerEliminate.createPoolFromStreamNoEnforce(setter, null));
 	}
 	
 	@Test
 	void seed() 
 	{
-		RandomizerEliminate<SimpleObject, Integer> test = RandomizerEliminate.createPoolFromStreamNoEnforce((o, v) -> o.intField = v);
+		RandomizerEliminate<SimpleObject, Integer> test = RandomizerEliminate.createPoolFromStreamNoEnforce(
+				(o, v) -> o.intField = v,
+				 o -> o.intField);
 		
 		Random rand0 = new Random(0);
 		test.setRandom(0);
@@ -161,7 +176,7 @@ class RandomizerEliminateTests {
 	@Test
 	void perform_noPool() 
 	{
-		CommonRandomizerTestUtils.perform_noPool(randElimCreateFn);
+		CommonRandomizerTestUtils.perform_noPool(randElimGetterCreateFn);
 	}
 	
 	@Test
@@ -346,7 +361,9 @@ class RandomizerEliminateTests {
 	@Test
 	void perform_poolLocation_edges() 
 	{
-		RandomizerEliminate<SimpleObject, Integer> nullPool = RandomizerEliminate.createPoolFromStreamNoEnforce((o, v) -> o.intField = v);
+		RandomizerEliminate<SimpleObject, Integer> nullPool = RandomizerEliminate.createPoolFromStreamNoEnforce(
+				(o, v) -> o.intField = v,
+				 o -> o.intField);
 
 		// Make sure it doesn't explode
 		nullPool.selectPeeked();

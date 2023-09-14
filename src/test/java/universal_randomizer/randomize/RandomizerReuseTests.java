@@ -11,9 +11,11 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
-import Support.RandomizerCommonTestsCreate;
+import Support.RandomizerCommonTestsGetterCreate;
+import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
 import universal_randomizer.Pool;
+import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.SetterNoReturn;
 
 // Tests the Randomizer Reuse class and by extension the Randomizer class since the
@@ -24,7 +26,10 @@ class RandomizerReuseTests {
 	final List<Integer> DUPLICATE_VALS = List.of(1, -4, 5, 1, 99, 1, 5);
 	final Integer NON_EXISTING_VAL = 7;
 	
-	private static RandomizerCommonTestsCreate<SimpleObject, Integer> randReuseCreateFn = (p1, p2, p3) -> { return RandomizerReuse.create(p1, p2, p3);};
+	private static RandomizerCommonTestsPoolCreate<SimpleObject, Integer> randReuseCreateFn = 
+			(p1, p2, p3) -> { return RandomizerReuse.create(p1, p2, p3);};
+	private static RandomizerCommonTestsGetterCreate<SimpleObject, Integer> randReuseGetterCreateFn = 
+			(p1, p2, p3) -> { return RandomizerReuse.createPoolFromStream(p1, p2, p3);};
 	
 	@Test
 	void create() 
@@ -39,6 +44,7 @@ class RandomizerReuseTests {
     	EnforceParams<?> defaultEA = EnforceParams.createNoEnforce();
     	
     	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
+    	Getter<SimpleObject, Integer> getter = o -> o.intField;
     	
 		RandomizerReuse<SimpleObject, Integer> rr = RandomizerReuse.create(setter, pool, enforceAction);
     	verify(pool, times(1)).copy();
@@ -53,13 +59,13 @@ class RandomizerReuseTests {
     	assertEquals(defaultEA.getMaxResets(), rr.getEnforceActions().getMaxResets());
     	assertEquals(defaultEA.getMaxRetries(), rr.getEnforceActions().getMaxRetries());
 
-    	rr = RandomizerReuse.createPoolFromStream(setter, enforceAction);
+    	rr = RandomizerReuse.createPoolFromStream(setter, getter, enforceAction);
     	verify(pool, times(2)).copy();
     	assertEquals(setter, rr.getSetter());
     	assertNull(rr.getPool());
     	assertEquals(enforceAction, rr.getEnforceActions());
     	
-    	rr = RandomizerReuse.createPoolFromStreamNoEnforce(setter);
+    	rr = RandomizerReuse.createPoolFromStreamNoEnforce(setter, getter);
     	verify(pool, times(2)).copy();
     	assertEquals(setter, rr.getSetter());
     	assertNull(rr.getPool());
@@ -76,18 +82,26 @@ class RandomizerReuseTests {
 		
 		@SuppressWarnings("unchecked")
 		EnforceParams<SimpleObject> enforceAction = mock(EnforceParams.class);
+		
+    	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
+    	Getter<SimpleObject, Integer> getter = o -> o.intField;
     	
     	assertNull(RandomizerReuse.create(null, pool, enforceAction));
+    	assertNull(RandomizerReuse.create(setter, null, enforceAction));
     	assertNull(RandomizerReuse.createWithPoolNoEnforce(null, pool));
-    	assertNull(RandomizerReuse.createPoolFromStream(null, enforceAction));
-    	assertNull(RandomizerReuse.createPoolFromStreamNoEnforce(null));
+    	assertNull(RandomizerReuse.createWithPoolNoEnforce(setter, null));
+    	assertNull(RandomizerReuse.createPoolFromStream(null, getter, enforceAction));
+    	assertNull(RandomizerReuse.createPoolFromStream(setter, null, enforceAction));
+    	assertNull(RandomizerReuse.createPoolFromStreamNoEnforce(null, getter));
+    	assertNull(RandomizerReuse.createPoolFromStreamNoEnforce(setter, null));
 	}
 	
 	@Test
 	void seed() 
 	{
     	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
-		RandomizerReuse<SimpleObject, Integer> test = RandomizerReuse.createPoolFromStreamNoEnforce(setter);
+    	Getter<SimpleObject, Integer> getter = o -> o.intField;
+		RandomizerReuse<SimpleObject, Integer> test = RandomizerReuse.createPoolFromStreamNoEnforce(setter, getter);
 		
 		Random rand0 = new Random(0);
 		test.setRandom(0);
@@ -146,6 +160,6 @@ class RandomizerReuseTests {
 	@Test
 	void perform_noPool() 
 	{
-		CommonRandomizerTestUtils.perform_noPool(randReuseCreateFn);
+		CommonRandomizerTestUtils.perform_noPool(randReuseGetterCreateFn);
 	}
 }

@@ -1,11 +1,14 @@
 package universal_randomizer.stream;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,6 +51,17 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 			return null;
 		}
 		return create(Utils.convertArrayToStream(source));
+	}
+	
+	public static <T2> RandomizeSingleStream<T2> create(T2 item)
+	{
+		return create(Stream.of(item));
+	}
+
+	@Override
+	public boolean isMultiStream()
+	{
+		return false;
 	}
 
 	@Override
@@ -99,6 +113,27 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 				.map(RandomOrdering::getObject);
 		return this;
 	}
+
+	@Override
+	public RandomizeSingleStream<T> duplicate()
+	{
+		List<T> list = stream.toList();
+		stream = list.stream();
+		return RandomizeSingleStream.create(list.stream());
+	}
+
+	@Override
+	public List<RandomizeStream<T>> duplicate(int numCopies)
+	{
+		List<T> list = stream.toList();
+		stream = list.stream();
+		List<RandomizeStream<T>> ret = new ArrayList<>(numCopies);
+		for (int i = 0; i < numCopies; i++)
+		{
+			ret.add(RandomizeSingleStream.create(list.stream()));
+		}
+		return ret;
+	}
 	
 	@Override
 	public RandomizeSingleStream<T> sort()
@@ -111,6 +146,30 @@ public class RandomizeSingleStream<T> implements RandomizeStream<T>
 	{
 		stream = sorter != null ? stream.sorted(sorter) : stream.sorted();
 		return this;
+	}
+
+	@Override
+	public void forEach(Consumer<? super T> action) 
+	{
+		stream.forEach(action);
+	}
+	
+	@Override
+	public void forEachStream(Consumer<? super RandomizeSingleStream<T>> action) 
+	{
+		action.accept(this);
+	}
+
+	@Override
+	public <R> RandomizeSingleStream<R> map(Function<? super T, ? extends R> mapper) 
+	{
+		return RandomizeSingleStream.create(stream.map(mapper));
+	}
+
+	@Override
+	public <R> RandomizeSingleStream<R> mapStreams(Function<? super RandomizeSingleStream<T>, ? extends R> mapper)
+	{
+		return RandomizeSingleStream.create(mapper.apply(this));
 	}
 
 	@Override

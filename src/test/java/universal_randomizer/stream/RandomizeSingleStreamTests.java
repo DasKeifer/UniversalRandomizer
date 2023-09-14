@@ -78,6 +78,33 @@ class RandomizeSingleStreamTests {
 	}
 	
 	@Test
+	void duplicate() 
+	{
+		List<Integer> list = Arrays.asList(1,2,3,4,5);
+		
+		RandomizeSingleStream<Integer> rss = RandomizeSingleStream.create(list);
+		RandomizeSingleStream<Integer> rssCopy = rss.duplicate().select(o -> o == 2 || o == 3);
+		rss = rss.select(o -> o == 3 || o == 4);
+		
+		assertIterableEquals(Arrays.asList(3,4), rss.toStream().toList());
+		assertIterableEquals(Arrays.asList(2,3), rssCopy.toStream().toList());
+
+		rss = RandomizeSingleStream.create(list).select(o -> o == 2 || o == 3);
+		rssCopy = rss.duplicate();
+		
+		assertIterableEquals(Arrays.asList(2,3), rss.toStream().toList());
+		assertIterableEquals(Arrays.asList(2,3), rssCopy.toStream().toList());
+		
+		// Multi duplicates
+		rss = RandomizeSingleStream.create(list).select(o -> o != 1);
+		List<RandomizeStream<Integer>> rssCopies = rss.duplicate(2);
+		rssCopies.get(0).select(o -> o == 2 || o == 3);
+		assertIterableEquals(Arrays.asList(2,3,4,5), rss.toStream().toList());
+		assertIterableEquals(Arrays.asList(2,3), rssCopies.get(0).toStream().toList());
+		assertIterableEquals(Arrays.asList(2,3,4,5), rssCopies.get(1).toStream().toList());
+	}
+	
+	@Test
 	void select() 
 	{
 		List<Integer> list = Arrays.asList(0,1,2,3,4,5,6,7,8,9,10);
@@ -163,6 +190,18 @@ class RandomizeSingleStreamTests {
 		// custom inverse sort
 		RandomizeSingleStream<Integer> rss2 = RandomizeSingleStream.create(list).sort((lhs, rhs) -> rhs.compareTo(lhs));
 		assertIterableEquals(expectedReverse, rss2.toStream().toList());
+	}
+
+	@Test
+	void forEach()
+	{
+		
+	}
+
+	@Test
+	void map()
+	{
+		
 	}
 
 	@Test

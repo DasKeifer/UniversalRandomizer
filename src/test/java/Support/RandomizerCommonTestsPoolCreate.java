@@ -7,7 +7,7 @@ import universal_randomizer.randomize.Randomizer;
 import universal_randomizer.user_object_apis.Setter;
 import universal_randomizer.user_object_apis.SetterNoReturn;
 
-public interface RandomizerCommonTestsCreate<T, P>
+public interface RandomizerCommonTestsPoolCreate<T, P>
 {
 	Randomizer<T, P> create(Setter<T, P> setter, Pool<P> pool, EnforceParams<T> enforce);
 	

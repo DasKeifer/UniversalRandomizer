@@ -8,6 +8,9 @@ import java.util.LinkedList;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import universal_randomizer.stream.RandomizeMultiStream;
+import universal_randomizer.stream.RandomizeStream;
+
 public class Pool<T>
 {	
 	// TODO: Return using function?
@@ -60,6 +63,17 @@ public class Pool<T>
 	public static <V> Pool<V> create(boolean removeDuplicates, Stream<V> values)
 	{
 		return new Pool<>(removeDuplicates, values.toList());
+	}
+	
+	public static <V> Pool<V> create(boolean removeDuplicates, RandomizeStream<V> values)
+	{
+		return create(removeDuplicates, values.toStream());
+	}
+	
+	public static <V> Pool<V> create(boolean removeDuplicates, RandomizeMultiStream<V> values)
+	{
+		// TODO
+		return create(removeDuplicates, values.toStream());
 	}
 	
 	public Pool<T> copy()

@@ -15,7 +15,8 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import Support.RandomizerCommonTestsCreate;
+import Support.RandomizerCommonTestsGetterCreate;
+import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
 import universal_randomizer.Pool;
@@ -50,7 +51,7 @@ class CommonRandomizerTestUtils {
 		return list;
 	}
 
-	public static void perform_noEnforce_basic(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn) 
+	public static void perform_noEnforce_basic(RandomizerCommonTestsPoolCreate<SimpleObject, Integer> createFn) 
 	{
 		final int POOL_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -80,15 +81,9 @@ class CommonRandomizerTestUtils {
 		assertTrue(test.perform(list.stream()));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(expected, results);
-
-		// Can't pass a getter if a pool is defined
-		assertFalse(test.perform(list.stream(), getterInt));
-		
-		// Passing null for the getter arg will work if a pool is defined
-		assertTrue(test.perform(list.stream(), null));
 	}
 
-	public static void perform_noEnforce_someFailed(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
+	public static void perform_noEnforce_someFailed(RandomizerCommonTestsPoolCreate<SimpleObject, Integer> createFn)
 	{
 		final int LIST_SIZE = 10;
 		final List<Integer> POOL_VALS =     Arrays.asList(0, 1, 2, null, 4, null, 6, 7, 8, null);
@@ -114,7 +109,7 @@ class CommonRandomizerTestUtils {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	public static void perform_enforce_null(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
+	public static void perform_enforce_null(RandomizerCommonTestsPoolCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -145,7 +140,7 @@ class CommonRandomizerTestUtils {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	public static void perform_enforce_retries(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
+	public static void perform_enforce_retries(RandomizerCommonTestsPoolCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -178,7 +173,7 @@ class CommonRandomizerTestUtils {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	public static void perform_enforce_exhaustRetries_noResets(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
+	public static void perform_enforce_exhaustRetries_noResets(RandomizerCommonTestsPoolCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -209,7 +204,7 @@ class CommonRandomizerTestUtils {
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 	
-	public static void perform_enforce_exhaustRetries_resets(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
+	public static void perform_enforce_exhaustRetries_resets(RandomizerCommonTestsPoolCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -243,7 +238,7 @@ class CommonRandomizerTestUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void perform_noPool(RandomizerCommonTestsCreate<SimpleObject, Integer> createFn)
+	public static void perform_noPool(RandomizerCommonTestsGetterCreate<SimpleObject, Integer> createFn)
 	{
 		final int EXCLUDED_VAL = 5;
 		final int LIST_SIZE = 10;
@@ -272,15 +267,11 @@ class CommonRandomizerTestUtils {
 	    	intPool.when(() -> Pool.create(anyBoolean(), any(Stream.class)))
 	          .thenReturn(pool);
 	    	
-	    	test = createFn.create(setterInt, null, enforce);
+	    	test = createFn.createPoolFromStream(setterInt, getterInt, enforce);
     		test.setRandom(rand);
-
-    		// No pool and no getter should always return false
-    		assertFalse(test.perform(list.stream()));
-    		assertFalse(test.perform(list.stream(), null));
     		
 			// Perform test and check results
-			assertTrue(test.perform(list.stream(), getterInt));
+			assertTrue(test.perform(list.stream()));
 	    }
 	    
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
