@@ -22,7 +22,7 @@ import Support.RandomizerCommonTestsGetterCreate;
 import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
-import universal_randomizer.Pool;
+import universal_randomizer.PeekPool;
 import universal_randomizer.condition.Comparison;
 import universal_randomizer.condition.Negate;
 import universal_randomizer.condition.SimpleCondition;
@@ -48,7 +48,7 @@ class RandomizerEliminateTests {
 	void create() 
 	{
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.copy()).thenReturn(pool);
 		
 		@SuppressWarnings("unchecked")
@@ -92,7 +92,7 @@ class RandomizerEliminateTests {
 	void create_badInput() 
 	{
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.copy()).thenReturn(pool);
 		
 		@SuppressWarnings("unchecked")
@@ -194,11 +194,11 @@ class RandomizerEliminateTests {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> poolBase = mock(Pool.class);
+		PeekPool<Integer> poolBase = mock(PeekPool.class);
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool1 = mock(Pool.class);
+		PeekPool<Integer> pool1 = mock(PeekPool.class);
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool2 = mock(Pool.class);
+		PeekPool<Integer> pool2 = mock(PeekPool.class);
 		
 		when(poolBase.copy()).thenReturn(pool1);
 		when(pool1.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_1_VALS));
@@ -244,11 +244,11 @@ class RandomizerEliminateTests {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> poolBase = mock(Pool.class);
+		PeekPool<Integer> poolBase = mock(PeekPool.class);
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool1 = mock(Pool.class);
+		PeekPool<Integer> pool1 = mock(PeekPool.class);
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool2 = mock(Pool.class);
+		PeekPool<Integer> pool2 = mock(PeekPool.class);
 		
 		when(poolBase.copy()).thenReturn(pool1);
 		when(pool1.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_1_VALS));
@@ -287,11 +287,11 @@ class RandomizerEliminateTests {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> poolBase = mock(Pool.class);
+		PeekPool<Integer> poolBase = mock(PeekPool.class);
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool1 = mock(Pool.class);
+		PeekPool<Integer> pool1 = mock(PeekPool.class);
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool2 = mock(Pool.class);
+		PeekPool<Integer> pool2 = mock(PeekPool.class);
 		
 		when(poolBase.copy()).thenReturn(pool1);
 		when(pool1.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_1_VALS));
@@ -331,11 +331,11 @@ class RandomizerEliminateTests {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> poolBase = mock(Pool.class);
+		PeekPool<Integer> poolBase = mock(PeekPool.class);
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool1 = mock(Pool.class);
+		PeekPool<Integer> pool1 = mock(PeekPool.class);
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool2 = mock(Pool.class);
+		PeekPool<Integer> pool2 = mock(PeekPool.class);
 		
 		when(poolBase.copy()).thenReturn(pool1);
 		when(pool1.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_1_VALS));
@@ -374,7 +374,7 @@ class RandomizerEliminateTests {
 		
 
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.peek(any())).thenReturn(5);
 		when(pool.copy()).thenReturn(pool);
 

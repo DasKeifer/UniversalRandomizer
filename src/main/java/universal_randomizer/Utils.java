@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -47,6 +48,30 @@ public class Utils
 			nextVal = sumtor.sum(nextVal, stepSize);
 		}
 		return vals;
+	}
+	
+	public static <T> Collection<T> weightedCollection(Collection<Entry<Integer, T>> weightedValuePairs)
+	{
+		LinkedList<T> items = new LinkedList<>();
+		for (Entry<Integer, T> entry : weightedValuePairs)
+		{
+			for (int i = 0; i < entry.getKey(); i++)
+			{
+				items.add(entry.getValue());
+			}
+		}
+		return items;
+	}
+
+	@SafeVarargs
+	public static <T> Collection<T> weightedCollection(Entry<Integer, T>... weightedValuePairs)
+	{
+		return weightedCollection(List.of(weightedValuePairs));
+	}
+	
+	public static <T> Collection<T> weightedCollection(Stream<Entry<Integer, T>> weightedValuePairs)
+	{
+		return weightedCollection(weightedValuePairs.toList());
 	}
 	
 	public static Class<?> convertToWrapperClass(Class<?> toCheck)

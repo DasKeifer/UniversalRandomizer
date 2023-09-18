@@ -14,7 +14,7 @@ import org.mockito.MockedConstruction;
 import Support.RandomizerCommonTestsGetterCreate;
 import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
-import universal_randomizer.Pool;
+import universal_randomizer.PeekPool;
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.SetterNoReturn;
 
@@ -35,7 +35,7 @@ class RandomizerReuseTests {
 	void create() 
 	{
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.copy()).thenReturn(pool);
 		
 		@SuppressWarnings("unchecked")
@@ -77,7 +77,7 @@ class RandomizerReuseTests {
 	void create_badInput() 
 	{
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.copy()).thenReturn(pool);
 		
 		@SuppressWarnings("unchecked")

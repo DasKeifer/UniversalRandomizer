@@ -42,7 +42,7 @@ class PoolTests {
 	    }
 	});
 	
-	public <T> void assertPoolEquals(Map<T, Integer> expected, Pool<T> found)
+	public <T> void assertPoolEquals(Map<T, Integer> expected, PeekPool<T> found)
 	{
 		for (Entry<T, Integer> pair : expected.entrySet())
 		{
@@ -56,42 +56,42 @@ class PoolTests {
 	void create() 
 	{
 		//Array
-		Pool<Integer> nonDup = Pool.create(false, NON_DUPLICATE_ARRAY);
+		PeekPool<Integer> nonDup = PeekPool.create(false, NON_DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDup);
 		assertEquals(EXPECTED_NON_DUPLICATE.size(), nonDup.getUnpeeked().size());
 		assertTrue(nonDup.getPeeked().isEmpty());
 		assertTrue(nonDup.getRemoved().isEmpty());
 		
-		Pool<Integer> dup = Pool.create(false, DUPLICATE_ARRAY);
+		PeekPool<Integer> dup = PeekPool.create(false, DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_DUPLICATE, dup);
 		assertEquals(DUPLICATE_ARRAY.length, dup.getUnpeeked().size());
 		assertTrue(dup.getPeeked().isEmpty());
 		assertTrue(dup.getRemoved().isEmpty());
 		
-		Pool<Integer> nonDupFromDup = Pool.create(true, DUPLICATE_ARRAY);
+		PeekPool<Integer> nonDupFromDup = PeekPool.create(true, DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
 		assertEquals(EXPECTED_NON_DUPLICATE.size(), nonDup.getUnpeeked().size());
 		assertTrue(nonDupFromDup.getPeeked().isEmpty());
 		assertTrue(nonDupFromDup.getRemoved().isEmpty());
 
 		//Collection
-		nonDup = Pool.create(false, Arrays.asList(NON_DUPLICATE_ARRAY));
+		nonDup = PeekPool.create(false, Arrays.asList(NON_DUPLICATE_ARRAY));
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDup);
 		
-		dup = Pool.create(false, Arrays.asList(DUPLICATE_ARRAY));
+		dup = PeekPool.create(false, Arrays.asList(DUPLICATE_ARRAY));
 		assertPoolEquals(EXPECTED_DUPLICATE, dup);
 		
-		nonDupFromDup = Pool.create(true, Arrays.asList(DUPLICATE_ARRAY));
+		nonDupFromDup = PeekPool.create(true, Arrays.asList(DUPLICATE_ARRAY));
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
 
 		//Stream
-		nonDup = Pool.create(false, Arrays.stream(NON_DUPLICATE_ARRAY));
+		nonDup = PeekPool.create(false, Arrays.stream(NON_DUPLICATE_ARRAY));
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDup);
 		
-		dup = Pool.create(false, Arrays.stream(DUPLICATE_ARRAY));
+		dup = PeekPool.create(false, Arrays.stream(DUPLICATE_ARRAY));
 		assertPoolEquals(EXPECTED_DUPLICATE, dup);
 		
-		nonDupFromDup = Pool.create(true, Arrays.stream(DUPLICATE_ARRAY));
+		nonDupFromDup = PeekPool.create(true, Arrays.stream(DUPLICATE_ARRAY));
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
 	}
 
@@ -101,7 +101,7 @@ class PoolTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		
 		pool.peek(rand);
 		pool.popPeeked();
@@ -113,7 +113,7 @@ class PoolTests {
 		ArrayList<Integer> poolPeeked = new ArrayList<>(pool.getPeeked());
 		ArrayList<Integer> poolRemoved = new ArrayList<>(pool.getRemoved());
 		
-		Pool<Integer> copy = pool.copy();
+		PeekPool<Integer> copy = pool.copy();
 		assertIterableEquals(poolUnpeeked, copy.getUnpeeked());
 		assertIterableEquals(poolPeeked, copy.getPeeked());
 		assertIterableEquals(poolRemoved, copy.getRemoved());
@@ -131,15 +131,15 @@ class PoolTests {
 	@Test
 	void size_unpeekedSize_onCreation() 
 	{
-		Pool<Integer> empty = Pool.createEmpty();
+		PeekPool<Integer> empty = PeekPool.createEmpty();
 		assertEquals(0, empty.size(), "size returned non zero for empty pool");
 		assertEquals(0, empty.unpeekedSize(), "unpeekedSize returned non zero for empty pool");
 		
-		Pool<Integer> single = Pool.create(false, 1);
+		PeekPool<Integer> single = PeekPool.create(false, 1);
 		assertEquals(1, single.size(), "size returned wrong size for single item pool");
 		assertEquals(1, single.unpeekedSize(), "unpeekedSize returned wrong size for single item pool");
 
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		assertEquals(NON_DUPLICATE_VALS.size(), pool.size(), "size returned wrong size for item pool");
 		assertEquals(NON_DUPLICATE_VALS.size(), pool.unpeekedSize(), "unpeekedSize returned wrong size for item pool");
 	}
@@ -150,7 +150,7 @@ class PoolTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		
 		pool.peek(rand);
 		pool.popPeeked();
@@ -173,7 +173,7 @@ class PoolTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		int found = pool.peek(rand);
 		
 		assertEquals(NON_DUPLICATE_VALS.get(0), found, "peek did not return value based on passed Random");
@@ -193,7 +193,7 @@ class PoolTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(NON_DUPLICATE_VALS.size() - 1).thenReturn(NON_DUPLICATE_VALS.size() - 2);
 		
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		int found = pool.peek(rand);
 		
 		assertEquals(NON_DUPLICATE_VALS.get(NON_DUPLICATE_VALS.size() - 1), found, "peek did not return value based on passed Random");
@@ -212,7 +212,7 @@ class PoolTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		
 		for (int i = 0; i < NON_DUPLICATE_VALS.size(); i++)
 		{
@@ -230,7 +230,7 @@ class PoolTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		int foundPeek = pool.peek(rand);
 		int found = pool.selectPeeked();
 
@@ -254,7 +254,7 @@ class PoolTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		int foundPeek = pool.peek(rand);
 		int found = pool.popPeeked();
 
@@ -278,7 +278,7 @@ class PoolTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		
 		pool.peek(rand);
 		assertEquals(NON_DUPLICATE_VALS.size(), pool.size(), "size returned wrong size for item pool");
@@ -307,14 +307,14 @@ class PoolTests {
 	@Test
 	void selectPeeked_Unpeeked() 
 	{
-		Pool<Integer> pool = Pool.create(false, NON_DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		assertNull(pool.selectPeeked(false), "selectPeeked did not return null when pool was unpeeked");
 	}
 	
 	@Test
 	void peek_selectPeeked_empty() 
 	{
-		Pool<Integer> pool = Pool.createEmpty();
+		PeekPool<Integer> pool = PeekPool.createEmpty();
 
 		assertNull(pool.peek(new Random()), "peek did not return null when pool was empty");
 		assertNull(pool.selectPeeked(false), "selectPeeked did not return null when pool was empty");
@@ -327,7 +327,7 @@ class PoolTests {
 	{
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
-		Pool<Integer> pool = Pool.create(false, DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, DUPLICATE_VALS);
 
 		// 1, -4, 5, 1, 99, 1, 5
 		final int NOT_IN_POOL = -100;
@@ -349,7 +349,7 @@ class PoolTests {
 	{
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
-		Pool<Integer> pool = Pool.create(false, DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, DUPLICATE_VALS);
 		
 		assertEquals(DUPLICATE_VALS.get(0), pool.peek(rand), "peek did not return value based on passed Random");
 
@@ -381,7 +381,7 @@ class PoolTests {
 	{
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
-		Pool<Integer> pool = Pool.create(false, DUPLICATE_VALS);
+		PeekPool<Integer> pool = PeekPool.create(false, DUPLICATE_VALS);
 		
 		assertEquals(DUPLICATE_VALS.get(0), pool.peek(rand), "peek did not return value based on passed Random");
 		pool.selectPeeked();

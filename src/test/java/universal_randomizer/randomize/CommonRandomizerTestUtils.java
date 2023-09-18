@@ -19,7 +19,7 @@ import Support.RandomizerCommonTestsGetterCreate;
 import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
-import universal_randomizer.Pool;
+import universal_randomizer.PeekPool;
 import universal_randomizer.condition.Comparison;
 import universal_randomizer.condition.Negate;
 import universal_randomizer.condition.SimpleCondition;
@@ -68,7 +68,7 @@ class CommonRandomizerTestUtils {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.peek(any())).thenReturn(POOL_VAL);
 		when(pool.copy()).thenReturn(pool);
 
@@ -94,7 +94,7 @@ class CommonRandomizerTestUtils {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
 		when(pool.copy()).thenReturn(pool);
 		
@@ -122,7 +122,7 @@ class CommonRandomizerTestUtils {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
 		when(pool.copy()).thenReturn(pool);
 
@@ -155,7 +155,7 @@ class CommonRandomizerTestUtils {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
 		when(pool.copy()).thenReturn(pool);
 
@@ -186,7 +186,7 @@ class CommonRandomizerTestUtils {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
 		when(pool.copy()).thenReturn(pool);
 
@@ -219,7 +219,7 @@ class CommonRandomizerTestUtils {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		@SuppressWarnings("unchecked")
-		Pool<Integer> pool = mock(Pool.class);
+		PeekPool<Integer> pool = mock(PeekPool.class);
 		when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
 		when(pool.copy()).thenReturn(pool);
 
@@ -257,14 +257,14 @@ class CommonRandomizerTestUtils {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 	    try (@SuppressWarnings("rawtypes")
-		MockedStatic<Pool> intPool = Mockito.mockStatic(Pool.class)) 
+		MockedStatic<PeekPool> intPool = Mockito.mockStatic(PeekPool.class)) 
 	    {
 			// Setup static function
-			Pool<Integer> pool = mock(Pool.class);
+			PeekPool<Integer> pool = mock(PeekPool.class);
 			when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
 			when(pool.copy()).thenReturn(pool);
 
-	    	intPool.when(() -> Pool.create(anyBoolean(), any(Stream.class)))
+	    	intPool.when(() -> PeekPool.create(anyBoolean(), any(Stream.class)))
 	          .thenReturn(pool);
 	    	
 	    	test = createFn.createPoolFromStream(setterInt, getterInt, enforce);

@@ -5,16 +5,34 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import universal_randomizer.PeekPool;
-import universal_randomizer.user_object_apis.Setter;
-import universal_randomizer.wrappers.SetterAsMultiSetter;
+import universal_randomizer.user_object_apis.Getter;
+import universal_randomizer.user_object_apis.MultiSetter;
 
-public abstract class Randomizer<T, P> extends MultiRandomizer<T, P>
+public abstract class MultiRandomizer<T, P> 
 {	
-	private Setter<T, P> setter;
+	private MultiSetter<T, P> setter;
+	private Getter<T, Integer> countGetter;
+	private Random rand;
+	private PeekPool<P> pool;
+	private EnforceParams<T> enforceActions;
 	
-	protected Randomizer(Setter<T, P> setter, EnforceParams<T> enforce)
+	// TODO have way to pass in int instead of getter
+	public MultiRandomizer(MultiSetter<T, P> setter, Getter<T, Integer> countGetter, EnforceParams<T> enforce)
 	{
-		super(new SetterAsMultiSetter(setter), o -> 1, enforce);
+		this.setter = setter;
+		this.countGetter = countGetter;
+		
+		pool = null;
+		rand = null;
+
+		if (enforce == null)
+		{
+			this.enforceActions = EnforceParams.createNoEnforce();
+		}
+		else
+		{
+			this.enforceActions = enforce;
+		}
 	}
 
 	protected abstract void resetPool();
@@ -73,20 +91,22 @@ public abstract class Randomizer<T, P> extends MultiRandomizer<T, P>
 	
 	protected boolean assignValue(T obj)
 	{
-		boolean success = attemptAssignValue(obj);
-		
-		// Select regardless
-		selectPeeked();
+		boolean success = true;
+		int setCount = countGetter.get(obj);
+		for (int count = 0; count < setCount; count++)
+		{
+			success = success && attemptAssignValue(obj, count);
+		}
 		return success;
 	}
 
-	protected boolean attemptAssignValue(T obj)
+	protected boolean attemptAssignValue(T obj, int count)
 	{
 		P selectedVal = peekNext(rand);
 		
 		// While its a good index and fails the enforce check, retry if
 		// we have attempts left
-		boolean success = assignAndCheckEnforce(obj, selectedVal);
+		boolean success = assignAndCheckEnforce(obj, selectedVal, count);
 		for (int retry = 0; retry < enforceActions.getMaxRetries(); retry++)
 		{
 			if (success || selectedVal == null)
@@ -94,17 +114,23 @@ public abstract class Randomizer<T, P> extends MultiRandomizer<T, P>
 				break;
 			}
 			selectedVal = peekNext(rand);
-			success = assignAndCheckEnforce(obj, selectedVal);
+			success = assignAndCheckEnforce(obj, selectedVal, count);
 		}
+		
+		if (success)
+		{
+			selectPeeked();
+		}
+		
 		return success;
 	}
 	
-	protected boolean assignAndCheckEnforce(T obj, P value)
+	protected boolean assignAndCheckEnforce(T obj, P value, int count)
 	{
-		return setter.setReturn(obj, value) && enforceActions.evaluateEnforce(obj);
+		return setter.setReturn(obj, value, count) && enforceActions.evaluateEnforce(obj);
 	}
 
-	protected Setter<T, P> getSetter() 
+	protected MultiSetter<T, P> getSetter() 
 	{
 		return setter;
 	}
