@@ -2,84 +2,55 @@ package universal_randomizer.randomize;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.stream.Stream;
 
 import universal_randomizer.pool.RandomizerPool;
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.Setter;
 
-public abstract class ListRandomizer<T, C extends Collection<T>, K, P, V extends Collection<P>>
+public class ListRandomizer<T, C extends Collection<T>, K, P, V extends Collection<P>> 
+	extends RandomizerBase<C, Map<K, RandomizerPool<V>>>
 {		
 	private Setter<T, P> setter;
 	private Getter<C, K> keyGetter;
-	private Map<K, RandomizerPool<V>> poolMap;
-	private Random rand;
-	private EnforceParams<T> enforceActions;
 	
-	protected ListRandomizer(Setter<T, P> setter, EnforceParams<T> enforce)
+	protected ListRandomizer(Setter<T, P> setter, Getter<C, K> keyGetter, EnforceParams<C> enforce)
 	{
-	}
-	
-	public boolean perform(Stream<C> objStream, Map<K, RandomizerPool<V>> pool) 
-	{
-		return perform(objStream, pool, null);
-	}
-	
-	public boolean perform(Stream<C> objStream, Map<K, RandomizerPool<V>> pool, Random rand) 
-	{
-		this.poolMap = pool;
-		if (rand == null && this.rand == null)
-		{
-			this.rand = new Random();
-		}
+		super(enforce);
 		
-		// in order to "reuse" the stream, we need to convert it out of a stream
-		// and create new ones. We need to save off the list if we need to create
-        // a source pool or if there is a RESET on fail action
-		List<C> streamAsList = objStream.toList();
-		return attemptRandomization(streamAsList);
-	}
-	
-	// Handles RESET
-	protected boolean attemptRandomization(List<C> streamAsList)
-	{		
-		// Attempt to assign randomized values for each item in the stream
-		List<C> failed = randomize(streamAsList.stream());
-		
-		// While we have failed and have resets left
-		for (int reset = 0; reset < enforceActions.getMaxResets(); reset++)
-		{
-			if (failed.isEmpty())
-			{
-				break;
-			}
-			
-			for (RandomizerPool<V> pool : poolMap.values())
-			{
-				pool.reset();
-			}
-			failed = randomize(streamAsList.stream());
-		}
-		
-		return failed.isEmpty();
+		this.setter = setter;
+		this.keyGetter = keyGetter;
 	}
 
-	protected List<C> randomize(Stream<C> objStream)
+	public <T2, C2 extends Collection<T2>, K2, P2, V2 extends Collection<P2>> 
+		ListRandomizer<T2, C2, K2, P2, V2> create(Setter<T2, P2> setter, Getter<C2, K2> keyGetter, EnforceParams<C2> enforce)
 	{
-		return objStream.filter(this::assignValueNegated).toList();
+		if (setter == null || keyGetter == null)
+		{
+			return null;
+		}
+		return new ListRandomizer<>(setter, keyGetter, enforce);
+	}
+
+	public <T2, C2 extends Collection<T2>, K2, P2, V2 extends Collection<P2>> 
+		ListRandomizer<T2, C2, K2, P2, V2>  createNoEnforce(Setter<T2, P2> setter, Getter<C2, K2> keyGetter)
+	{
+		return create(setter, keyGetter, null);
 	}
 	
-	protected boolean assignValueNegated(C obj)
+	@Override
+	protected void resetPool() 
 	{
-		return !assignValue(obj);
+		for (RandomizerPool<V> pool : getPool().values())
+		{
+			pool.reset();
+		}
 	}
 	
+	@Override
 	protected boolean assignValue(C objs)
 	{
-		RandomizerPool<V> pool = poolMap.get(keyGetter.get(objs));
+		RandomizerPool<V> pool = getPool().get(keyGetter.get(objs));
 		boolean success = false;
 		do 
 		{
@@ -95,18 +66,18 @@ public abstract class ListRandomizer<T, C extends Collection<T>, K, P, V extends
 
 	protected boolean attemptAssignValue(C objs, RandomizerPool<V> pool)
 	{
-		V selectedVal = pool.peek(rand);
+		V selectedVal = pool.peek(getRandom());
 		
 		// While its a good index and fails the enforce check, retry if
 		// we have attempts left
 		boolean success = assignAndCheckEnforce(objs, selectedVal);
-		for (int retry = 0; retry < enforceActions.getMaxRetries(); retry++)
+		for (int retry = 0; retry < getEnforceActions().getMaxRetries(); retry++)
 		{
 			if (success || selectedVal == null)
 			{
 				break;
 			}
-			selectedVal = pool.peek(rand);
+			selectedVal = pool.peek(getRandom());
 			success = assignAndCheckEnforce(objs, selectedVal);
 		}
 		
@@ -126,7 +97,12 @@ public abstract class ListRandomizer<T, C extends Collection<T>, K, P, V extends
 		while (objItr.hasNext())
 		{
 			T obj = objItr.next();
-			success = success && setter.setReturn(obj, valItr.next()) && enforceActions.evaluateEnforce(obj);
+			success = success && setter.setReturn(obj, valItr.next());
+		}
+		
+		if (success)
+		{
+			success = getEnforceActions().evaluateEnforce(objs);
 		}
 		return success;
 	}

@@ -4,21 +4,17 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import universal_randomizer.pool.PeekPool;
-import universal_randomizer.pool.RandomizerPool;
-import universal_randomizer.user_object_apis.Getter;
-import universal_randomizer.user_object_apis.MultiSetter;
-import universal_randomizer.user_object_apis.Setter;
-import universal_randomizer.wrappers.SetterAsMultiSetter;
-
-public class RandomizerInterface<T, P> 
+public abstract class RandomizerBase<T, P> 
 {	
 	private P pool;
 	private Random rand;
 	private EnforceParams<T> enforceActions;
 	
-	protected RandomizerInterface(EnforceParams<T> enforce)
+	protected RandomizerBase(EnforceParams<T> enforce)
 	{
+		pool = null;
+		rand = null;
+		
 		if (enforce == null)
 		{
 			this.enforceActions = EnforceParams.createNoEnforce();
@@ -51,7 +47,7 @@ public class RandomizerInterface<T, P>
 	
 	// Handles RESET
 	protected boolean attemptRandomization(List<T> streamAsList)
-	{		
+	{
 		// Attempt to assign randomized values for each item in the stream
 		List<T> failed = randomize(streamAsList.stream());
 		
@@ -62,7 +58,7 @@ public class RandomizerInterface<T, P>
 			{
 				break;
 			}
-			randPool.reset();
+			resetPool();
 			failed = randomize(streamAsList.stream());
 		}
 		
@@ -78,70 +74,18 @@ public class RandomizerInterface<T, P>
 	{
 		return !assignValue(obj);
 	}
-	
-	protected boolean assignValue(T obj)
-	{
-		boolean success = true;
-		do 
-		{
-			success = true;
-			int setCount = countGetter.get(obj);
-			for (int count = 0; count < setCount; count++)
-			{
-				success = success && attemptAssignValue(obj, count);
-			}
-			if (success)
-			{
-				break;
-			}
-		} while (randPool.useNextPool());		
-		
-		return success;
-	}
 
-	protected boolean attemptAssignValue(T obj, int count)
-	{
-		P selectedVal = randPool.peek(rand);
-		
-		// While its a good index and fails the enforce check, retry if
-		// we have attempts left
-		boolean success = assignAndCheckEnforce(obj, selectedVal, count);
-		for (int retry = 0; retry < enforceActions.getMaxRetries(); retry++)
-		{
-			if (success || selectedVal == null)
-			{
-				break;
-			}
-			selectedVal = randPool.peek(rand);
-			success = assignAndCheckEnforce(obj, selectedVal, count);
-		}
-		
-		if (success)
-		{
-			randPool.selectPeeked();
-		}
-		
-		return success;
-	}
-	
-	protected boolean assignAndCheckEnforce(T obj, P value, int count)
-	{
-		return setter.setReturn(obj, value, count) && enforceActions.evaluateEnforce(obj);
-	}
-
-	protected MultiSetter<T, P> getSetter() 
-	{
-		return setter;
-	}
+	protected abstract void resetPool();
+	protected abstract boolean assignValue(T obj);
 
 	protected Random getRandom() 
 	{
 		return rand;
 	}
 
-	protected RandomizerPool<P> getPool() 
+	protected P getPool() 
 	{
-		return randPool;
+		return pool;
 	}
 
 	protected EnforceParams<T> getEnforceActions() 
