@@ -7,30 +7,28 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import universal_randomizer.PeekPool;
+import universal_randomizer.pool.RandomizerPool;
 import universal_randomizer.user_object_apis.Getter;
-import universal_randomizer.user_object_apis.MultiSetter;
 import universal_randomizer.user_object_apis.Setter;
 
 public abstract class ListRandomizer<T, C extends Collection<T>, K, P, V extends Collection<P>>
 {		
+	private Setter<T, P> setter;
 	private Getter<C, K> keyGetter;
-	private Map<K, PeekPool<V>> poolMap;
-
-	protected abstract void resetPool();
-	protected abstract V peekNext(Random rand, PeekPool<V> pool);
-	protected abstract void selectPeeked();
+	private Map<K, RandomizerPool<V>> poolMap;
+	private Random rand;
+	private EnforceParams<T> enforceActions;
 	
 	protected ListRandomizer(Setter<T, P> setter, EnforceParams<T> enforce)
 	{
 	}
 	
-	public boolean perform(Stream<Collection<T>> objStream, Map<K, PeekPool<Collection<P>>> pool) 
+	public boolean perform(Stream<C> objStream, Map<K, RandomizerPool<V>> pool) 
 	{
 		return perform(objStream, pool, null);
 	}
 	
-	public boolean perform(Stream<C> objStream, Map<K, PeekPool<V>> pool, Random rand) 
+	public boolean perform(Stream<C> objStream, Map<K, RandomizerPool<V>> pool, Random rand) 
 	{
 		this.poolMap = pool;
 		if (rand == null && this.rand == null)
@@ -41,15 +39,15 @@ public abstract class ListRandomizer<T, C extends Collection<T>, K, P, V extends
 		// in order to "reuse" the stream, we need to convert it out of a stream
 		// and create new ones. We need to save off the list if we need to create
         // a source pool or if there is a RESET on fail action
-		List<Collection<T>> streamAsList = objStream.toList();
+		List<C> streamAsList = objStream.toList();
 		return attemptRandomization(streamAsList);
 	}
 	
 	// Handles RESET
-	protected boolean attemptRandomization(List<T> streamAsList)
+	protected boolean attemptRandomization(List<C> streamAsList)
 	{		
 		// Attempt to assign randomized values for each item in the stream
-		List<T> failed = randomize(streamAsList.stream());
+		List<C> failed = randomize(streamAsList.stream());
 		
 		// While we have failed and have resets left
 		for (int reset = 0; reset < enforceActions.getMaxResets(); reset++)
@@ -58,49 +56,63 @@ public abstract class ListRandomizer<T, C extends Collection<T>, K, P, V extends
 			{
 				break;
 			}
-			resetPool();
+			
+			for (RandomizerPool<V> pool : poolMap.values())
+			{
+				pool.reset();
+			}
 			failed = randomize(streamAsList.stream());
 		}
 		
 		return failed.isEmpty();
 	}
 
-	protected List<T> randomize(Stream<T> objStream)
+	protected List<C> randomize(Stream<C> objStream)
 	{
 		return objStream.filter(this::assignValueNegated).toList();
 	}
 	
-	protected boolean assignValueNegated(T obj)
+	protected boolean assignValueNegated(C obj)
 	{
 		return !assignValue(obj);
 	}
 	
 	protected boolean assignValue(C objs)
 	{
-		PeekPool<V> pool = poolMap.get(keyGetter.get(objs));
-		return attemptAssignValue(objs, pool);
+		RandomizerPool<V> pool = poolMap.get(keyGetter.get(objs));
+		boolean success = false;
+		do 
+		{
+			if (attemptAssignValue(objs, pool))
+			{
+				success = true;
+				break;
+			}
+		} while (pool.useNextPool());		
+		
+		return success;
 	}
 
-	protected boolean attemptAssignValue(C objs, PeekPool<V> pool)
+	protected boolean attemptAssignValue(C objs, RandomizerPool<V> pool)
 	{
-		V selectedVal = peekNext(getRandom(), pool);
+		V selectedVal = pool.peek(rand);
 		
 		// While its a good index and fails the enforce check, retry if
 		// we have attempts left
 		boolean success = assignAndCheckEnforce(objs, selectedVal);
-		for (int retry = 0; retry < getEnforceActions().getMaxRetries(); retry++)
+		for (int retry = 0; retry < enforceActions.getMaxRetries(); retry++)
 		{
 			if (success || selectedVal == null)
 			{
 				break;
 			}
-			selectedVal = peekNext(getRandom(), pool);
+			selectedVal = pool.peek(rand);
 			success = assignAndCheckEnforce(objs, selectedVal);
 		}
 		
 		if (success)
 		{
-			selectPeeked();
+			pool.selectPeeked();
 		}
 		
 		return success;
@@ -114,28 +126,8 @@ public abstract class ListRandomizer<T, C extends Collection<T>, K, P, V extends
 		while (objItr.hasNext())
 		{
 			T obj = objItr.next();
-			success = success && getSetter().setReturn(obj, valItr.next()) && getEnforceActions().evaluateEnforce(obj);
+			success = success && setter.setReturn(obj, valItr.next()) && enforceActions.evaluateEnforce(obj);
 		}
 		return success;
-	}
-
-	protected Setter<T, P> getSetter() 
-	{
-		return setter;
-	}
-
-	protected Random getRandom() 
-	{
-		return rand;
-	}
-
-	protected Map<K, PeekPool<V>> getPool() 
-	{
-		return poolMap;
-	}
-
-	protected EnforceParams<T> getEnforceActions() 
-	{
-		return enforceActions;
 	}
 }

@@ -1,4 +1,4 @@
-package universal_randomizer;
+package universal_randomizer.pool;
 
 import java.util.ArrayList;
 import java.util.Arrays;

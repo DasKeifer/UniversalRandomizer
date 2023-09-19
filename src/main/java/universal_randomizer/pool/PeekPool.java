@@ -1,4 +1,4 @@
-package universal_randomizer;
+package universal_randomizer.pool;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-public class PeekPool<T>
+public class PeekPool<T> implements RandomizerPool<T>
 {	
 	// TODO: Return using function?
 	// TODO: Create new class for dependent Pools - i.e. if passed x, use set y
@@ -67,6 +67,7 @@ public class PeekPool<T>
 		return new PeekPool<>(this);
 	}
 
+	@Override
 	public void reset()
 	{
 		unpeeked.addAll(peeked);
@@ -75,6 +76,7 @@ public class PeekPool<T>
 		removed.clear();
 	}
 
+	@Override
 	public void resetPeeked()
 	{
 		// Add all the peeked back into the unpeeked and clear it
@@ -82,6 +84,7 @@ public class PeekPool<T>
 		peeked.clear();
 	}
 
+	@Override
 	public T peek(Random rand)
 	{
 		if (unpeeked.isEmpty())
@@ -112,7 +115,8 @@ public class PeekPool<T>
 	{
 		return selectPeeked(true);
 	}
-	
+
+	@Override
 	public T selectPeeked()
 	{
 		return selectPeeked(false);
@@ -173,5 +177,11 @@ public class PeekPool<T>
 
 	protected LinkedList<T> getRemoved() {
 		return removed;
+	}
+
+	@Override
+	public boolean useNextPool() 
+	{
+		return false;
 	}
 }

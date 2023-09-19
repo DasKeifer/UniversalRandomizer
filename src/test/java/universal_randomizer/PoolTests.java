@@ -14,6 +14,8 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
+import universal_randomizer.pool.PeekPool;
+
 @SuppressWarnings("serial")
 class PoolTests {
 

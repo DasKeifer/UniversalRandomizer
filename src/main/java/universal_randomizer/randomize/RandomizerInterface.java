@@ -4,27 +4,21 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import universal_randomizer.PeekPool;
+import universal_randomizer.pool.PeekPool;
+import universal_randomizer.pool.RandomizerPool;
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.MultiSetter;
+import universal_randomizer.user_object_apis.Setter;
+import universal_randomizer.wrappers.SetterAsMultiSetter;
 
-public abstract class MultiRandomizer<T, P> 
+public class RandomizerInterface<T, P> 
 {	
-	private MultiSetter<T, P> setter;
-	private Getter<T, Integer> countGetter;
+	private P pool;
 	private Random rand;
-	private PeekPool<P> pool;
 	private EnforceParams<T> enforceActions;
 	
-	// TODO have way to pass in int instead of getter
-	public MultiRandomizer(MultiSetter<T, P> setter, Getter<T, Integer> countGetter, EnforceParams<T> enforce)
+	protected RandomizerInterface(EnforceParams<T> enforce)
 	{
-		this.setter = setter;
-		this.countGetter = countGetter;
-		
-		pool = null;
-		rand = null;
-
 		if (enforce == null)
 		{
 			this.enforceActions = EnforceParams.createNoEnforce();
@@ -34,17 +28,13 @@ public abstract class MultiRandomizer<T, P>
 			this.enforceActions = enforce;
 		}
 	}
-
-	protected abstract void resetPool();
-	protected abstract P peekNext(Random rand);
-	protected abstract void selectPeeked();
 	
-	public boolean perform(Stream<T> objStream, PeekPool<P> pool) 
+	public boolean perform(Stream<T> objStream, P pool) 
 	{
 		return perform(objStream, pool, null);
 	}
 	
-	public boolean perform(Stream<T> objStream, PeekPool<P> pool, Random rand) 
+	public boolean perform(Stream<T> objStream, P pool, Random rand) 
 	{
 		this.pool = pool;
 		if (rand == null && this.rand == null)
@@ -72,7 +62,7 @@ public abstract class MultiRandomizer<T, P>
 			{
 				break;
 			}
-			resetPool();
+			randPool.reset();
 			failed = randomize(streamAsList.stream());
 		}
 		
@@ -92,17 +82,26 @@ public abstract class MultiRandomizer<T, P>
 	protected boolean assignValue(T obj)
 	{
 		boolean success = true;
-		int setCount = countGetter.get(obj);
-		for (int count = 0; count < setCount; count++)
+		do 
 		{
-			success = success && attemptAssignValue(obj, count);
-		}
+			success = true;
+			int setCount = countGetter.get(obj);
+			for (int count = 0; count < setCount; count++)
+			{
+				success = success && attemptAssignValue(obj, count);
+			}
+			if (success)
+			{
+				break;
+			}
+		} while (randPool.useNextPool());		
+		
 		return success;
 	}
 
 	protected boolean attemptAssignValue(T obj, int count)
 	{
-		P selectedVal = peekNext(rand);
+		P selectedVal = randPool.peek(rand);
 		
 		// While its a good index and fails the enforce check, retry if
 		// we have attempts left
@@ -113,13 +112,13 @@ public abstract class MultiRandomizer<T, P>
 			{
 				break;
 			}
-			selectedVal = peekNext(rand);
+			selectedVal = randPool.peek(rand);
 			success = assignAndCheckEnforce(obj, selectedVal, count);
 		}
 		
 		if (success)
 		{
-			selectPeeked();
+			randPool.selectPeeked();
 		}
 		
 		return success;
@@ -140,9 +139,9 @@ public abstract class MultiRandomizer<T, P>
 		return rand;
 	}
 
-	protected PeekPool<P> getPool() 
+	protected RandomizerPool<P> getPool() 
 	{
-		return pool;
+		return randPool;
 	}
 
 	protected EnforceParams<T> getEnforceActions() 

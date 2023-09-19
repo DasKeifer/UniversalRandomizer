@@ -14,7 +14,8 @@ import org.mockito.MockedConstruction;
 import Support.RandomizerCommonTestsGetterCreate;
 import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
-import universal_randomizer.PeekPool;
+import universal_randomizer.pool.PeekPool;
+import universal_randomizer.pool.RandomizerReuse;
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.SetterNoReturn;
 

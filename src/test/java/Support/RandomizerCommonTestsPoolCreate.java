@@ -1,7 +1,7 @@
 package Support;
 
 
-import universal_randomizer.PeekPool;
+import universal_randomizer.pool.PeekPool;
 import universal_randomizer.randomize.EnforceParams;
 import universal_randomizer.randomize.Randomizer;
 import universal_randomizer.user_object_apis.Setter;
