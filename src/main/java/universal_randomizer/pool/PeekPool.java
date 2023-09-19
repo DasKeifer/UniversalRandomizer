@@ -48,6 +48,10 @@ public class PeekPool<T> implements RandomizerPool<T>
 	
 	public static <V> PeekPool<V> create(boolean removeDuplicates, Collection<V> valCollection)
 	{
+		if (valCollection == null)
+		{
+			return null;
+		}
 		return new PeekPool<>(removeDuplicates, valCollection);
 	}
 
@@ -87,7 +91,7 @@ public class PeekPool<T> implements RandomizerPool<T>
 	@Override
 	public T peek(Random rand)
 	{
-		if (unpeeked.isEmpty())
+		if (unpeeked.isEmpty() || rand == null)
 		{
 			return null;
 		}

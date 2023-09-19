@@ -4,32 +4,35 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import universal_randomizer.randomize.EliminateParams;
-
 public class EliminatePoolSet<T> implements RandomizerPool<T> 
 {	
-	private EliminateParams poolEnforceActions;
+	private int maxDepth;
 	
 	// Internal tracking
-	private PeekPool<T> sourcePool;
 	private List<PeekPool<T>> workingPools;
 	private int currentPool;
 	
-	protected EliminatePoolSet(EliminateParams poolEnforce)
+	protected EliminatePoolSet(PeekPool<T> sourcePool, int maxDepth)
 	{		
-		if (poolEnforce != null)
-		{			
-			this.poolEnforceActions = poolEnforce;
-		}
-		else
-		{
-			this.poolEnforceActions = EliminateParams.createNoAdditionalPools();
-		}
-		
-		workingPools = new ArrayList<>(poolEnforceActions.getMaxDepth());
+		this.maxDepth = maxDepth;		
+		workingPools = new ArrayList<>(maxDepth);
 		workingPools.add(sourcePool.copy());
 		workingPools.get(0).reset();
 		currentPool = 0;
+	}
+	
+	public static <T2> EliminatePoolSet<T2> create(PeekPool<T2> sourcePool, int maxDepth)
+	{
+		if (sourcePool == null)
+		{
+			return null;
+		}
+		return new EliminatePoolSet<>(sourcePool, maxDepth);
+	}
+	
+	public static <T2> EliminatePoolSet<T2> createNoAdditionalPools(PeekPool<T2> sourcePool)
+	{
+		return create(sourcePool, 1);
 	}
 
 	@Override
@@ -68,7 +71,7 @@ public class EliminatePoolSet<T> implements RandomizerPool<T>
 	@Override
 	public boolean useNextPool()
 	{
-		if (currentPool >= poolEnforceActions.getMaxDepth() - 1)
+		if (currentPool >= maxDepth - 1)
 		{
 			return false;
 		}

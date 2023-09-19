@@ -1,10 +1,11 @@
-package universal_randomizer;
+package universal_randomizer.pool;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,10 +15,8 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import universal_randomizer.pool.PeekPool;
-
 @SuppressWarnings("serial")
-class PoolTests {
+class PeekPoolTests {
 
 	final List<Integer> NON_DUPLICATE_VALS = List.of(1, -4, 5, 99);
 	final List<Integer> DUPLICATE_VALS = List.of(1, -4, 5, 1, 99, 1, 5);
@@ -95,6 +94,9 @@ class PoolTests {
 		
 		nonDupFromDup = PeekPool.create(true, Arrays.stream(DUPLICATE_ARRAY));
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
+		
+		// Bad input
+		assertNull(PeekPool.create(true, (Collection<Integer>)null));
 	}
 
 	@Test
@@ -209,13 +211,16 @@ class PoolTests {
 	}
 	
 	@Test
-	void peek_exhaust() 
+	void peek_badCases() 
 	{
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
-		
+
+		assertNull(pool.peek(null));
+
+		// Exhaust the pool
 		for (int i = 0; i < NON_DUPLICATE_VALS.size(); i++)
 		{
 			assertNotNull(pool.peek(rand), "Peek returned null when it should have items still");
@@ -224,6 +229,7 @@ class PoolTests {
 		
 		// then do one more peek
 		assertNull(pool.peek(rand), "Peek did not return null when it was empty");
+		
 	}
 
 	@Test
@@ -399,5 +405,10 @@ class PoolTests {
 		assertEquals(1, pool.instancesOfUnpeeked(99));
 	}
 	
-	// copy/deep copy tests with pop?
+	@Test
+	void useNextPool() 
+	{
+		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_ARRAY);
+		assertFalse(pool.useNextPool());
+	}
 }

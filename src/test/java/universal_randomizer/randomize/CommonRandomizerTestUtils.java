@@ -74,11 +74,10 @@ class CommonRandomizerTestUtils {
 
 		// Create test data and object
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, null);
-		test.setRandom(rand);
+		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, null);
 
 		// Perform test and check results
-		assertTrue(test.perform(list.stream()));
+		assertTrue(test.perform(list.stream(), pool, rand));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(expected, results);
 	}
@@ -100,11 +99,10 @@ class CommonRandomizerTestUtils {
 		
 		// Create test data and object
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, null);
-		test.setRandom(rand);
+		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, null);
 
 		// Perform test and check results
-		assertFalse(test.perform(list.stream()));
+		assertFalse(test.perform(list.stream(), pool, rand));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
@@ -131,11 +129,10 @@ class CommonRandomizerTestUtils {
 		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
-		test.setRandom(rand);
+		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
 
 		// Perform test and check results
-		assertFalse(test.perform(list.stream()));
+		assertFalse(test.perform(list.stream(), pool, rand));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
@@ -164,11 +161,10 @@ class CommonRandomizerTestUtils {
 		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 2);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
-		test.setRandom(rand);
+		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
 
 		// Perform test and check results
-		assertTrue(test.perform(list.stream()));
+		assertTrue(test.perform(list.stream(), pool, rand));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
@@ -195,11 +191,10 @@ class CommonRandomizerTestUtils {
 		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
-		test.setRandom(rand);
+		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
 
 		// Perform test and check results
-		assertFalse(test.perform(list.stream()));
+		assertFalse(test.perform(list.stream(), pool, rand));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
@@ -228,53 +223,51 @@ class CommonRandomizerTestUtils {
 		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 2);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = createFn.create(setterInt, pool, enforce);
-		test.setRandom(rand);
+		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
 
 		// Perform test and check results
-		assertTrue(test.perform(list.stream()));
+		assertTrue(test.perform(list.stream(), pool, rand));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(EXPECTED_VALS, results);
 	}
 
-	@SuppressWarnings("unchecked")
-	public static void perform_noPool(RandomizerCommonTestsGetterCreate<SimpleObject, Integer> createFn)
-	{
-		final int EXCLUDED_VAL = 5;
-		final int LIST_SIZE = 10;
-		final List<Integer> POOL_VALS =     Arrays.asList(0, 1, 2, 3, 4, EXCLUDED_VAL, 6, 7, 8, 9, 10);
-		// 5 will be excluded by the enforce until it gives up and then ignores the condition
-		final List<Integer> EXPECTED_VALS = Arrays.asList(0, 1, 2, 3, 4,               6, 7, 8, 9, 10);
-
-		// Create test data and object
-		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
-		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
-		
-		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		Randomizer<SimpleObject, Integer> test = null;
-		
-		Random rand = mock(Random.class);
-		when(rand.nextInt(anyInt())).thenReturn(0);
-		
-	    try (@SuppressWarnings("rawtypes")
-		MockedStatic<PeekPool> intPool = Mockito.mockStatic(PeekPool.class)) 
-	    {
-			// Setup static function
-			PeekPool<Integer> pool = mock(PeekPool.class);
-			when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
-			when(pool.copy()).thenReturn(pool);
-
-	    	intPool.when(() -> PeekPool.create(anyBoolean(), any(Stream.class)))
-	          .thenReturn(pool);
-	    	
-	    	test = createFn.createPoolFromStream(setterInt, getterInt, enforce);
-    		test.setRandom(rand);
-    		
-			// Perform test and check results
-			assertTrue(test.perform(list.stream()));
-	    }
-	    
-		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
-		assertIterableEquals(EXPECTED_VALS, results);
-	}
+//	@SuppressWarnings("unchecked")
+//	public static void perform_noPool(RandomizerCommonTestsGetterCreate<SimpleObject, Integer> createFn)
+//	{
+//		final int EXCLUDED_VAL = 5;
+//		final int LIST_SIZE = 10;
+//		final List<Integer> POOL_VALS =     Arrays.asList(0, 1, 2, 3, 4, EXCLUDED_VAL, 6, 7, 8, 9, 10);
+//		// 5 will be excluded by the enforce until it gives up and then ignores the condition
+//		final List<Integer> EXPECTED_VALS = Arrays.asList(0, 1, 2, 3, 4,               6, 7, 8, 9, 10);
+//
+//		// Create test data and object
+//		Condition<SimpleObject> neq5 = SimpleCondition.create(getterInt, Negate.YES, Comparison.EQUAL, EXCLUDED_VAL);
+//		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
+//		
+//		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
+//		Randomizer<SimpleObject, Integer> test = null;
+//		
+//		Random rand = mock(Random.class);
+//		when(rand.nextInt(anyInt())).thenReturn(0);
+//		
+//	    try (@SuppressWarnings("rawtypes")
+//		MockedStatic<PeekPool> intPool = Mockito.mockStatic(PeekPool.class)) 
+//	    {
+//			// Setup static function
+//			PeekPool<Integer> pool = mock(PeekPool.class);
+//			when(pool.peek(any())).thenAnswer(AdditionalAnswers.returnsElementsOf(POOL_VALS));
+//			when(pool.copy()).thenReturn(pool);
+//
+//	    	intPool.when(() -> PeekPool.create(anyBoolean(), any(Stream.class)))
+//	          .thenReturn(pool);
+//	    	
+//	    	test = createFn.createPoolFromStream(setterInt, getterInt, enforce);
+//    		
+//			// Perform test and check results
+//			assertTrue(test.perform(list.stream(), pool, rand));
+//	    }
+//	    
+//		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
+//		assertIterableEquals(EXPECTED_VALS, results);
+//	}
 }

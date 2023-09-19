@@ -8,13 +8,13 @@ import universal_randomizer.pool.RandomizerPool;
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.Setter;
 
-public class ListRandomizer<T, C extends Collection<T>, K, P, V extends Collection<P>> 
-	extends RandomizerBase<C, Map<K, RandomizerPool<V>>>
+public class CollectionRandomizer<T, C extends Collection<T>, K, P, V extends Collection<P>> 
+	extends Randomizer<C, Map<K, RandomizerPool<V>>>
 {		
 	private Setter<T, P> setter;
 	private Getter<C, K> keyGetter;
 	
-	protected ListRandomizer(Setter<T, P> setter, Getter<C, K> keyGetter, EnforceParams<C> enforce)
+	protected CollectionRandomizer(Setter<T, P> setter, Getter<C, K> keyGetter, EnforceParams<C> enforce)
 	{
 		super(enforce);
 		
@@ -22,18 +22,18 @@ public class ListRandomizer<T, C extends Collection<T>, K, P, V extends Collecti
 		this.keyGetter = keyGetter;
 	}
 
-	public <T2, C2 extends Collection<T2>, K2, P2, V2 extends Collection<P2>> 
-		ListRandomizer<T2, C2, K2, P2, V2> create(Setter<T2, P2> setter, Getter<C2, K2> keyGetter, EnforceParams<C2> enforce)
+	public static <T2, C2 extends Collection<T2>, K2, P2, V2 extends Collection<P2>> 
+		CollectionRandomizer<T2, C2, K2, P2, V2> create(Setter<T2, P2> setter, Getter<C2, K2> keyGetter, EnforceParams<C2> enforce)
 	{
 		if (setter == null || keyGetter == null)
 		{
 			return null;
 		}
-		return new ListRandomizer<>(setter, keyGetter, enforce);
+		return new CollectionRandomizer<>(setter, keyGetter, enforce);
 	}
 
-	public <T2, C2 extends Collection<T2>, K2, P2, V2 extends Collection<P2>> 
-		ListRandomizer<T2, C2, K2, P2, V2>  createNoEnforce(Setter<T2, P2> setter, Getter<C2, K2> keyGetter)
+	public static <T2, C2 extends Collection<T2>, K2, P2, V2 extends Collection<P2>> 
+		CollectionRandomizer<T2, C2, K2, P2, V2>  createNoEnforce(Setter<T2, P2> setter, Getter<C2, K2> keyGetter)
 	{
 		return create(setter, keyGetter, null);
 	}
