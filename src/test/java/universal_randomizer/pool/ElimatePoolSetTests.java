@@ -53,13 +53,13 @@ class ElimatePoolSetTests {
 	@Test
 	void create() 
 	{
-		// TODO
-	}
-	
-	@Test
-	void create_badInputs() 
-	{
-		// TODO
+		PeekPool<Integer> base = PeekPool.create(false, NON_DUPLICATE_VALS);
+		
+		assertNotNull(EliminatePoolSet.create(base, 3));
+		assertNotNull(EliminatePoolSet.createNoAdditionalPools(base));
+		
+		assertNull(EliminatePoolSet.create(null, 3));
+		assertNull(EliminatePoolSet.createNoAdditionalPools(null));
 	}
 	
 	@Test

@@ -1,22 +1,11 @@
 package universal_randomizer.randomize;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.*;
-
 import java.util.List;
-import java.util.Random;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedConstruction;
 
-import Support.RandomizerCommonTestsGetterCreate;
 import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
-import universal_randomizer.pool.PeekPool;
-import universal_randomizer.user_object_apis.Getter;
-import universal_randomizer.user_object_apis.SetterNoReturn;
 
 // Tests the Randomizer Reuse class and by extension the Randomizer class since the
 // reuse class is the most simple of the classes
@@ -27,7 +16,7 @@ class BasicRandomizerTests {
 	final Integer NON_EXISTING_VAL = 7;
 	
 	private static RandomizerCommonTestsPoolCreate<SimpleObject, Integer> randReuseCreateFn = 
-			(p1, p2) -> { return BasicRandomizer.create(p1, p2);};
+			(p1, p2) -> { return SingleRandomizer.create(p1, p2);};
 	
 	@Test
 	void create() 

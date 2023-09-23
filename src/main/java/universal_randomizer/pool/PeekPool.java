@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-public class PeekPool<T> implements RandomizerPool<T>
+public class PeekPool<T> implements RandomizerBasicPool<T>
 {	
 	// TODO: Return using function?
 	// TODO: Create new class for dependent Pools - i.e. if passed x, use set y

@@ -9,13 +9,9 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Stream;
 
 import org.mockito.AdditionalAnswers;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
-import Support.RandomizerCommonTestsGetterCreate;
 import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
@@ -74,7 +70,7 @@ class CommonRandomizerTestUtils {
 
 		// Create test data and object
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, null);
+		SingleRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, null);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream(), pool, rand));
@@ -99,7 +95,7 @@ class CommonRandomizerTestUtils {
 		
 		// Create test data and object
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, null);
+		SingleRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, null);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream(), pool, rand));
@@ -129,7 +125,7 @@ class CommonRandomizerTestUtils {
 		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
+		SingleRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream(), pool, rand));
@@ -161,7 +157,7 @@ class CommonRandomizerTestUtils {
 		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 2);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
+		SingleRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream(), pool, rand));
@@ -191,7 +187,7 @@ class CommonRandomizerTestUtils {
 		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 0);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
+		SingleRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
 
 		// Perform test and check results
 		assertFalse(test.perform(list.stream(), pool, rand));
@@ -223,7 +219,7 @@ class CommonRandomizerTestUtils {
 		EnforceParams<SimpleObject> enforce = EnforceParams.create(neq5, 2, 2);
 		
 		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
-		BasicRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
+		SingleRandomizer<SimpleObject, Integer> test = createFn.create(setterInt, enforce);
 
 		// Perform test and check results
 		assertTrue(test.perform(list.stream(), pool, rand));

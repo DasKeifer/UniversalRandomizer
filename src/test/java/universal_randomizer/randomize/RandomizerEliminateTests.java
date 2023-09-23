@@ -1,35 +1,6 @@
 package universal_randomizer.randomize;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-
-import org.junit.jupiter.api.Test;
-import org.mockito.AdditionalAnswers;
-import org.mockito.MockedConstruction;
-
-import Support.RandomizerCommonTestsGetterCreate;
-import Support.RandomizerCommonTestsPoolCreate;
-import Support.SimpleObject;
-import Support.SimpleObjectUtils;
-import universal_randomizer.condition.Comparison;
-import universal_randomizer.condition.Negate;
-import universal_randomizer.condition.SimpleCondition;
-import universal_randomizer.pool.PeekPool;
-import universal_randomizer.user_object_apis.Condition;
-import universal_randomizer.user_object_apis.Getter;
-import universal_randomizer.user_object_apis.Setter;
-import universal_randomizer.user_object_apis.SetterNoReturn;
 
 class RandomizerEliminateTests {
 

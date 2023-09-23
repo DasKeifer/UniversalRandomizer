@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class EliminatePoolSet<T> implements RandomizerPool<T> 
+public class EliminatePoolSet<T> implements RandomizerBasicPool<T> 
 {	
 	private int maxDepth;
 	
