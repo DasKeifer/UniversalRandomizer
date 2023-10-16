@@ -50,6 +50,11 @@ public class EnforceParams<T>
 		return enforce.evaluate(obj);
 	}
 	
+	public boolean isNoEnforce()
+	{
+		return enforce == null;
+	}
+	
 	public int getMaxRetries()
 	{
 		return maxRetries;

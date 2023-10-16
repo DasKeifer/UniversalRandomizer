@@ -43,9 +43,14 @@ public class RandomizeStream<T> implements Stream<T>
 	
 	public static <T2> RandomizeStream<T2> create(Stream<T2> source)
 	{
+		if (source == null)
+		{
+			return null;
+		}
 		return new RandomizeStream<>(source);
 	}
 
+	// Make collector
 	public <R> Map<R, List<T>> group(Getter<T, R> groupingFn)
 	{
 		if (groupingFn == null)
@@ -55,6 +60,7 @@ public class RandomizeStream<T> implements Stream<T>
 		return stream.collect(Collectors.groupingBy(groupingFn::get));
 	}
 
+	// make utility function
 	public RandomizeStream<T> shuffle()
 	{
 		return shuffle(null);
@@ -75,6 +81,7 @@ public class RandomizeStream<T> implements Stream<T>
 		return this;
 	}
 
+	// Make duplicator class
 	public RandomizeStream<T> duplicate()
 	{
 		List<T> list = stream.toList();
@@ -94,6 +101,7 @@ public class RandomizeStream<T> implements Stream<T>
 		return ret;
 	}
 	
+	// Make utility
 	public <R> RandomizeStream<R> convertToField(Getter<T, R> getter)
 	{
 		return getter != null ? RandomizeStream.create(stream.map(getter::get)) : null;

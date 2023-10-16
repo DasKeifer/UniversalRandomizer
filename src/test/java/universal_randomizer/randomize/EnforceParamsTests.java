@@ -44,6 +44,18 @@ class EnforceParamsTests {
 	}
 	
 	@Test
+	void isNoEnforce() 
+	{
+		assertTrue(EnforceParams.createNoEnforce().isNoEnforce());
+		assertTrue(EnforceParams.create(null, 1, 1).isNoEnforce());
+
+		@SuppressWarnings("unchecked")
+		Condition<SimpleObject> testCond = mock(Condition.class);
+		assertFalse(EnforceParams.create(testCond, 1, 1).isNoEnforce());
+		assertFalse(EnforceParams.create(testCond, 0, 0).isNoEnforce());
+	}
+	
+	@Test
 	void noEnforce() 
 	{
 		EnforceParams<SimpleObject> testNone = EnforceParams.createNoEnforce();

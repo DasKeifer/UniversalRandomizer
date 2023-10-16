@@ -17,40 +17,74 @@ public class MultiPool<O, K, T> implements RandomizerMultiPool<O, T>
 		this.keyGetter = keyGetter;
 	}
 	
+	// TODO: Add more constructors eventually
+	public static <O2, K2, T2> MultiPool<O2, K2, T2> create(Map<K2, RandomizerPool<T2>> poolMap, MultiGetter<O2, K2> keyGetter)
+	{
+		if (poolMap == null || keyGetter == null)
+		{
+			return null;
+		}
+		return new MultiPool<>(poolMap, keyGetter);
+	}
+	
 	@Override
-	public void setPool(O obj, int count)
+	public boolean setPool(O obj, int count)
 	{
 		K key = keyGetter.get(obj, count);
-		activePool = poolMap.get(key);
+		boolean success = key != null;
+		if (success)
+		{
+			activePool = poolMap.get(key);
+			success = activePool != null;
+		}
+		return success;
 	}
 
 	@Override
 	public void reset() 
 	{
-		activePool.reset();
+		for (RandomizerPool<T> pool : poolMap.values())
+		{
+			pool.reset();
+		}
 	}
 
 	@Override
 	public T peek(Random rand) 
 	{
-		return activePool.peek(rand);
+		if (activePool != null)
+		{
+			return activePool.peek(rand);
+		}
+		return null;
 	}
 
 	@Override
 	public T selectPeeked() 
 	{
-		return activePool.selectPeeked();
+		if (activePool != null)
+		{
+			return activePool.selectPeeked();
+		}
+		return null;
 	}
 	
 	@Override
 	public boolean useNextPool()
 	{
-		return activePool.useNextPool();
+		if (activePool != null)
+		{
+			return activePool.useNextPool();
+		}
+		return false;
 	}
 
 	@Override
 	public void resetPeeked() 
 	{
-		activePool.resetPeeked();
+		if (activePool != null)
+		{
+			activePool.resetPeeked();
+		}
 	}
 }

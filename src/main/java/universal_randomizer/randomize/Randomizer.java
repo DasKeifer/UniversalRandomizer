@@ -165,6 +165,11 @@ public abstract class Randomizer<T, O, P, S>
 	{
 		return pool;
 	}
+
+	protected RandomizerMultiPool<T, P> getMultiPool() 
+	{
+		return multiPool;
+	}
 	
 	protected Getter<T, Integer> getCountGetter() 
 	{
