@@ -6,7 +6,6 @@ import java.util.Iterator;
 
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.MultiSetter;
-import universal_randomizer.user_object_apis.Setter;
 
 /// Randomizes single items at a time but can randomize a field multiple times
 /// i.e. randomizing a list field by calling and indexed setter multiple times
@@ -18,7 +17,8 @@ public class MultiRandomizer<T, P extends Collection<S>, S> extends Randomizer<T
 	}
 
 	// Create a multi setter with count from object
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> create(MultiSetter<T2, S2> setter, Getter<T2, Integer> countGetter, EnforceParams<T2> enforce)
+	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
+	create(MultiSetter<T2, S2> setter, Getter<T2, Integer> countGetter, EnforceParams<T2> enforce)
 	{
 		if (setter == null || countGetter == null)
 		{
@@ -28,41 +28,36 @@ public class MultiRandomizer<T, P extends Collection<S>, S> extends Randomizer<T
 	}
 
 	// Create a multi setter with fixed count
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> create(MultiSetter<T2, S2> setter, int count, EnforceParams<T2> enforce)
+	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
+	create(MultiSetter<T2, S2> setter, int count, EnforceParams<T2> enforce)
 	{
 		return create(setter, o -> count, enforce);
 	}
 	
 	// Create a single setter - where P is a collection of S
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> create(MultiSetter<T2, S2> setter, EnforceParams<T2> enforce)
+	// Create a single setter - S must match P
+	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
+	create(MultiSetter<T2, S2> setter, EnforceParams<T2> enforce)
 	{
 		return create(setter, 1, enforce);
 	}
-	
-	// Create a single setter - S must match P
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> create(Setter<T2, S2> setter, EnforceParams<T2> enforce)
-	{
-		return create((MultiSetter<T2, S2>) setter, 1, enforce);
-	}
 
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> createNoEnforce(MultiSetter<T2, S2> setter, Getter<T2, Integer> countGetter)
+	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
+	createNoEnforce(MultiSetter<T2, S2> setter, Getter<T2, Integer> countGetter)
 	{
 		return create(setter, countGetter, null);
 	}
 	
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> createNoEnforce(MultiSetter<T2, S2> setter, int count)
+	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
+	createNoEnforce(MultiSetter<T2, S2> setter, int count)
 	{
 		return create(setter, o -> count, null);
 	}
 	
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> createNoEnforce(MultiSetter<T2, S2> setter)
+	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
+	createNoEnforce(MultiSetter<T2, S2> setter)
 	{
 		return create(setter, 1, null);
-	}
-	
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> createNoEnforce(Setter<T2, S2> setter)
-	{
-		return create(setter, null);
 	}
 
 	@Override	

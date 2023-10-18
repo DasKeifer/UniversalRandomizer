@@ -12,7 +12,6 @@ import java.util.Random;
 
 import org.mockito.AdditionalAnswers;
 
-import Support.RandomizerCommonTestsPoolCreate;
 import Support.SimpleObject;
 import Support.SimpleObjectUtils;
 import universal_randomizer.condition.Comparison;

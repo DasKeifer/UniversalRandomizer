@@ -13,7 +13,6 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 import Support.SimpleObject;
-import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.MultiGetter;
 
 @SuppressWarnings("serial")

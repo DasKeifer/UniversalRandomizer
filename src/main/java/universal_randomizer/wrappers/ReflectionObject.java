@@ -6,7 +6,7 @@ import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import universal_randomizer.Utils;
+import universal_randomizer.ConversionUtils;
 
 
 public class ReflectionObject <T> 
@@ -38,7 +38,7 @@ public class ReflectionObject <T>
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, 
 			NoSuchMethodException, SecurityException, NoSuchFieldException
 	{
-		return Utils.convertToStream(getField(pathToGetterOrField));
+		return ConversionUtils.convertToStream(getField(pathToGetterOrField));
 	}
 
 	public Stream<Object> getMapFieldValuesStream(String pathToGetterOrField)
@@ -63,11 +63,11 @@ public class ReflectionObject <T>
 		Object ret = getField(pathToGetterOrField);
 		if (valuesNotKeys)
 		{
-			return Utils.convertToStream(((Map<?, Object>) ret).values());
+			return ConversionUtils.convertToStream(((Map<?, Object>) ret).values());
 		}
 		else
 		{
-			return Utils.convertToStream(((Map<Object, ?>) ret).keySet());
+			return ConversionUtils.convertToStream(((Map<Object, ?>) ret).keySet());
 		}
 	}
 	
@@ -130,7 +130,7 @@ public class ReflectionObject <T>
 			match = true;
 			for (int i = 0; i < methodParams.length; i++)
 			{
-				Class<?> mParamWrapped = Utils.convertToWrapperClass(methodParams[i].getType());
+				Class<?> mParamWrapped = ConversionUtils.convertToWrapperClass(methodParams[i].getType());
 				if (params[i] != null && // if params are not null, we check they are the right type
 						(!methodParams[i].getType().isInstance(params[i]) &&  // if they are not the right type
 								(mParamWrapped == null || !mParamWrapped.isInstance(params[i])))) // and they are not primitive types or the wrapped type does not match

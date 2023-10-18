@@ -2,76 +2,15 @@ package universal_randomizer;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import universal_randomizer.user_object_apis.Getter;
-import universal_randomizer.user_object_apis.Sum;
-import universal_randomizer.user_object_apis.Sumable;
-import universal_randomizer.wrappers.ComparableAsComparator;
-import universal_randomizer.wrappers.SumableAsSum;
-
-public class Utils 
+public class ConversionUtils 
 {	
-	private Utils() 
+	private ConversionUtils() 
 	{
 	    throw new IllegalStateException("Utility class");
-	}
-	
-	public static <N extends Comparable<N> & Sumable<N>> Collection<N> createRange(N min, N max, N stepSize)
-	{
-		return createRange(min, max, stepSize, new SumableAsSum<>());
-	}
-	
-	public static <N extends Comparable<N>> Collection<N> createRange(N min, N max, N stepSize, Sum<N> sumFn)
-	{
-		return createRange(min, max, stepSize, new ComparableAsComparator<>(), sumFn);
-	}
-	
-	public static <N extends Sumable<N>> Collection<N> createRange(N min, N max, N stepSize, Comparator<N> comparator)
-	{
-		return createRange(min, max, stepSize, comparator, new SumableAsSum<>());
-	}
-	
-	public static <N> Collection<N> createRange(N min, N max, N stepSize, Comparator<N> comparator, Sum<N> sumtor)
-	{
-		List<N> vals = new LinkedList<>();
-		N nextVal = min;
-		while (comparator.compare(nextVal, max) <= 0)
-		{
-			vals.add(nextVal);
-			nextVal = sumtor.sum(nextVal, stepSize);
-		}
-		return vals;
-	}
-	
-	public static <T> Collection<T> weightedCollection(Collection<Entry<Integer, T>> weightedValuePairs)
-	{
-		LinkedList<T> items = new LinkedList<>();
-		for (Entry<Integer, T> entry : weightedValuePairs)
-		{
-			for (int i = 0; i < entry.getKey(); i++)
-			{
-				items.add(entry.getValue());
-			}
-		}
-		return items;
-	}
-
-	@SafeVarargs
-	public static <T> Collection<T> weightedCollection(Entry<Integer, T>... weightedValuePairs)
-	{
-		return weightedCollection(List.of(weightedValuePairs));
-	}
-	
-	public static <T> Collection<T> weightedCollection(Stream<Entry<Integer, T>> weightedValuePairs)
-	{
-		return weightedCollection(weightedValuePairs.toList());
 	}
 	
 	public static Class<?> convertToWrapperClass(Class<?> toCheck)
@@ -157,61 +96,7 @@ public class Utils
 		
 		return null;
 	}
-	
-	public static <T, R> Stream<R> convertToField(Stream<T> stream, Getter<T, R> getter)
-	{
-		if (getter == null || stream == null)
-		{
-			return null;
-		}
-		return stream.map(getter::get);
-	}
 
-	public static <T, R> Stream<R> convertToFieldArray(Stream<T> stream, Getter<T, R[]> getter)
-	{
-		if (getter == null || stream == null)
-		{
-			return null;
-		}
-		return stream.flatMap(o -> Arrays.stream(getter.get(o)));
-	}
-
-	public static <T, C extends Collection<R>, R> Stream<R> convertToFieldCollection(Stream<T> stream, Getter<T, C> getter)
-	{
-		if (getter == null || stream == null)
-		{
-			return null;
-		}
-		return stream.flatMap(obj -> getter.get(obj).stream());
-	}
-
-	public static <T, S extends Stream<R>, R> Stream<R> convertToFieldStream(Stream<T> stream, Getter<T, S> getter)
-	{
-		if (getter == null || stream == null)
-		{
-			return null;
-		}
-		return stream.flatMap(getter::get);
-	}
-
-	public static <T, M extends Map<R, ?>, R> Stream<R> convertToFieldMapKeys(Stream<T> stream, Getter<T, M> getter)
-	{
-		if (getter == null || stream == null)
-		{
-			return null;
-		}
-		return stream.flatMap(obj -> getter.get(obj).keySet().stream());
-	}
-
-	public static <T, M extends Map<?, R>, R> Stream<R> convertToFieldMapValues(Stream<T> stream, Getter<T, M> getter)
-	{
-		if (getter == null || stream == null)
-		{
-			return null;
-		}
-		return stream.flatMap(obj -> getter.get(obj).values().stream());
-	}
-	
 	@SuppressWarnings("unchecked")
 	public static <T> Stream<T> convertToStream(Object obj)
 	{
@@ -332,11 +217,5 @@ public class Utils
 	{
 		return IntStream.range(0, primitiveArray.length)
                     .mapToObj(idx -> primitiveArray[idx]);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static <T> Stream<T> castStream(Stream<?> stream)
-	{
-		return stream.map(o -> (T) o);
 	}
 }
