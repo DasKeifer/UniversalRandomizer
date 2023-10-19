@@ -3,26 +3,34 @@ package universal_randomizer.user_object_apis;
 public interface MultiSetter <T, V>
 {
 	public boolean setReturn(T toSet, V val, int counter);
-	
 
-	public static <T, V> MultiSetter<T, V> cast(Setter<T, V> setter)
+	public default boolean asSetter(T t, V v)
 	{
-		return (t,v,c) -> setter.setReturn(t, v);
+		return setReturn(t, v, 1);
 	}
 
-	public static <T, V> MultiSetter<T, V> cast(MultiSetterNoReturn<T, V> setter)
+	public default void asSetterNoReturn(T t, V v)
 	{
-		return (t,v,c) -> {
-			setter.set(t, v, c);
-			return true;
-		};
+		setReturn(t, v, 1);
+	}
+
+	public default void asMultiSetterNoReturn(T t, V v, int c)
+	{
+		setReturn(t, v, c);
 	}
 	
-	public static <T, V> MultiSetter<T, V> cast(SetterNoReturn<T, V> setter)
+	public static <T2, V2> MultiSetter<T2, V2> cast(Setter<T2, V2> setter)
 	{
-		return (t,v,c) -> {
-			setter.set(t, v);
-			return true;
-		};
+		return setter::asMultiSetter;
+	}
+	
+	public static <T2, V2> MultiSetter<T2, V2> cast(SetterNoReturn<T2, V2> setter)
+	{
+		return setter::asMultiSetter;
+	}
+
+	public static <T2, V2> MultiSetter<T2, V2> cast(MultiSetterNoReturn<T2, V2> setter)
+	{
+		return setter::asMultiSetter;
 	}
 }
