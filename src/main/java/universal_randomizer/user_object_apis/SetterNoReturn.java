@@ -1,13 +1,27 @@
 package universal_randomizer.user_object_apis;
 
-public interface SetterNoReturn <T, V> extends Setter<T, V>
+public interface SetterNoReturn <T, V>
 {
-	// TODO: Does this work with lambda functions? Probably not in which case convert to wrapper
 	public void set(T toSet, V val);
-	
-	public default boolean setReturn(T toSet, V val)
+
+	public static <T, V> Setter<T, V> cast(SetterNoReturn<T, V> setter)
 	{
-		set(toSet, val);
-		return true;
+		return (t,v) -> {
+			setter.set(t, v);
+			return true;
+		};
+	}
+	
+	public static <T, V> Setter<T, V> cast(MultiSetter<T, V> setter)
+	{
+		return (t,v) -> setter.setReturn(t, v, 1);
+	}
+	
+	public static <T, V> Setter<T, V> cast(MultiSetterNoReturn<T, V> setter)
+	{
+		return (t,v) -> {
+			setter.set(t, v, 1);
+			return true;
+		};
 	}
 }

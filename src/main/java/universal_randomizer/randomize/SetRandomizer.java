@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.MultiSetter;
+import universal_randomizer.user_object_apis.Setter;
 
 /// Randomizes single items at a time but can randomize a field multiple times
 /// i.e. randomizing a list field by calling and indexed setter multiple times
@@ -36,9 +37,9 @@ public class SetRandomizer<T extends Collection<O>, O, P extends Collection<S>, 
 	
 	// Create a single setter where we set the whole collection at once
 	public static <T2 extends Collection<O2>, O2, P2 extends Collection<S2>, S2> SetRandomizer<T2, O2, P2, S2> 
-	create(MultiSetter<O2, S2> setter, EnforceParams<T2> enforce)
+	create(Setter<O2, S2> setter, EnforceParams<T2> enforce)
 	{
-		return create(setter, 1, enforce);
+		return create(MultiSetter.cast(setter), 1, enforce);
 	}
 
 	public static <T2 extends Collection<O2>, O2, P2 extends Collection<S2>, S2> SetRandomizer<T2, O2, P2, S2> 
@@ -54,7 +55,7 @@ public class SetRandomizer<T extends Collection<O>, O, P extends Collection<S>, 
 	}
 	
 	public static <T2 extends Collection<O2>, O2, P2 extends Collection<S2>, S2> SetRandomizer<T2, O2, P2, S2> 
-	createNoEnforce(MultiSetter<O2, S2> setter)
+	createNoEnforce(Setter<O2, S2> setter)
 	{
 		return create(setter, null);
 	}
