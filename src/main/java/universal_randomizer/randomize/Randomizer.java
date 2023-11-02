@@ -110,9 +110,17 @@ public abstract class Randomizer<T, O, P, S>
 		boolean success = true;
 		int setCount = countGetter.get(obj);
 		
+		// Assign all values in the set
 		for (int count = 0; count < setCount; count++)
 		{
-			success = success && attemptAssignValue(obj, count);
+			if (success)
+			{
+				success = attemptAssignValue(obj, count);
+			}
+			else
+			{
+				break;
+			}
 		}
 		
 		return success;

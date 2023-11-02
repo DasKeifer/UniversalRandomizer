@@ -113,7 +113,9 @@ public class ReflectionObject <T>
 		}
 		else
 		{
-			owningObj.getClass().getField(lastPath).set(owningObj, value);
+			// This is falsely flagged by sonarlint as an accessibility bypass - getField only returns
+			// public fields which would already be accessible via the object
+			owningObj.getClass().getField(lastPath).set(owningObj, value); // NOSONAR
 			return null;
 		}
 	}
