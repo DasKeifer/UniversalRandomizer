@@ -1,9 +1,9 @@
-package universal_randomizer;
+package universal_randomizer.utils;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
-import Support.SimpleObject;
+import support.SimpleObject;
 import universal_randomizer.user_object_apis.Getter;
 
 class StreamUtilsTests {
@@ -52,8 +52,19 @@ class StreamUtilsTests {
 			}
 		}
 
-		assertNull(StreamUtils.group(null, getter));
-		assertNull(StreamUtils.group(list.stream(), null));
+		assertTrue(StreamUtils.group(null, getter).isEmpty());
+		assertTrue(StreamUtils.group(list.stream(), null).isEmpty());
+	}
+	
+	@Test
+	void castType() 
+	{
+		List<Integer> source = List.of(3,1,2,3,2,3);
+		Stream<Integer> ints = source.stream();
+		Stream<Number> nums = StreamUtils.castType(ints);
+		assertIterableEquals(source, nums.toList());
+		
+		assertEquals(0, StreamUtils.castType(null).count());
 	}
 
 	@Test
@@ -96,6 +107,8 @@ class StreamUtilsTests {
 			assertIterableEquals(expected, rss.toList());
 			assertEquals(1, mocked.constructed().size());
 		}
+		
+		assertEquals(0, StreamUtils.shuffle(null).count());
 	}
 
 	@Test
@@ -146,20 +159,20 @@ class StreamUtilsTests {
 		Stream<String> resultString = StreamUtils.fieldMapValues(list.stream(), o -> o.map);
 		assertIterableEquals(expectedStringMultiple, resultString.toList());
 
-		assertNull(StreamUtils.field(null, o -> o));
-		assertNull(StreamUtils.fieldCollection(null, o -> List.of(o)));
-		assertNull(StreamUtils.fieldArray(null, o -> new Object[] {o}));
-		assertNull(StreamUtils.fieldStream(null, o -> Arrays.stream(new Object[] {o})));
-		assertNull(StreamUtils.fieldStream(null, o -> Arrays.stream(new Object[] {o})));
-		assertNull(StreamUtils.fieldMapKeys(null, o -> new HashMap<Object, Object>()));
-		assertNull(StreamUtils.fieldMapValues(null, o -> new HashMap<Object, Object>()));
+		assertEquals(0, StreamUtils.field(null, o -> o).count());
+		assertEquals(0, StreamUtils.fieldCollection(null, o -> List.of(o)).count());
+		assertEquals(0, StreamUtils.fieldArray(null, o -> new Object[] {o}).count());
+		assertEquals(0, StreamUtils.fieldStream(null, o -> Arrays.stream(new Object[] {o})).count());
+		assertEquals(0, StreamUtils.fieldStream(null, o -> Arrays.stream(new Object[] {o})).count());
+		assertEquals(0, StreamUtils.fieldMapKeys(null, o -> new HashMap<Object, Object>()).count());
+		assertEquals(0, StreamUtils.fieldMapValues(null, o -> new HashMap<Object, Object>()).count());
 
-		assertNull(StreamUtils.field(list.stream(), null));
-		assertNull(StreamUtils.fieldCollection(list.stream(), null));
-		assertNull(StreamUtils.fieldArray(list.stream(), null));
-		assertNull(StreamUtils.fieldStream(list.stream(), null));
-		assertNull(StreamUtils.fieldStream(list.stream(), null));
-		assertNull(StreamUtils.fieldMapKeys(list.stream(), null));
-		assertNull(StreamUtils.fieldMapValues(list.stream(), null));
+		assertEquals(0, StreamUtils.field(list.stream(), null).count());
+		assertEquals(0, StreamUtils.fieldCollection(list.stream(), null).count());
+		assertEquals(0, StreamUtils.fieldArray(list.stream(), null).count());
+		assertEquals(0, StreamUtils.fieldStream(list.stream(), null).count());
+		assertEquals(0, StreamUtils.fieldStream(list.stream(), null).count());
+		assertEquals(0, StreamUtils.fieldMapKeys(list.stream(), null).count());
+		assertEquals(0, StreamUtils.fieldMapValues(list.stream(), null).count());
 	}
 }

@@ -10,10 +10,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import Support.SimpleObject;
+import support.SimpleObject;
 import universal_randomizer.user_object_apis.Getter;
-import universal_randomizer.user_object_apis.MultiSetterNoReturn;
-import universal_randomizer.user_object_apis.SetterNoReturn;
+import universal_randomizer.user_object_apis.MultiSetter;
+import universal_randomizer.user_object_apis.Setter;
 
 // Tests the Randomizer Reuse class and by extension the Randomizer class since the
 // reuse class is the most simple of the classes
@@ -27,8 +27,8 @@ class SetRandomizerTests {
 	void create() 
 	{
 		EnforceParams<Collection<SimpleObject>> enforceAction = EnforceParams.createNoEnforce();
-    	MultiSetterNoReturn<SimpleObject, Integer> ms = (o, v, cnt) -> o.intField = v;
-    	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
+    	MultiSetter<SimpleObject, Integer> ms = (o, v, cnt) -> { o.intField = v; return true; };
+    	Setter<SimpleObject, Integer> setter = (o, v) -> { o.intField = v; return true; };
     	Getter<Collection<SimpleObject>, Integer> count2Getter = o -> 2;
     	
     	//create(MultiSetter<O2, S2> setter, Getter<T2, Integer> countGetter, EnforceParams<T2> enforce)
@@ -53,9 +53,11 @@ class SetRandomizerTests {
     	assertNull(rr.getRandom());
     	assertNotNull(SetRandomizer.create(ms, 1, null));
 
-    	//create(MultiSetter<O2, S2> setter, EnforceParams<T2> enforce)
+    	//create(Setter<O2, S2> setter, EnforceParams<T2> enforce)
+    	SimpleObject test = new SimpleObject("test", 0);
     	rr = SetRandomizer.create(setter, enforceAction);
-    	assertEquals(setter, rr.getSetter());
+    	assertTrue(setter.setReturn(test, 1)); 	// Setter gets wrapped 
+    	assertEquals(1, test.intField); 		// Setter gets wrapped 
     	assertEquals(1, rr.getCountGetter().get(null));
     	assertEquals(enforceAction, rr.getEnforceActions());
     	assertNull(rr.getPool());
@@ -69,8 +71,8 @@ class SetRandomizerTests {
 	@Test
 	void createNoEnforce() 
 	{
-    	MultiSetterNoReturn<SimpleObject, Integer> ms = (o, v, cnt) -> o.intField = v;
-    	SetterNoReturn<SimpleObject, Integer> setter = (o, v) -> o.intField = v;
+    	MultiSetter<SimpleObject, Integer> ms = (o, v, cnt) -> { o.intField = v; return true; };
+    	Setter<SimpleObject, Integer> setter = (o, v) -> { o.intField = v; return true; };
     	Getter<Collection<SimpleObject>, Integer> count2Getter = o -> 2;
     	
     	// createNoEnforce(MultiSetter<O2, S2> setter, Getter<T2, Integer> countGetter)
@@ -93,9 +95,11 @@ class SetRandomizerTests {
     	assertNull(rr.getMultiPool());
     	assertNull(rr.getRandom());
     	
-    	// createNoEnforce(MultiSetter<O2, S2> setter)
+    	// createNoEnforce(Setter<O2, S2> setter)
+    	SimpleObject test = new SimpleObject("test", 0);
     	rr = SetRandomizer.createNoEnforce(setter);
-    	assertEquals(setter, rr.getSetter());
+    	assertTrue(setter.setReturn(test, 1)); 	// Setter gets wrapped 
+    	assertEquals(1, test.intField); 		// Setter gets wrapped 
     	assertEquals(1, rr.getCountGetter().get(null));
     	assertTrue(rr.getEnforceActions().isNoEnforce());
     	assertNull(rr.getPool());
@@ -108,9 +112,9 @@ class SetRandomizerTests {
 	void create_badInput() 
 	{
 		EnforceParams<Collection<SimpleObject>> enforceAction = EnforceParams.createNoEnforce();
-    	MultiSetterNoReturn<SimpleObject, Integer> ms = (o, v, cnt) -> o.intField = v;
-    	MultiSetterNoReturn<SimpleObject, Integer> msNull = null;
-    	SetterNoReturn<SimpleObject, Integer> setterNull = null;
+    	MultiSetter<SimpleObject, Integer> ms = (o, v, cnt) -> { o.intField = v; return true; };
+    	MultiSetter<SimpleObject, Integer> msNull = null;
+    	Setter<SimpleObject, Integer> setterNull = null;
     	Getter<Collection<SimpleObject>, Integer> count2Getter = o -> 2;
     	Getter<Collection<SimpleObject>, Integer> countGetterNull = null;
     	
@@ -132,4 +136,6 @@ class SetRandomizerTests {
 	{
 		// TODO
 	}
+	
+	// TODO: set test
 }

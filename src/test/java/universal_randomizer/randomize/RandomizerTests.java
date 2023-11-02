@@ -1,5 +1,6 @@
 package universal_randomizer.randomize;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,22 +10,31 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 
-import Support.SimpleObject;
-import Support.SimpleObjectUtils;
+import support.SimpleObject;
+import support.SimpleObjectUtils;
 import universal_randomizer.condition.Comparison;
 import universal_randomizer.condition.Negate;
 import universal_randomizer.condition.SimpleCondition;
+import universal_randomizer.pool.EliminatePoolSet;
+import universal_randomizer.pool.MultiPool;
 import universal_randomizer.pool.PeekPool;
+import universal_randomizer.pool.RandomizerPool;
 import universal_randomizer.user_object_apis.Condition;
 import universal_randomizer.user_object_apis.Getter;
+import universal_randomizer.user_object_apis.MultiGetter;
 import universal_randomizer.user_object_apis.Setter;
+import universal_randomizer.user_object_apis.SetterNoReturn;
 
 // Tests the Randomizer Reuse class and by extension the Randomizer class since the
 // reuse class is the most simple of the classes
@@ -238,5 +248,141 @@ class RandomizerTests {
 		assertTrue(test.perform(list.stream(), pool, rand));
 		List<Integer> results = SimpleObjectUtils.toIntFieldList(list);
 		assertIterableEquals(EXPECTED_VALS, results);
+	}
+	
+	@Test
+	void elimatePoolRandomizer() 
+	{
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+		
+		final List<Integer> TEST_VALUES = List.of(1, 5, -4);
+		final List<Integer> EXPECTED_SEQ = List.of(1, -4);
+		
+		List<SimpleObject> objs = new LinkedList<>();
+		for (int i = 0; i < 6; i++)
+		{
+			objs.add(new SimpleObject("name" + i, i * 100));
+		}
+
+		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(
+				PeekPool.create(true, TEST_VALUES), 3);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(
+				SimpleCondition.create(SimpleObject::getIntField, Negate.YES, Comparison.EQUAL, 5), 2, 0);
+
+		SingleRandomizer<SimpleObject, Integer> test = SingleRandomizer.create(
+				SetterNoReturn.asMultiSetter(SimpleObject::setField), enforce);
+		
+		assertTrue(test.perform(objs.stream(), pool, rand));
+		for (int i = 0; i < objs.size(); i++)
+		{
+			assertEquals(EXPECTED_SEQ.get(i % EXPECTED_SEQ.size()), objs.get(i).getIntField(), " Failed at index " + 1);
+		}
+	}
+	
+	@Test
+	void elimatePoolRandomizer_exhaust() 
+	{
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+		
+		final List<Integer> TEST_VALUES = List.of(1, 5, -4);
+		
+		List<SimpleObject> objs = new LinkedList<>();
+		for (int i = 0; i < 7; i++)
+		{
+			objs.add(new SimpleObject("name" + i, i * 100));
+		}
+
+		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(
+				PeekPool.create(true, TEST_VALUES), 3);
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(
+				SimpleCondition.create(SimpleObject::getIntField, Negate.YES, Comparison.EQUAL, 5), 2, 0);
+
+		SingleRandomizer<SimpleObject, Integer> test = SingleRandomizer.create(
+				SetterNoReturn.asMultiSetter(SimpleObject::setField), enforce);
+		
+		assertFalse(test.perform(objs.stream(), pool, rand));
+	}
+	
+	@Test
+	void mutlipoolRandomizer() 
+	{
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+		
+		Set<Integer> expected1 = new HashSet<Integer>();
+		expected1.add(1);
+		expected1.add(-4);
+		expected1.add(9);
+		Set<Integer> expected2 = new HashSet<Integer>();
+		expected2.add(3);
+		expected2.add(-1);
+		expected2.add(0);
+
+		Map<String, RandomizerPool<Integer>> poolMap = new HashMap<>();
+		poolMap.put("name1", PeekPool.create(true, List.of(1, 5, -4, 9)));
+		poolMap.put("name2", PeekPool.create(true, List.of(3, -1, 5, 0)));
+		
+		List<SimpleObject> objs = new LinkedList<>();
+		for (int i = 0; i < 6; i++)
+		{
+			objs.add(new SimpleObject("name" + (1 + (i % 2)), i * 100));
+		}
+		
+		MultiGetter<SimpleObject, String> soString = (so2, cnt) -> so2.getStringField();
+		MultiPool<SimpleObject, String, Integer> pool = MultiPool.create(poolMap, soString);
+		
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(
+				SimpleCondition.create(SimpleObject::getIntField, Negate.YES, Comparison.EQUAL, 5), 2, 0);
+
+		SingleRandomizer<SimpleObject, Integer> test = SingleRandomizer.create(
+				SetterNoReturn.asMultiSetter(SimpleObject::setField), enforce);
+		
+		assertTrue(test.perform(objs.stream(), pool, rand));
+		assertEquals(objs.size(), expected1.size() + expected2.size(), "Bad test setup!");
+		for (SimpleObject so : objs)
+		{
+			if (so.getStringField().equals("name1"))
+			{
+				assertTrue(expected1.remove(so.getIntField()), so.getIntField() + " not found in set 1");
+			} 
+			else if (so.getStringField().equals("name2"))
+			{
+				assertTrue(expected2.remove(so.getIntField()), so.getIntField() + " not found in set 2");
+			}
+			else
+			{
+				assertTrue(false, "Bad test setup!");
+			}
+		}
+	}
+	
+	@Test
+	void mutlipoolRandomizer_exhaust() 
+	{
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+
+		Map<String, RandomizerPool<Integer>> poolMap = new HashMap<>();
+		poolMap.put("name1", PeekPool.create(true, List.of(1, 5, -4, 9)));
+		poolMap.put("name2", PeekPool.create(true, List.of(3, -1, 5, 0)));
+		
+		List<SimpleObject> objs = new LinkedList<>();
+		for (int i = 0; i < 7; i++)
+		{
+			objs.add(new SimpleObject("name" + (1 + (i % 2)), i * 100));
+		}
+		
+		MultiGetter<SimpleObject, String> soString = (so2, cnt) -> so2.getStringField();
+		MultiPool<SimpleObject, String, Integer> pool = MultiPool.create(poolMap, soString);
+		
+		EnforceParams<SimpleObject> enforce = EnforceParams.create(
+				SimpleCondition.create(SimpleObject::getIntField, Negate.YES, Comparison.EQUAL, 5), 2, 0);
+
+		SingleRandomizer<SimpleObject, Integer> test = SingleRandomizer.create(
+				SetterNoReturn.asMultiSetter(SimpleObject::setField), enforce);
+		
+		assertFalse(test.perform(objs.stream(), pool, rand));
 	}
 }

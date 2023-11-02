@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import Support.SimpleObject;
+import support.SimpleObject;
 import universal_randomizer.user_object_apis.Condition;
 
 class LogicConditionPairTests 

@@ -1,7 +1,8 @@
-package universal_randomizer;
+package universal_randomizer.utils;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -23,7 +24,7 @@ public class StreamUtils
 	{
 		if (getter == null || stream == null)
 		{
-			return null;
+			return Stream.empty();
 		}
 		return stream.map(getter::get);
 	}
@@ -33,7 +34,7 @@ public class StreamUtils
 	{
 		if (getter == null || stream == null)
 		{
-			return null;
+			return Stream.empty();
 		}
 		return stream.flatMap(o -> Arrays.stream(getter.get(o)));
 	}
@@ -43,7 +44,7 @@ public class StreamUtils
 	{
 		if (getter == null || stream == null)
 		{
-			return null;
+			return Stream.empty();
 		}
 		return stream.flatMap(obj -> getter.get(obj).stream());
 	}
@@ -53,7 +54,7 @@ public class StreamUtils
 	{
 		if (getter == null || stream == null)
 		{
-			return null;
+			return Stream.empty();
 		}
 		return stream.flatMap(getter::get);
 	}
@@ -63,7 +64,7 @@ public class StreamUtils
 	{
 		if (getter == null || stream == null)
 		{
-			return null;
+			return Stream.empty();
 		}
 		return stream.flatMap(obj -> getter.get(obj).keySet().stream());
 	}
@@ -73,7 +74,7 @@ public class StreamUtils
 	{
 		if (getter == null || stream == null)
 		{
-			return null;
+			return Stream.empty();
 		}
 		return stream.flatMap(obj -> getter.get(obj).values().stream());
 	}
@@ -84,7 +85,7 @@ public class StreamUtils
 	{
 		if (stream == null)
 		{
-			return null;
+			return Stream.empty();
 		}
 		return stream.map(o -> (T) o);
 	}
@@ -106,7 +107,7 @@ public class StreamUtils
 	{
 		if (stream == null)
 		{
-			return null;
+			return Stream.empty();
 		}
 		final Random nonNull = rand != null ? rand : new Random();
 		return stream.map(o -> RandomOrdering.create(o, nonNull.nextLong()))
@@ -119,7 +120,7 @@ public class StreamUtils
 	{
 		if (stream == null || groupingFn == null)
 		{
-			return null;
+			return Collections.emptyMap();
 		}
 		return stream.collect(Collectors.groupingBy(groupingFn::get));
 	}

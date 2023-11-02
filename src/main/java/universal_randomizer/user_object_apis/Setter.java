@@ -4,33 +4,48 @@ public interface Setter <T, V>
 {
 	public boolean setReturn(T toSet, V val);
 	
-	public default void asSetterNoReturn(T t, V v)
+	private void asSetterNoReturn(T t, V v)
 	{
 		setReturn(t, v);
 	}
 
-	public default boolean asMultiSetter(T t, V v, int c)
+	private boolean asMultiSetter(T t, V v, int c)
 	{
 		return setReturn(t, v);
 	}
 
-	public default void asMultiSetterNoReturn(T t, V v, int c)
+	private void asMultiSetterNoReturn(T t, V v, int c)
 	{
 		setReturn(t, v);
 	}
 	
-	public static <T2, V2> Setter<T2, V2> cast(SetterNoReturn<T2, V2> setter)
+	public default SetterNoReturn<T, V> asSetterNoReturn()
 	{
-		return setter::asSetter;
+		return this::asSetterNoReturn;
 	}
 
-	public static <T2, V2> Setter<T2, V2> cast(MultiSetter<T2, V2> setter)
+	public default MultiSetter<T, V> asMultiSetter()
 	{
-		return setter::asSetter;
+		return this::asMultiSetter;
+	}
+
+	public default MultiSetterNoReturn<T, V> asMultiSetterNoReturn()
+	{
+		return this::asMultiSetterNoReturn;
 	}
 	
-	public static <T2, V2> Setter<T2, V2> cast(MultiSetterNoReturn<T2, V2> setter)
+	public static <T2, V2> SetterNoReturn<T2, V2> asSetterNoReturn(Setter<T2, V2> setter)
 	{
-		return setter::asSetter;
+		return setter.asSetterNoReturn();
+	}
+
+	public static <T2, V2> MultiSetter<T2, V2> asMultiSetter(Setter<T2, V2> setter)
+	{
+		return setter.asMultiSetter();
+	}
+
+	public static <T2, V2> MultiSetterNoReturn<T2, V2> asMultiSetterNoReturn(Setter<T2, V2> setter)
+	{
+		return setter.asMultiSetterNoReturn();
 	}
 }

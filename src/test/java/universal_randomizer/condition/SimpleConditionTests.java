@@ -6,8 +6,8 @@ import java.util.Comparator;
 
 import org.junit.jupiter.api.Test;
 
-import Support.SimpleObject;
-import Support.UncomparableObject;
+import support.SimpleObject;
+import support.UncomparableObject;
 import universal_randomizer.user_object_apis.Condition;
 import universal_randomizer.user_object_apis.Getter;
 

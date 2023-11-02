@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Stream;
 
 public class PeekPool<T> implements RandomizerBasicPool<T>
 {	
@@ -18,8 +17,9 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 	private ArrayList<T> unpeeked;
 	private LinkedList<T> peeked;
 	private LinkedList<T> removed;
+	private boolean selectPeekedRemoves;
 	
-	protected PeekPool(boolean removeDuplicates, Collection<T> valCollection)
+	protected PeekPool(boolean selectPeekedRemoves, Collection<T> valCollection, boolean removeDuplicates)
 	{
 		if (removeDuplicates)
 		{
@@ -32,8 +32,9 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 		}
 		peeked = new LinkedList<>();
 		removed = new LinkedList<>();
+		this.selectPeekedRemoves = selectPeekedRemoves;
 	}
-	
+
 	protected PeekPool(PeekPool<T> toCopy)
 	{
 		unpeeked = new ArrayList<>(toCopy.unpeeked);
@@ -43,27 +44,37 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 	
 	public static <V> PeekPool<V> createEmpty()
 	{
-		return new PeekPool<>(false, new ArrayList<>());
+		return new PeekPool<>(false, new ArrayList<>(), false);
 	}
 	
-	public static <V> PeekPool<V> create(boolean removeDuplicates, Collection<V> valCollection)
+	public static <V> PeekPool<V> create(boolean selectPeekedRemoves, Collection<V> valCollection)
 	{
 		if (valCollection == null)
 		{
 			return null;
 		}
-		return new PeekPool<>(removeDuplicates, valCollection);
+		return new PeekPool<>(selectPeekedRemoves, valCollection, false);
+	}
+	
+	public static <V> PeekPool<V> createNoDups(boolean selectPeekedRemoves, Collection<V> valCollection)
+	{
+		if (valCollection == null)
+		{
+			return null;
+		}
+		return new PeekPool<>(selectPeekedRemoves, valCollection, true);
+	}
+	
+	@SafeVarargs
+	public static <V> PeekPool<V> create(boolean selectPeekedRemoves, V... values)
+	{
+		return create(selectPeekedRemoves, List.of(values));
 	}
 
 	@SafeVarargs
-	public static <V> PeekPool<V> create(boolean removeDuplicates, V... values)
+	public static <V> PeekPool<V> createNoDups(boolean selectPeekedRemoves, V... values)
 	{
-		return create(removeDuplicates, List.of(values));
-	}
-	
-	public static <V> PeekPool<V> create(boolean removeDuplicates, Stream<V> values)
-	{
-		return create(removeDuplicates, values.toList());
+		return createNoDups(selectPeekedRemoves, List.of(values));
 	}
 	
 	public PeekPool<T> copy()
@@ -123,7 +134,7 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 	@Override
 	public T selectPeeked()
 	{
-		return selectPeeked(false);
+		return selectPeeked(selectPeekedRemoves);
 	}
 	
 	public T selectPeeked(boolean remove)
@@ -181,6 +192,14 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 
 	protected LinkedList<T> getRemoved() {
 		return removed;
+	}
+	
+	public boolean doesSelectPeekedRemove() {
+		return selectPeekedRemoves;
+	}
+
+	public void setSelectPeekedRemoves(boolean selectPeekedRemoves) {
+		this.selectPeekedRemoves = selectPeekedRemoves;
 	}
 
 	@Override

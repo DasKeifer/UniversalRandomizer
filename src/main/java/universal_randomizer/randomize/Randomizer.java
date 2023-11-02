@@ -63,9 +63,9 @@ public abstract class Randomizer<T, O, P, S>
 	
 	private boolean performCommon(Stream<T> objStream, Random rand)
 	{
-		if (rand == null && this.rand == null)
+		if (this.rand == null)
 		{
-			this.rand = new Random();
+			this.rand = rand == null ? new Random() : rand;
 		}
 		
 		// in order to "reuse" the stream, we need to convert it out of a stream
@@ -126,22 +126,21 @@ public abstract class Randomizer<T, O, P, S>
 			multiPool.setPool(obj, count);
 		}
 
-		boolean success = true;
+		boolean success = false;		
+		
 		do // Loop on pool depth (if pool supports it)
-		{
-			// Get the next item and try it
-			P selectedVal = getPool().peek(getRandom());
-			
+		{			
 			// While its a good index and fails the enforce check, retry if
-			// we have attempts left
-			success = assignAndCheckEnforce(obj, selectedVal, count);
-			for (int retry = 0; retry < getEnforceActions().getMaxRetries(); retry++)
+			// we have attempts left. <= since the first pass doesn't count as
+			// a retry
+			for (int retry = 0; retry <= getEnforceActions().getMaxRetries() && !success; retry++)
 			{
-				if (success || selectedVal == null)
+				// Get the next item and try it
+				P selectedVal = getPool().peek(getRandom());
+				if (selectedVal == null)
 				{
 					break;
 				}
-				selectedVal = getPool().peek(getRandom());
 				success = assignAndCheckEnforce(obj, selectedVal, count);
 			}
 		} while (!success && getPool().useNextPool());	

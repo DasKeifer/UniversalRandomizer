@@ -29,11 +29,21 @@ public class SingleRandomizer<T, P> extends Randomizer<T, T, P, P>
 	{
 		return create(setter, o -> count, enforce);
 	}
+
+	// Create a single setter
+	public static <T2, P2> SingleRandomizer<T2, P2> create(MultiSetter<T2, P2> setter, EnforceParams<T2> enforce)
+	{
+		return create(setter, 1, enforce);
+	}
 	
 	// Create a single setter
 	public static <T2, P2> SingleRandomizer<T2, P2> create(Setter<T2, P2> setter, EnforceParams<T2> enforce)
 	{
-		return create(MultiSetter.cast(setter), 1, enforce);
+		if (setter == null)
+		{
+			return null;
+		}
+		return create(Setter.asMultiSetter(setter), 1, enforce);
 	}
 
 	public static <T2, P2> SingleRandomizer<T2, P2> createNoEnforce(MultiSetter<T2, P2> setter, Getter<T2, Integer> countGetter)
@@ -44,6 +54,11 @@ public class SingleRandomizer<T, P> extends Randomizer<T, T, P, P>
 	public static <T2, P2> SingleRandomizer<T2, P2> createNoEnforce(MultiSetter<T2, P2> setter, int count)
 	{
 		return create(setter, o -> count, null);
+	}
+	
+	public static <T2, P2> SingleRandomizer<T2, P2> createNoEnforce(MultiSetter<T2, P2> setter)
+	{
+		return create(setter, null);
 	}
 	
 	public static <T2, P2> SingleRandomizer<T2, P2> createNoEnforce(Setter<T2, P2> setter)

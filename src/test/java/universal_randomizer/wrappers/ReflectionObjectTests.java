@@ -13,9 +13,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import Support.SimpleObject;
-import Support.SumableComparableObject;
-import Support.UncomparableObject;
+import support.SimpleObject;
+import support.SumableComparableObject;
+import support.UncomparableObject;
 
 class ReflectionObjectTests {
 

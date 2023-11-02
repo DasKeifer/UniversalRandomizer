@@ -1,4 +1,4 @@
-package Support;
+package support;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;

@@ -80,7 +80,7 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 		// If we ran out of pools, add a new one
 		if (currentPool >= workingPools.size())
 		{
-			workingPools.add(workingPools.get(currentPool - 1));
+			workingPools.add(workingPools.get(currentPool - 1).copy());
 			workingPools.get(currentPool).reset();
 		}
 		return true;
@@ -94,5 +94,9 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 			workingPools.get(peeked).resetPeeked();
 		}
 		currentPool = 0;
+	}
+	
+	protected List<PeekPool<T>> getWorkingPools() {
+		return workingPools;
 	}
 }

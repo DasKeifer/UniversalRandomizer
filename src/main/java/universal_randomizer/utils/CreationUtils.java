@@ -1,4 +1,4 @@
-package universal_randomizer;
+package universal_randomizer.utils;
 
 import java.util.Collection;
 import java.util.Comparator;

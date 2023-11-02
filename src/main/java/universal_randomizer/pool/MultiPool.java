@@ -15,6 +15,7 @@ public class MultiPool<O, K, T> implements RandomizerMultiPool<O, T>
 	{
 		this.poolMap = poolMap;
 		this.keyGetter = keyGetter;
+		this.activePool = null;
 	}
 	
 	// TODO: Add more constructors eventually

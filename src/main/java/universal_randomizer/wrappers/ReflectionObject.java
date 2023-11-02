@@ -6,7 +6,7 @@ import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import universal_randomizer.ConversionUtils;
+import universal_randomizer.utils.ConversionUtils;
 
 
 public class ReflectionObject <T> 

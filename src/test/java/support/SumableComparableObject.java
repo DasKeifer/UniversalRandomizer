@@ -1,4 +1,4 @@
-package Support;
+package support;
 
 import universal_randomizer.user_object_apis.Sumable;
 

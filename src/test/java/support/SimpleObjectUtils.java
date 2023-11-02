@@ -1,4 +1,4 @@
-package Support;
+package support;
 
 import java.util.ArrayList;
 import java.util.List;

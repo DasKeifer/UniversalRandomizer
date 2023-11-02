@@ -1,4 +1,4 @@
-package universal_randomizer;
+package universal_randomizer.utils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import Support.SumableComparableObject;
+import support.SumableComparableObject;
 
 
 class CreationUtilsTests {

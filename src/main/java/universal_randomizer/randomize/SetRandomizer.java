@@ -37,9 +37,20 @@ public class SetRandomizer<T extends Collection<O>, O, P extends Collection<S>, 
 	
 	// Create a single setter where we set the whole collection at once
 	public static <T2 extends Collection<O2>, O2, P2 extends Collection<S2>, S2> SetRandomizer<T2, O2, P2, S2> 
+	create(MultiSetter<O2, S2> setter, EnforceParams<T2> enforce)
+	{
+		return create(setter, 1, enforce);
+	}
+	
+	// Create a single setter where we set the whole collection at once
+	public static <T2 extends Collection<O2>, O2, P2 extends Collection<S2>, S2> SetRandomizer<T2, O2, P2, S2> 
 	create(Setter<O2, S2> setter, EnforceParams<T2> enforce)
 	{
-		return create(MultiSetter.cast(setter), 1, enforce);
+		if (setter == null)
+		{
+			return null;
+		}
+		return create(Setter.asMultiSetter(setter), 1, enforce);
 	}
 
 	public static <T2 extends Collection<O2>, O2, P2 extends Collection<S2>, S2> SetRandomizer<T2, O2, P2, S2> 
@@ -52,6 +63,12 @@ public class SetRandomizer<T extends Collection<O>, O, P extends Collection<S>, 
 	createNoEnforce(MultiSetter<O2, S2> setter, int count)
 	{
 		return create(setter, o -> count, null);
+	}
+	
+	public static <T2 extends Collection<O2>, O2, P2 extends Collection<S2>, S2> SetRandomizer<T2, O2, P2, S2> 
+	createNoEnforce(MultiSetter<O2, S2> setter)
+	{
+		return create(setter, null);
 	}
 	
 	public static <T2 extends Collection<O2>, O2, P2 extends Collection<S2>, S2> SetRandomizer<T2, O2, P2, S2> 
