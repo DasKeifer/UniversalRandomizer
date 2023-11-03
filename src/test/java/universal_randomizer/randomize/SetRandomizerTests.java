@@ -4,13 +4,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
 import support.SimpleObject;
+import universal_randomizer.pool.PeekPool;
+import universal_randomizer.user_object_apis.Condition;
 import universal_randomizer.user_object_apis.Getter;
 import universal_randomizer.user_object_apis.MultiSetter;
 import universal_randomizer.user_object_apis.Setter;
@@ -132,10 +141,76 @@ class SetRandomizerTests {
 	}
 	
 	@Test
-	void assignAndCheckEnforce() 
+	void setRandomizer() 
 	{
-		// TODO
+		final int LIST_SIZE = 5;
+		final int INNER_LIST_SIZE = 3;
+		final String EXLCUDED_VALUE = "2";
+		
+		// Use mock randomizer to force the excluded value to be selected
+		Random rand = mock(Random.class);
+		when(rand.nextInt(anyInt())).thenReturn(0);
+
+		List<List<SimpleObject>> soListList = new LinkedList<>();
+		Map<String, List<String>> vals = new HashMap<>();
+		for (int i = 0; i < LIST_SIZE + 2; i++)
+		{
+			List<SimpleObject> innerList = new LinkedList<>();
+			List<String> innerVals = new LinkedList<>();
+			for (int inner = 0; inner < INNER_LIST_SIZE; inner++)
+			{
+				if (i < LIST_SIZE)
+				{
+					innerList.add(new SimpleObject("test" + (i * 100 + inner), i * 100 + inner));
+				}
+				innerVals.add("" + (inner + i * INNER_LIST_SIZE));
+			}
+			if (i < LIST_SIZE)
+			{
+				soListList.add(innerList);
+			}
+			vals.put(innerVals.get(0), innerVals);
+		}
+		
+		PeekPool<List<String>> pool = PeekPool.create(true, vals.values());
+		
+		Condition<List<SimpleObject>> no2Cond = soList -> {
+			for (SimpleObject so : soList)
+			{
+				if (so.getMap().get(0).equals(EXLCUDED_VALUE))
+				{
+					return false;
+				}
+			}
+			return true;
+		};		
+
+		MultiSetter<SimpleObject, String> setMapEntryButNotVal11 = (so, val, cnt) -> {
+			if (val.equals("11"))
+			{
+				return false;
+			}
+			so.setMapEntry(val, cnt);
+			return true;
+		};
+		
+		SetRandomizer<List<SimpleObject>, SimpleObject, List<String>, String> test = 
+				SetRandomizer.create(setMapEntryButNotVal11, EnforceParams.create(no2Cond, 3, 0));
+
+		// Perform test and check results
+		vals.remove("0");
+		vals.remove("9");
+		assertTrue(test.perform(soListList.stream(), pool, rand));
+		for (List<SimpleObject> soList : soListList)
+		{
+			List<String> expectedVals = vals.remove(soList.get(0).getMap().get(0));
+			assertNotNull(expectedVals, "Failed to find key for so in expected vals: " + soList.get(0).getMap().get(0));
+			for (int i = 0; i < soList.size(); i++)
+			{
+				assertEquals(expectedVals.get(i), soList.get(i).getMap().get(0), 
+						soList.get(i).getMap().get(0) + " value " + i + " not found in set");
+			}
+		}
+		assertTrue(vals.isEmpty());
 	}
-	
-	// TODO: set test
 }

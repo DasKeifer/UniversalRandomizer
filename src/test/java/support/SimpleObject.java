@@ -97,6 +97,10 @@ public class SimpleObject
 		this.stringField = stringField;
 	}
 	
+	public void setMapEntry(String val, int key) {
+		map.put(key, val);
+	}
+	
 	public UncomparableObject getUncomparableObject()
 	{
 		return uncomparableObj;

@@ -83,10 +83,10 @@ public class SetRandomizer<T extends Collection<O>, O, P extends Collection<S>, 
 		boolean success = true;
 		Iterator<O> objItr = objs.iterator();
 		Iterator<S> valItr = poolValue.iterator();
-		while (objItr.hasNext())
+		while (objItr.hasNext() && success)
 		{
 			O obj = objItr.next();
-			success = success && getSetter().setReturn(obj, valItr.next(), count);
+			success = getSetter().setReturn(obj, valItr.next(), count);
 		}
 		
 		if (success)

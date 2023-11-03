@@ -105,13 +105,15 @@ public abstract class Randomizer<T, O, P, S>
 		return !assignValue(obj);
 	}
 	
+	// Think on delayed checking of set values?
+	// TODO: Add a delayed, full object enforce?
 	protected boolean assignValue(T obj)
 	{
 		boolean success = true;
-		int setCount = countGetter.get(obj);
+		int times = countGetter.get(obj);
 		
 		// Assign all values in the set
-		for (int count = 0; count < setCount; count++)
+		for (int count = 0; count < times; count++)
 		{
 			if (success)
 			{

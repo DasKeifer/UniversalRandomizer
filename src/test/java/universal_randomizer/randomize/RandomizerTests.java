@@ -97,6 +97,44 @@ class RandomizerTests {
 	}
 	
 	@Test
+	void perform_noEnforce_callSignitures() 
+	{
+		final int LIST_SIZE = 5;
+		
+		// Set expectations
+		Set<Integer> expected = new HashSet<>();
+		for (int i = 0; i < LIST_SIZE; i++)
+		{
+			expected.add(i);
+		}
+		// Create test data and object
+		PeekPool<Integer> basePool = PeekPool.create(true, expected);
+		List<SimpleObject> list = createSimpleObjects(LIST_SIZE);
+		SingleRandomizer<SimpleObject, Integer> test = SingleRandomizer.createNoEnforce(setterInt);
+
+		// Basic pool with no randomizer passed
+		assertTrue(test.perform(list.stream(), basePool));
+		Set<Integer> expectedBasicPool = new HashSet<>(expected);
+		for (SimpleObject so : list)
+		{
+			assertTrue(expectedBasicPool.remove(so.getIntField()), so.getIntField() + " not found (or already removed) in expected set");
+		}
+
+		// multi pool with no randomizer passed
+		list = createSimpleObjects(LIST_SIZE);
+		basePool.reset();
+		
+		Map<Integer, RandomizerPool<Integer>> poolMap = new HashMap<>();
+		poolMap.put(1, basePool);
+		MultiPool<SimpleObject, Integer, Integer> multiPool = MultiPool.create(poolMap, (so, c) -> 1);
+		assertTrue(test.perform(list.stream(), multiPool));
+		for (SimpleObject so : list)
+		{
+			assertTrue(expected.remove(so.getIntField()), so.getIntField() + " not found (or already removed) in expected set");
+		}
+	}
+	
+	@Test
 	void perform_noEnforce_someFailed()
 	{
 		final int LIST_SIZE = 10;
