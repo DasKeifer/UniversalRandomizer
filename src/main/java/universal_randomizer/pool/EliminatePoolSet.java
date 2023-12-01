@@ -6,6 +6,7 @@ import java.util.Random;
 
 public class EliminatePoolSet<T> implements RandomizerBasicPool<T> 
 {	
+	public static final int UNLIMITED_DEPTH = -1;
 	private int maxDepth;
 	
 	// Internal tracking
@@ -14,8 +15,15 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 	
 	protected EliminatePoolSet(PeekPool<T> sourcePool, int maxDepth)
 	{		
-		this.maxDepth = maxDepth;		
-		workingPools = new ArrayList<>(maxDepth);
+		this.maxDepth = maxDepth;
+		if (maxDepth > 0)
+		{
+			workingPools = new ArrayList<>(maxDepth);
+		}
+		else
+		{
+			workingPools = new ArrayList<>();
+		}
 		workingPools.add(sourcePool.copy());
 		workingPools.get(0).reset();
 		currentPool = 0;
@@ -71,7 +79,7 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 	@Override
 	public boolean useNextPool()
 	{
-		if (currentPool >= maxDepth - 1)
+		if (currentPool >= maxDepth - 1 && maxDepth > 0)
 		{
 			return false;
 		}
