@@ -36,7 +36,7 @@ class MultiRandomizerTests {
     	MultiSetter<SimpleObject, Integer> ms = (o, v, cnt) -> { o.intField = v; return true; };
     	
     	// create(MultiSetter<T2, S2> setter, EnforceParams<T2> enforce)
-    	Randomizer<SimpleObject, SimpleObject, List<Integer>, Integer> rr = 
+    	MultiRandomizer<SimpleObject, List<Integer>, Integer> rr = 
     			MultiRandomizer.create(ms, enforceAction);
     	assertEquals(ms, rr.getSetter());
     	assertEquals(1, rr.getCountGetter().get(null));
@@ -53,7 +53,7 @@ class MultiRandomizerTests {
     	MultiSetter<SimpleObject, Integer> ms = (o, v, cnt) -> { o.intField = v; return true; };
 
     	// createNoEnforce(MultiSetter<T2, S2> setter)
-    	Randomizer<SimpleObject, SimpleObject, List<Integer>, Integer> rr = 
+    	MultiRandomizer<SimpleObject, List<Integer>, Integer> rr = 
     			MultiRandomizer.createNoEnforce(ms);
     	assertEquals(ms, rr.getSetter());
     	assertEquals(1, rr.getCountGetter().get(null));

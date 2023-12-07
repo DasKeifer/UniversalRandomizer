@@ -10,7 +10,7 @@ import universal_randomizer.user_object_apis.MultiSetter;
 /// i.e. randomizing a list field by calling and indexed setter multiple times, once
 /// for each item in the collection and only verifies the object after all setting is
 /// done
-public class MultiRandomizer<T, P extends Collection<S>, S> extends Randomizer<T, T, P, S>
+public class MultiRandomizer<T, P extends Collection<S>, S> extends OneToOneRandomizer<T, T, P, S>
 {	
 	private static int return1(Object o)
 	{

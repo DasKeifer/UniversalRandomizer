@@ -3,9 +3,12 @@ package universal_randomizer.utils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,6 +92,15 @@ public class StreamUtils
 		}
 		return stream.map(o -> (T) o);
 	}
+	
+	public static <T> Stream<T> castType(Stream<?> stream, Class<T> clazz)
+	{
+		if (stream == null)
+		{
+			return Stream.empty();
+		}
+		return stream.map(o -> clazz.cast(o));
+	}
 
 	/// Modifies & returns passed stream
 	public static <T> Stream<T> shuffle(Stream<T> stream)
@@ -123,5 +135,19 @@ public class StreamUtils
 			return Collections.emptyMap();
 		}
 		return stream.collect(Collectors.groupingBy(groupingFn::get));
+	}
+
+	public static <R, T> SortedMap<R, List<T>> sortedGroup(Stream<T> stream, Getter<T, R> groupingFn)
+	{
+		return sortedGroup(stream, groupingFn, null);
+	}
+	
+	public static <R, T> SortedMap<R, List<T>> sortedGroup(Stream<T> stream, Getter<T, R> groupingFn, Comparator<? super R> keyComparator)
+	{
+		if (stream == null || groupingFn == null)
+		{
+			return Collections.emptySortedMap();
+		}
+		return stream.collect(Collectors.groupingBy(groupingFn::get, () -> new TreeMap<>(keyComparator), Collectors.toList()));
 	}
 }

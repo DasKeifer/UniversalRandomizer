@@ -75,7 +75,7 @@ class MultiPoolTests {
 		MultiPool<SimpleObject, Integer, Integer> mp = MultiPool.create(poolMap, soInt);
 		
 		assertNull(mp.peek(null));
-		assertNull(mp.selectPeeked());
+		mp.selectPeeked();
 		mp.reset();
 		mp.resetPeeked();
 		assertFalse(mp.useNextPool());
@@ -266,10 +266,9 @@ class MultiPoolTests {
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
 		int foundPeek = mp.peek(rand);
-		int found = mp.selectPeeked();
+		mp.selectPeeked();
 
 		assertEquals(NON_DUPLICATE_VALS.get(0), foundPeek, "peek did not function as expected");
-		assertEquals(foundPeek, found, "SelectPeeked did not return the same value as peek");
 		assertEquals(NON_DUPLICATE_VALS.size() - 1, p1.size(), "size changed when it should not have been removed");
 		assertEquals(NON_DUPLICATE_VALS.size() - 1, p1.unpeekedSize(), "unpeekedSize was not reset after selectPeeked");
 		
@@ -280,23 +279,6 @@ class MultiPoolTests {
 		mp.selectPeeked();
 		assertEquals(NON_DUPLICATE_VALS.size() - 2, p1.size(), "size changed when it should not have been removed");
 		assertEquals(NON_DUPLICATE_VALS.size() - 2, p1.unpeekedSize(), "unpeekedSize was not reset after selectPeeked");
-	}	
-	
-	@Test
-	void selectPeeked_Unpeeked() 
-	{
-		SimpleObject so = new SimpleObject("test", 1);
-		PeekPool<Integer> p1 = PeekPool.create(true, NON_DUPLICATE_VALS);
-		PeekPool<Integer> p2 = PeekPool.create(true, DUPLICATE_VALS);
-		Map<Integer, RandomizerPool<Integer>> poolMap = new HashMap<>();
-		poolMap.put(1, p1);
-		poolMap.put(2, p2);
-		
-		MultiGetter<SimpleObject, Integer> soInt = (so2, cnt) -> so2.getIntField();
-		MultiPool<SimpleObject, Integer, Integer> mp = MultiPool.create(poolMap, soInt);
-		mp.setPool(so, 0);
-
-		assertNull(mp.selectPeeked(), "selectPeeked did not return null when pool was unpeeked");
 	}
 	
 	@Test
@@ -314,7 +296,6 @@ class MultiPoolTests {
 		mp.setPool(so, 0);
 
 		assertNull(mp.peek(new Random()), "peek did not return null when pool was empty");
-		assertNull(mp.selectPeeked(), "selectPeeked did not return null when pool was empty");
 	}
 	
 	@Test

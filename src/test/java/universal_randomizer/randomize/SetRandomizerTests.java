@@ -41,7 +41,7 @@ class SetRandomizerTests {
     	Getter<Collection<SimpleObject>, Integer> count2Getter = o -> 2;
     	
     	//create(MultiSetter<O2, S2> setter, Getter<T2, Integer> countGetter, EnforceParams<T2> enforce)
-    	Randomizer<Collection<SimpleObject>, SimpleObject, Collection<Integer>, Integer> rr = 
+    	SetRandomizer<Collection<SimpleObject>, SimpleObject, Collection<Integer>, Integer> rr = 
     			SetRandomizer.create(ms, count2Getter, enforceAction);
     	assertEquals(ms, rr.getSetter());
     	assertEquals(count2Getter, rr.getCountGetter());
@@ -85,7 +85,7 @@ class SetRandomizerTests {
     	Getter<Collection<SimpleObject>, Integer> count2Getter = o -> 2;
     	
     	// createNoEnforce(MultiSetter<O2, S2> setter, Getter<T2, Integer> countGetter)
-    	Randomizer<Collection<SimpleObject>, SimpleObject, Collection<Integer>, Integer> rr = 
+    	SetRandomizer<Collection<SimpleObject>, SimpleObject, Collection<Integer>, Integer> rr = 
     			SetRandomizer.createNoEnforce(ms, count2Getter);
     	assertEquals(ms, rr.getSetter());
     	assertEquals(count2Getter, rr.getCountGetter());

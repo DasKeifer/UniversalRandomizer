@@ -63,17 +63,34 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 		}
 		return null;
 	}
-
+	
 	@Override
-	public T selectPeeked() 
+	public T peekBatch(Random rand) 
 	{
-		T popped = null;
 		if (currentPool < workingPools.size())
 		{
-			popped = workingPools.get(currentPool).popPeeked();
+			// Get an item from the next pool
+			return workingPools.get(currentPool).peekBatch(rand);
 		}
-		resetPeeked();
-		return popped;
+		return null;
+	}
+	
+	@Override
+	public void peekNewBatch() 
+	{
+		for (PeekPool<T> pool : workingPools)
+		{
+			pool.peekNewBatch();
+		}
+	}
+
+	@Override
+	public void selectPeeked() 
+	{
+		for (PeekPool<T> pool : workingPools)
+		{
+			pool.popPeeked();
+		}
 	}
 	
 	@Override
@@ -97,9 +114,9 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 	@Override
 	public void resetPeeked() 
 	{
-		for (int peeked = 0; peeked <= currentPool; peeked++)
+		for (PeekPool<T> pool : workingPools)
 		{
-			workingPools.get(peeked).resetPeeked();
+			pool.resetPeeked();
 		}
 		currentPool = 0;
 	}

@@ -164,22 +164,12 @@ class ElimatePoolSetTests {
 	}
 	
 	@Test
-	void selectPeeked_Unpeeked() 
-	{
-		PeekPool<Integer> base = PeekPool.create(false, NON_DUPLICATE_VALS);
-		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(base, 1);
-		
-		assertNull(pool.selectPeeked(), "selectPeeked did not return null when pool was unpeeked");
-	}
-	
-	@Test
 	void peek_selectPeeked_empty() 
 	{
 		PeekPool<Integer> base = PeekPool.createEmpty();
 		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(base, 1);
 
 		assertNull(pool.peek(new Random()), "peek did not return null when pool was empty");
-		assertNull(pool.selectPeeked(), "selectPeeked did not return null when pool was empty");
 	}
 	
 	@Test

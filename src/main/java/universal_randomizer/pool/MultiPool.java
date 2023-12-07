@@ -61,13 +61,31 @@ public class MultiPool<O, K, T> implements RandomizerMultiPool<O, T>
 	}
 
 	@Override
-	public T selectPeeked() 
+	public T peekBatch(Random rand) 
 	{
 		if (activePool != null)
 		{
-			return activePool.selectPeeked();
+			return activePool.peekBatch(rand);
 		}
 		return null;
+	}
+	
+	@Override
+	public void peekNewBatch() 
+	{
+		for (RandomizerPool<T> pool : poolMap.values())
+		{
+			pool.peekNewBatch();
+		}
+	}
+
+	@Override
+	public void selectPeeked() 
+	{
+		for (RandomizerPool<T> pool : poolMap.values())
+		{
+			pool.selectPeeked();
+		}
 	}
 	
 	@Override
@@ -83,9 +101,9 @@ public class MultiPool<O, K, T> implements RandomizerMultiPool<O, T>
 	@Override
 	public void resetPeeked() 
 	{
-		if (activePool != null)
+		for (RandomizerPool<T> pool : poolMap.values())
 		{
-			activePool.resetPeeked();
+			pool.resetPeeked();
 		}
 	}
 }

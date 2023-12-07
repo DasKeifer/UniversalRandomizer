@@ -31,7 +31,7 @@ class SingleRandomizerTests {
     	Getter<SimpleObject, Integer> count2Getter = o -> 2;
     	
     	//create(MultiSetter<T2, P2> setter, Getter<T2, Integer> countGetter, EnforceParams<T2> enforce)
-		Randomizer<SimpleObject, SimpleObject, Integer, Integer> rr = SingleRandomizer.create(ms, count2Getter, enforceAction);
+    	SingleRandomizer<SimpleObject, Integer> rr = SingleRandomizer.create(ms, count2Getter, enforceAction);
     	assertEquals(ms, rr.getSetter());
     	assertEquals(count2Getter, rr.getCountGetter());
     	assertEquals(2, rr.getCountGetter().get(null));
@@ -74,7 +74,7 @@ class SingleRandomizerTests {
     	Getter<SimpleObject, Integer> count2Getter = o -> 2;
     	
     	// createNoEnforce(MultiSetter<T2, P2> setter, Getter<T2, Integer> countGetter)
-    	Randomizer<SimpleObject, SimpleObject, Integer, Integer> rr = SingleRandomizer.createNoEnforce(ms, count2Getter);
+    	SingleRandomizer<SimpleObject, Integer> rr = SingleRandomizer.createNoEnforce(ms, count2Getter);
     	assertEquals(ms, rr.getSetter());
     	assertEquals(count2Getter, rr.getCountGetter());
     	assertEquals(2, rr.getCountGetter().get(null));

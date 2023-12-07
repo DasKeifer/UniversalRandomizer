@@ -60,28 +60,32 @@ class PeekPoolTests {
 		PeekPool<Integer> nonDup = PeekPool.create(false, NON_DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDup);
 		assertEquals(EXPECTED_NON_DUPLICATE.size(), nonDup.getUnpeeked().size());
-		assertTrue(nonDup.getPeeked().isEmpty());
+		assertTrue(nonDup.getPeekedBatch().isEmpty());
+		assertTrue(nonDup.getSkipped().isEmpty());
 		assertTrue(nonDup.getRemoved().isEmpty());
 		assertFalse(nonDup.doesSelectPeekedRemove());
 		
 		PeekPool<Integer> dup = PeekPool.create(true, DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_DUPLICATE, dup);
 		assertEquals(DUPLICATE_ARRAY.length, dup.getUnpeeked().size());
-		assertTrue(dup.getPeeked().isEmpty());
+		assertTrue(dup.getPeekedBatch().isEmpty());
+		assertTrue(dup.getSkipped().isEmpty());
 		assertTrue(dup.getRemoved().isEmpty());
 		assertTrue(dup.doesSelectPeekedRemove());
 		
 		PeekPool<Integer> nonDupFromDup = PeekPool.createNoDups(false, DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDup);
 		assertEquals(EXPECTED_NON_DUPLICATE.size(), nonDupFromDup.getUnpeeked().size());
-		assertTrue(nonDupFromDup.getPeeked().isEmpty());
+		assertTrue(nonDupFromDup.getPeekedBatch().isEmpty());
+		assertTrue(nonDupFromDup.getSkipped().isEmpty());
 		assertTrue(nonDupFromDup.getRemoved().isEmpty());
 		assertFalse(nonDupFromDup.doesSelectPeekedRemove());
 		
 		PeekPool<Integer> nonDupFromDupRemove = PeekPool.createNoDups(true, DUPLICATE_ARRAY);
 		assertPoolEquals(EXPECTED_NON_DUPLICATE, nonDupFromDupRemove);
 		assertEquals(EXPECTED_NON_DUPLICATE.size(), nonDupFromDupRemove.getUnpeeked().size());
-		assertTrue(nonDupFromDupRemove.getPeeked().isEmpty());
+		assertTrue(nonDupFromDupRemove.getPeekedBatch().isEmpty());
+		assertTrue(nonDupFromDupRemove.getSkipped().isEmpty());
 		assertTrue(nonDupFromDupRemove.getRemoved().isEmpty());
 		assertTrue(nonDupFromDupRemove.doesSelectPeekedRemove());
 	}
@@ -139,21 +143,25 @@ class PeekPoolTests {
 		pool.peek(rand);
 		
 		ArrayList<Integer> poolUnpeeked = new ArrayList<>(pool.getUnpeeked());
-		ArrayList<Integer> poolPeeked = new ArrayList<>(pool.getPeeked());
+		ArrayList<Integer> poolPeeked = new ArrayList<>(pool.getPeekedBatch());
+		ArrayList<Integer> poolSkipped = new ArrayList<>(pool.getSkipped());
 		ArrayList<Integer> poolRemoved = new ArrayList<>(pool.getRemoved());
 		
 		PeekPool<Integer> copy = pool.copy();
 		assertIterableEquals(poolUnpeeked, copy.getUnpeeked());
-		assertIterableEquals(poolPeeked, copy.getPeeked());
+		assertIterableEquals(poolPeeked, copy.getPeekedBatch());
+		assertIterableEquals(poolSkipped, copy.getSkipped());
 		assertIterableEquals(poolRemoved, copy.getRemoved());
 		
 		copy.reset();
 		assertIterableEquals(poolUnpeeked, pool.getUnpeeked());
-		assertIterableEquals(poolPeeked, pool.getPeeked());
+		assertIterableEquals(poolPeeked, pool.getPeekedBatch());
+		assertIterableEquals(poolSkipped, copy.getSkipped());
 		assertIterableEquals(poolRemoved, pool.getRemoved());
 		
 		assertEquals(NON_DUPLICATE_VALS.size(), copy.getUnpeeked().size());
-		assertTrue(copy.getPeeked().isEmpty());
+		assertTrue(copy.getPeekedBatch().isEmpty());
+		assertTrue(copy.getSkipped().isEmpty());
 		assertTrue(copy.getRemoved().isEmpty());
 	}
 	
@@ -285,10 +293,9 @@ class PeekPoolTests {
 		
 		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		int foundPeek = pool.peek(rand);
-		int found = pool.selectPeeked();
+		pool.selectPeeked();
 
 		assertEquals(NON_DUPLICATE_VALS.get(0), foundPeek, "peek did not function as expected");
-		assertEquals(foundPeek, found, "SelectPeeked did not return the same value as peek");
 		assertEquals(NON_DUPLICATE_VALS.size(), pool.size(), "size changed when it should not have been removed");
 		assertEquals(NON_DUPLICATE_VALS.size(), pool.unpeekedSize(), "unpeekedSize was not reset after selectPeeked");
 		
@@ -309,10 +316,9 @@ class PeekPoolTests {
 		
 		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
 		int foundPeek = pool.peek(rand);
-		int found = pool.popPeeked();
+		pool.popPeeked();
 
 		assertEquals(NON_DUPLICATE_VALS.get(0), foundPeek, "peek did not function as expected");
-		assertEquals(foundPeek, found, "SelectPeeked did not return the same value as peek");
 		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.size(), "Item was not removed by popPeeked");
 		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.unpeekedSize(), "Item was not removed by popPeeked");
 
@@ -368,7 +374,9 @@ class PeekPoolTests {
 	void selectPeeked_Unpeeked() 
 	{
 		PeekPool<Integer> pool = PeekPool.create(false, NON_DUPLICATE_VALS);
-		assertNull(pool.selectPeeked(false), "selectPeeked did not return null when pool was unpeeked");
+		pool.selectPeeked(false);
+		assertEquals(NON_DUPLICATE_VALS.size(), pool.size(), "size changed when it should not have been removed");
+		assertEquals(NON_DUPLICATE_VALS.size(), pool.unpeekedSize(), "unpeekedSize was not reset after selectPeeked");
 	}
 	
 	@Test
@@ -377,7 +385,7 @@ class PeekPoolTests {
 		PeekPool<Integer> pool = PeekPool.createEmpty();
 
 		assertNull(pool.peek(new Random()), "peek did not return null when pool was empty");
-		assertNull(pool.selectPeeked(false), "selectPeeked did not return null when pool was empty");
+		pool.selectPeeked(false);
 		assertEquals(0, pool.size(), "size changed when it should not have been removed");
 		assertEquals(0, pool.unpeekedSize(), "unpeekedSize was not reset after selectPeeked");
 	}

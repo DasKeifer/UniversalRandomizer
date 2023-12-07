@@ -15,7 +15,8 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 	// TODO: Make into more specific subclasses, make Pool an interface/abstract class?
 	
 	private ArrayList<T> unpeeked;
-	private LinkedList<T> peeked;
+	private LinkedList<T> peekedBatch;
+	private LinkedList<T> skipped;
 	private LinkedList<T> removed;
 	private boolean selectPeekedRemoves;
 	
@@ -30,15 +31,17 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 		{
 			unpeeked = new ArrayList<>(valCollection);
 		}
-		peeked = new LinkedList<>();
+		peekedBatch = new LinkedList<>();
+		skipped = new LinkedList<>();
 		removed = new LinkedList<>();
 		this.selectPeekedRemoves = selectPeekedRemoves;
 	}
 
 	protected PeekPool(PeekPool<T> toCopy)
 	{
+		peekedBatch = new LinkedList<>(toCopy.peekedBatch);
 		unpeeked = new ArrayList<>(toCopy.unpeeked);
-		peeked = new LinkedList<>(toCopy.peeked);
+		skipped = new LinkedList<>(toCopy.skipped);
 		removed = new LinkedList<>(toCopy.removed);
 	}
 	
@@ -85,9 +88,8 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 	@Override
 	public void reset()
 	{
-		unpeeked.addAll(peeked);
+		resetPeeked();
 		unpeeked.addAll(removed);
-		peeked.clear();
 		removed.clear();
 	}
 
@@ -95,12 +97,26 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 	public void resetPeeked()
 	{
 		// Add all the peeked back into the unpeeked and clear it
-		unpeeked.addAll(peeked);
-		peeked.clear();
+		unpeeked.addAll(peekedBatch);
+		unpeeked.addAll(skipped);
+		peekedBatch.clear();
+		skipped.clear();
 	}
 
 	@Override
 	public T peek(Random rand)
+	{
+		if (!peekedBatch.isEmpty())
+		{
+			peekNewBatch();
+		}
+		return peekBatch(rand);
+	}
+
+	// TODO: For non pop/remove don't move from unpeeked for batch?
+	// Then would probably need a function to remove from batch pool
+	@Override
+	public T peekBatch(Random rand)
 	{
 		if (unpeeked.isEmpty() || rand == null)
 		{
@@ -115,7 +131,7 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 		// To do this a bit more efficiently, we replace the
 		// found index with the last item, then we remove the
 		// last item
-		peeked.addFirst(obj);
+		peekedBatch.addFirst(obj);
 		if (index != unpeeked.size() - 1)
 		{
 			unpeeked.set(index, unpeeked.get(unpeeked.size() - 1));
@@ -125,40 +141,39 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 		// Return the object
 		return obj;
 	}
-	
-	public T popPeeked()
+
+	@Override
+	public void peekNewBatch()
 	{
-		return selectPeeked(true);
+		skipped.addAll(peekedBatch);
+		peekedBatch.clear();
+	}
+	
+	public void popPeeked()
+	{
+		selectPeeked(true);
 	}
 
 	@Override
-	public T selectPeeked()
+	public void selectPeeked()
 	{
-		return selectPeeked(selectPeekedRemoves);
+		selectPeeked(selectPeekedRemoves);
 	}
 	
-	public T selectPeeked(boolean remove)
+	public void selectPeeked(boolean remove)
 	{
-		if (peeked.isEmpty())
+		if (!peekedBatch.isEmpty())
 		{
-			return null;
+			// if we are removing it, move it to the removed list
+			// before resetting the other lists
+			if (remove)
+			{
+				removed.addAll(peekedBatch);
+				peekedBatch.clear();
+			}
+			
+			resetPeeked();
 		}
-		
-		// Get the last peeked object
-		T obj = peeked.getFirst();
-		
-		// if we are removing it, move it to the removed list
-		// before resetting the other lists
-		if (remove)
-		{
-			removed.addFirst(obj);
-			peeked.pop();
-		}
-		
-		resetPeeked();
-		
-		// return the object
-		return obj;
 	}
 	
 	public int unpeekedSize()
@@ -168,12 +183,13 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 	
 	public int size()
 	{
-		return unpeeked.size() + peeked.size();
+		return unpeeked.size() + peekedBatch.size() + skipped.size();
 	}
 	
 	public int instancesOf(T obj)
 	{
-		return (int) (peeked.stream().filter(s -> s == obj).count() +
+		return (int) (peekedBatch.stream().filter(s -> s == obj).count() +
+				skipped.stream().filter(s -> s == obj).count() +
 				unpeeked.stream().filter(s -> s == obj).count());
 	}
 	
@@ -186,8 +202,12 @@ public class PeekPool<T> implements RandomizerBasicPool<T>
 		return unpeeked;
 	}
 
-	protected LinkedList<T> getPeeked() {
-		return peeked;
+	protected LinkedList<T> getPeekedBatch() {
+		return peekedBatch;
+	}
+
+	protected LinkedList<T> getSkipped() {
+		return skipped;
 	}
 
 	protected LinkedList<T> getRemoved() {

@@ -7,7 +7,7 @@ import universal_randomizer.user_object_apis.Setter;
 
 /// Randomizes single items at a time but can randomize a field multiple times
 /// i.e. randomizing a list field by calling and indexed setter multiple times
-public class SingleRandomizer<T, P> extends Randomizer<T, T, P, P>
+public class SingleRandomizer<T, P> extends OneToOneRandomizer<T, T, P, P>
 {		
 	protected SingleRandomizer(MultiSetter<T, P> setter, Getter<T, Integer> countGetter, EnforceParams<T> enforce)
 	{
