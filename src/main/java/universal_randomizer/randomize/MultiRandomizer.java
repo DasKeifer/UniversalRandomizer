@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import universal_randomizer.user_object_apis.MultiSetter;
+import universal_randomizer.user_object_apis.MultiSetterNoReturn;
 
 /// Randomizes single items at a time but can randomize a field multiple times
 /// i.e. randomizing a list field by calling and indexed setter multiple times, once
@@ -20,28 +21,32 @@ public class MultiRandomizer<T, P extends Collection<S>, S> extends OneToOneRand
 		return 1; // NOSONAR
 	}
 	
-	protected MultiRandomizer(MultiSetter<T, S> setter, EnforceParams<T> enforce)
+	protected MultiRandomizer(MultiSetter<T, S> setter)
 	{
-		super(setter, MultiRandomizer::return1, enforce);
+		super(setter, MultiRandomizer::return1);
 	}
 	
 	// Create a single setter - where P is a collection of S
 	// Create a single setter - S must match P
 	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
-	create(MultiSetter<T2, S2> setter, EnforceParams<T2> enforce)
+	create(MultiSetter<T2, S2> setter)
 	{
 		if (setter == null)
 		{
 			return null;
 		}
-		return new MultiRandomizer<>(setter, enforce);
+		return new MultiRandomizer<>(setter);
 	}
 	
-	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
-	createNoEnforce(MultiSetter<T2, S2> setter)
-	{
-		return create(setter, null);
-	}
+//	public static <T2, P2 extends Collection<S2>, S2> MultiRandomizer<T2, P2, S2> 
+//	create(MultiSetterNoReturn<T2, S2> setter)
+//	{
+//		if (setter == null)
+//		{
+//			return null;
+//		}
+//		return create(setter.asMultiSetter());
+//	}
 
 	@Override	
 	protected boolean assignAndCheckEnforce(T obj, P poolValue, int count)
@@ -52,11 +57,6 @@ public class MultiRandomizer<T, P extends Collection<S>, S> extends OneToOneRand
 		while (valItr.hasNext() && success)
 		{
 			success = getSetter().setReturn(obj, valItr.next(), counter++);
-		}
-		
-		if (success)
-		{
-			success = getEnforceActions().evaluateEnforce(obj);
 		}
 		return success;
 	}

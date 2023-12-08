@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class EliminatePoolSet<T> implements RandomizerBasicPool<T> 
+public class EliminatePoolSet<T> implements RandomizerSinglePool<T> 
 {	
 	public static final int UNLIMITED_DEPTH = -1;
 	private int maxDepth;
 	
 	// Internal tracking
-	private List<PeekPool<T>> workingPools;
+	private List<EliminatePool<T>> workingPools;
 	private int currentPool;
 	
-	protected EliminatePoolSet(PeekPool<T> sourcePool, int maxDepth)
+	protected EliminatePoolSet(EliminatePool<T> sourcePool, int maxDepth)
 	{		
 		this.maxDepth = maxDepth;
 		if (maxDepth > 0)
@@ -29,7 +29,7 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 		currentPool = 0;
 	}
 	
-	public static <T2> EliminatePoolSet<T2> create(PeekPool<T2> sourcePool, int maxDepth)
+	public static <T2> EliminatePoolSet<T2> create(EliminatePool<T2> sourcePool, int maxDepth)
 	{
 		if (sourcePool == null)
 		{
@@ -38,7 +38,7 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 		return new EliminatePoolSet<>(sourcePool, maxDepth);
 	}
 	
-	public static <T2> EliminatePoolSet<T2> createNoAdditionalPools(PeekPool<T2> sourcePool)
+	public static <T2> EliminatePoolSet<T2> createNoAdditionalPools(EliminatePool<T2> sourcePool)
 	{
 		return create(sourcePool, 1);
 	}
@@ -46,7 +46,7 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 	@Override
 	public void reset() 
 	{
-		for (PeekPool<T> pool : workingPools)
+		for (EliminatePool<T> pool : workingPools)
 		{
 			pool.reset();
 		}
@@ -54,43 +54,14 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 	}
 
 	@Override
-	public T peek(Random rand) 
+	public T get(Random rand) 
 	{
 		if (currentPool < workingPools.size())
 		{
 			// Get an item from the next pool
-			return workingPools.get(currentPool).peek(rand);
+			return workingPools.get(currentPool).get(rand);
 		}
 		return null;
-	}
-	
-	@Override
-	public T peekBatch(Random rand) 
-	{
-		if (currentPool < workingPools.size())
-		{
-			// Get an item from the next pool
-			return workingPools.get(currentPool).peekBatch(rand);
-		}
-		return null;
-	}
-	
-	@Override
-	public void peekNewBatch() 
-	{
-		for (PeekPool<T> pool : workingPools)
-		{
-			pool.peekNewBatch();
-		}
-	}
-
-	@Override
-	public void selectPeeked() 
-	{
-		for (PeekPool<T> pool : workingPools)
-		{
-			pool.popPeeked();
-		}
 	}
 	
 	@Override
@@ -110,18 +81,8 @@ public class EliminatePoolSet<T> implements RandomizerBasicPool<T>
 		}
 		return true;
 	}
-
-	@Override
-	public void resetPeeked() 
-	{
-		for (PeekPool<T> pool : workingPools)
-		{
-			pool.resetPeeked();
-		}
-		currentPool = 0;
-	}
 	
-	protected List<PeekPool<T>> getWorkingPools() {
+	protected List<EliminatePool<T>> getWorkingPools() {
 		return workingPools;
 	}
 }

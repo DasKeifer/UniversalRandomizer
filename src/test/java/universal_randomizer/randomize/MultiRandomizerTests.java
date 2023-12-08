@@ -1,6 +1,7 @@
 package universal_randomizer.randomize;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,9 +18,9 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 import support.SimpleObject;
-import universal_randomizer.pool.PeekPool;
-import universal_randomizer.user_object_apis.Condition;
+import universal_randomizer.pool.EliminatePool;
 import universal_randomizer.user_object_apis.MultiSetter;
+import universal_randomizer.user_object_apis.MultiSetterNoReturn;
 
 // Tests the Randomizer Reuse class and by extension the Randomizer class since the
 // reuse class is the most simple of the classes
@@ -32,53 +33,30 @@ class MultiRandomizerTests {
 	@Test
 	void create() 
 	{
-		EnforceParams<SimpleObject> enforceAction = EnforceParams.createNoEnforce();
     	MultiSetter<SimpleObject, Integer> ms = (o, v, cnt) -> { o.intField = v; return true; };
     	
     	// create(MultiSetter<T2, S2> setter, EnforceParams<T2> enforce)
     	MultiRandomizer<SimpleObject, List<Integer>, Integer> rr = 
-    			MultiRandomizer.create(ms, enforceAction);
+    			MultiRandomizer.create(ms);
     	assertEquals(ms, rr.getSetter());
     	assertEquals(1, rr.getCountGetter().get(null));
-    	assertEquals(enforceAction, rr.getEnforceActions());
     	assertNull(rr.getPool());
     	assertNull(rr.getMultiPool());
     	assertNull(rr.getRandom());
-    	assertNotNull(MultiRandomizer.create(ms, null));
-	}
-	
-	@Test
-	void createNoEnforce() 
-	{
-    	MultiSetter<SimpleObject, Integer> ms = (o, v, cnt) -> { o.intField = v; return true; };
-
-    	// createNoEnforce(MultiSetter<T2, S2> setter)
-    	MultiRandomizer<SimpleObject, List<Integer>, Integer> rr = 
-    			MultiRandomizer.createNoEnforce(ms);
-    	assertEquals(ms, rr.getSetter());
-    	assertEquals(1, rr.getCountGetter().get(null));
-    	assertTrue(rr.getEnforceActions().isNoEnforce());
-    	assertNull(rr.getPool());
-    	assertNull(rr.getMultiPool());
-    	assertNull(rr.getRandom());
-    	assertNotNull(MultiRandomizer.createNoEnforce(ms));
 	}
 	
 	@Test
 	void create_badInput() 
 	{
-		EnforceParams<SimpleObject> enforceAction = EnforceParams.createNoEnforce();
     	MultiSetter<SimpleObject, Integer> msNull = null;
     	
-    	assertNull(MultiRandomizer.create(msNull, enforceAction));
-    	assertNull(MultiRandomizer.createNoEnforce(msNull));
+    	assertNull(MultiRandomizer.create(msNull));
 	}
 	
 	@Test
 	void multiRandomizer() 
 	{
 		final int LIST_SIZE = 5;
-		final String EXCLUDED_VAL = "3";
 		
 		// Use mock randomizer to force the excluded value to be selected
 		Random rand = mock(Random.class);
@@ -87,29 +65,16 @@ class MultiRandomizerTests {
 		// Set expectations
 		Map<Integer, List<String>> valsMap = new HashMap<>();
 		List<SimpleObject> list = new LinkedList<>();
-		for (int i = 0; i < LIST_SIZE + 2; i++)
+		for (int i = 0; i < LIST_SIZE; i++)
 		{
-			// add another to the list and account for the 
-			// excluded value
-			valsMap.put(i, List.of("" + i, "" + (i + LIST_SIZE + 2)));
+			valsMap.put(i, List.of("" + i, "" + (i + LIST_SIZE)));
 			if (i < LIST_SIZE)
 			{
 				list.add(new SimpleObject("test" + i, i));
 			}
 		}
 		
-		PeekPool<List<String>> pool = PeekPool.create(true, valsMap.values());
-		Condition<SimpleObject> no3Cond = so -> {
-			for (String val : so.getMap().values())
-			{
-				if (val.equals(EXCLUDED_VAL))
-				{
-					return false;
-				}
-			}
-			return true;
-		};		
-
+		EliminatePool<List<String>> pool = EliminatePool.create(valsMap.values());
 		MultiSetter<SimpleObject, String> setMapEntryButNotVal5 = (so, val, cnt) -> {
 			if (val.equals("5"))
 			{
@@ -119,12 +84,14 @@ class MultiRandomizerTests {
 			return true;
 		};
 		MultiRandomizer<SimpleObject, List<String>, String> test = MultiRandomizer.create(
-				setMapEntryButNotVal5, 
-				EnforceParams.create(no3Cond, 3, 0));
+				setMapEntryButNotVal5);
 
 		// Perform test and check results
-		valsMap.remove(3);
-		valsMap.remove(5);
+		assertFalse(test.perform(list.stream(), pool, rand));
+		pool.reset();
+
+		MultiSetterNoReturn<SimpleObject, String> setMapEntry = SimpleObject::setMapEntry;
+		test = MultiRandomizer.create(setMapEntry.asMultiSetter());
 		assertTrue(test.perform(list.stream(), pool, rand));
 		for (SimpleObject so : list)
 		{

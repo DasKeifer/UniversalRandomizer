@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import universal_randomizer.pool.RandomizerBasicPool;
+import universal_randomizer.pool.RandomizerSinglePool;
 import universal_randomizer.pool.RandomizerMultiPool;
 import universal_randomizer.pool.RandomizerPool;
 import universal_randomizer.user_object_apis.Getter;
@@ -15,30 +15,20 @@ public abstract class Randomizer<T, U, O, P, S>
 	private RandomizerPool<P> pool;
 	private RandomizerMultiPool<U, P> multiPool;
 	private Random rand;
-	private EnforceParams<T> enforceActions;
-	private Getter<T, Integer> countGetter;
-	// TODO: Add prevValGetter
 	private MultiSetter<O, S> setter;
+	private Getter<T, Integer> countGetter;
 
-	protected Randomizer(MultiSetter<O, S> setter, Getter<T, Integer> countGetter, EnforceParams<T> enforce)
+	protected Randomizer(MultiSetter<O, S> setter, Getter<T, Integer> countGetter)
 	{
 		pool = null;
+		multiPool = null;
 		rand = null;
 		
 		this.setter = setter;
 		this.countGetter = countGetter;
-		
-		if (enforce == null)
-		{
-			this.enforceActions = EnforceParams.createNoEnforce();
-		}
-		else
-		{
-			this.enforceActions = enforce;
-		}
 	}
 
-	public boolean perform(Stream<T> objStream, RandomizerBasicPool<P> pool) 
+	public boolean perform(Stream<T> objStream, RandomizerSinglePool<P> pool) 
 	{
 		return perform(objStream, pool, null);
 	}
@@ -48,7 +38,7 @@ public abstract class Randomizer<T, U, O, P, S>
 		return perform(objStream, pool, null);
 	}
 	
-	public boolean perform(Stream<T> objStream, RandomizerBasicPool<P> pool, Random rand) 
+	public boolean perform(Stream<T> objStream, RandomizerSinglePool<P> pool, Random rand) 
 	{
 		this.pool = pool;
 		this.multiPool = null;
@@ -80,19 +70,7 @@ public abstract class Randomizer<T, U, O, P, S>
 	protected boolean attemptRandomization(List<T> streamAsList)
 	{
 		// Attempt to assign randomized values for each item in the stream
-		List<T> failed = randomize(streamAsList.stream());
-		
-		// While we have failed and have resets left
-		for (int reset = 0; reset < enforceActions.getMaxResets(); reset++)
-		{
-			if (failed.isEmpty())
-			{
-				break;
-			}
-			pool.reset();
-			failed = randomize(streamAsList.stream());
-		}
-		
+		List<T> failed = randomize(streamAsList.stream());		
 		return failed.isEmpty();
 	}
 
@@ -146,6 +124,14 @@ public abstract class Randomizer<T, U, O, P, S>
 		return multiPool;
 	}
 	
+	protected void safeMultiPoolSetPool(U obj, int count) 
+	{
+		if (multiPool != null)
+		{
+			multiPool.setPool(obj, count);
+		}
+	}
+	
 	protected Getter<T, Integer> getCountGetter() 
 	{
 		return countGetter;
@@ -154,10 +140,5 @@ public abstract class Randomizer<T, U, O, P, S>
 	protected MultiSetter<O, S> getSetter() 
 	{
 		return setter;
-	}
-
-	protected EnforceParams<T> getEnforceActions() 
-	{
-		return enforceActions;
 	}
 }

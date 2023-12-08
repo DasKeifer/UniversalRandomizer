@@ -43,7 +43,7 @@ class ElimatePoolSetTests {
 	@Test
 	void create() 
 	{
-		PeekPool<Integer> base = PeekPool.create(false, NON_DUPLICATE_VALS);
+		EliminatePool<Integer> base = EliminatePool.create(NON_DUPLICATE_VALS);
 		
 		assertNotNull(EliminatePoolSet.create(base, 3));
 		assertNotNull(EliminatePoolSet.createNoAdditionalPools(base));
@@ -77,99 +77,68 @@ class ElimatePoolSetTests {
 	}
 	
 	@Test
-	void peek() 
+	void get() 
 	{
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 
-		PeekPool<Integer> base = PeekPool.create(false, NON_DUPLICATE_VALS);
+		EliminatePool<Integer> base = EliminatePool.create(NON_DUPLICATE_VALS);
 		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(base, 1);
 		
-		int found = pool.peek(rand);
+		int found = pool.get(rand);
 		
-		assertEquals(NON_DUPLICATE_VALS.get(0), found, "peek did not return value based on passed Random");
+		assertEquals(NON_DUPLICATE_VALS.get(0), found, "Get did not return value based on passed Random");
 
-		int found2 = pool.peek(rand);
-		assertNotEquals(found, found2, "peek did not remove item from pool");
+		int found2 = pool.get(rand);
+		assertNotEquals(found, found2, "Get did not remove item from pool");
 	}
 	
 	@Test
-	void peek_lastItem() 
+	void get_lastItem() 
 	{
 		// Test the case of the last item in the pool
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(NON_DUPLICATE_VALS.size() - 1).thenReturn(NON_DUPLICATE_VALS.size() - 2);
 
-		PeekPool<Integer> base = PeekPool.create(false, NON_DUPLICATE_VALS);
+		EliminatePool<Integer> base = EliminatePool.create(NON_DUPLICATE_VALS);
 		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(base, 1);
 		
-		int found = pool.peek(rand);
+		int found = pool.get(rand);
 		
-		assertEquals(NON_DUPLICATE_VALS.get(NON_DUPLICATE_VALS.size() - 1), found, "peek did not return value based on passed Random");
+		assertEquals(NON_DUPLICATE_VALS.get(NON_DUPLICATE_VALS.size() - 1), found, "Get did not return value based on passed Random");
 
-		int found2 = pool.peek(rand);
-		assertNotEquals(found, found2, "peek did not remove item from pool");
+		int found2 = pool.get(rand);
+		assertNotEquals(found, found2, "Get did not remove item from pool");
 	}
 	
 	@Test
-	void resetPeeked() 
+	void get_badCases() 
 	{
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 
-		PeekPool<Integer> base = PeekPool.create(false, NON_DUPLICATE_VALS);
-		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(base, 2);
-		pool.peek(rand);
-		pool.resetPeeked();
-		assertEquals(NON_DUPLICATE_VALS.size(), pool.getWorkingPools().get(0).size(), "size did not return the full pool size");
-		assertEquals(NON_DUPLICATE_VALS.size(), pool.getWorkingPools().get(0).unpeekedSize(), "unpeekedSize did not reflect peeked value");
-		
-		pool.peek(rand);
-		pool.selectPeeked();
-		pool.peek(rand);
-		pool.resetPeeked();
-		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.getWorkingPools().get(0).size(), "size did not return the full pool size");
-		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.getWorkingPools().get(0).unpeekedSize(), "unpeekedSize did not reflect peeked value");
-		
-		pool.peek(rand);
-		pool.useNextPool();
-		pool.peek(rand);
-		pool.resetPeeked();
-		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.getWorkingPools().get(0).size(), "size did not return the full pool size");
-		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.getWorkingPools().get(0).unpeekedSize(), "unpeekedSize did not reflect peeked value");
-		assertEquals(NON_DUPLICATE_VALS.size(), pool.getWorkingPools().get(1).size(), "size did not return the full pool size");
-		assertEquals(NON_DUPLICATE_VALS.size(), pool.getWorkingPools().get(1).unpeekedSize(), "unpeekedSize did not reflect peeked value");
-		
-	}
-	
-	@Test
-	void peek_badCases() 
-	{
-		Random rand = mock(Random.class);
-		when(rand.nextInt(anyInt())).thenReturn(0);
-
-		PeekPool<Integer> base = PeekPool.create(false, NON_DUPLICATE_VALS);
+		EliminatePool<Integer> base = EliminatePool.create(NON_DUPLICATE_VALS);
 		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(base, 1);
 		
-		assertNull(pool.peek(null));
+		assertNull(pool.get(null));
 		
 		// Exhaust the pool
 		for (int i = 0; i < NON_DUPLICATE_VALS.size(); i++)
 		{
-			assertNotNull(pool.peek(rand), "Peek returned null when it should have items still");
+			assertNotNull(pool.get(rand), "Get returned null when it should have items still");
 		}
 		
 		// then do one more peek
-		assertNull(pool.peek(rand), "Peek did not return null when it was empty");
+		assertNull(pool.get(rand), "Get did not return null when it was empty");
 	}
 	
 	@Test
-	void peek_selectPeeked_empty() 
+	void get_empty() 
 	{
-		PeekPool<Integer> base = PeekPool.createEmpty();
+		EliminatePool<Integer> base = EliminatePool.createEmpty();
 		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(base, 1);
 
-		assertNull(pool.peek(new Random()), "peek did not return null when pool was empty");
+		assertNull(pool.get(new Random()), "Get did not return null when pool was empty");
 	}
 	
 	@Test
@@ -178,26 +147,23 @@ class ElimatePoolSetTests {
 		Random rand = mock(Random.class);
 		when(rand.nextInt(anyInt())).thenReturn(0);
 		
-		PeekPool<Integer> base = PeekPool.create(false, NON_DUPLICATE_ARRAY);
+		EliminatePool<Integer> base = EliminatePool.create(NON_DUPLICATE_ARRAY);
 		EliminatePoolSet<Integer> pool = EliminatePoolSet.create(base, 3);
 		assertTrue(pool.useNextPool());
 		assertTrue(pool.useNextPool());
 		assertFalse(pool.useNextPool());
 		// ensure it didn't walk past the end
-		assertNotNull(pool.peek(rand));
-
+		assertNotNull(pool.get(rand));
+		
+		// See that reset sets it back to the first
 		pool.reset();
 		
-		pool.peek(rand);
-		pool.selectPeeked();
-		
+		assertNotNull(pool.get(rand));
 		assertTrue(pool.useNextPool());	
-		
-		pool.peek(rand);
+		assertNotNull(pool.get(rand));
+		assertNotNull(pool.get(rand));
 		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.getWorkingPools().get(0).size(), "size did not return the full pool size");
-		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.getWorkingPools().get(0).unpeekedSize(), "unpeekedSize did not reflect peeked value");
-		assertEquals(NON_DUPLICATE_VALS.size(), pool.getWorkingPools().get(1).size(), "size did not return the full pool size");
-		assertEquals(NON_DUPLICATE_VALS.size() - 1, pool.getWorkingPools().get(1).unpeekedSize(), "unpeekedSize did not reflect peeked value");
+		assertEquals(NON_DUPLICATE_VALS.size() - 2, pool.getWorkingPools().get(1).size(), "size did not return the full pool size");
 		
 		// Finish out using next pools
 		assertTrue(pool.useNextPool());
@@ -206,6 +172,6 @@ class ElimatePoolSetTests {
 		EliminatePoolSet<Integer> pool2 = EliminatePoolSet.create(base, 1);
 		assertFalse(pool2.useNextPool());
 		// ensure it didn't walk past the end
-		assertNotNull(pool2.peek(new Random()));
+		assertNotNull(pool2.get(new Random()));
 	}
 }

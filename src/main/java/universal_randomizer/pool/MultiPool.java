@@ -18,7 +18,7 @@ public class MultiPool<O, K, T> implements RandomizerMultiPool<O, T>
 		this.activePool = null;
 	}
 	
-	// TODO: Add more constructors eventually
+	// TODO: Add more constructors eventually?
 	public static <O2, K2, T2> MultiPool<O2, K2, T2> create(Map<K2, RandomizerPool<T2>> poolMap, MultiGetter<O2, K2> keyGetter)
 	{
 		if (poolMap == null || keyGetter == null)
@@ -51,41 +51,13 @@ public class MultiPool<O, K, T> implements RandomizerMultiPool<O, T>
 	}
 
 	@Override
-	public T peek(Random rand) 
+	public T get(Random rand) 
 	{
 		if (activePool != null)
 		{
-			return activePool.peek(rand);
+			return activePool.get(rand);
 		}
 		return null;
-	}
-
-	@Override
-	public T peekBatch(Random rand) 
-	{
-		if (activePool != null)
-		{
-			return activePool.peekBatch(rand);
-		}
-		return null;
-	}
-	
-	@Override
-	public void peekNewBatch() 
-	{
-		for (RandomizerPool<T> pool : poolMap.values())
-		{
-			pool.peekNewBatch();
-		}
-	}
-
-	@Override
-	public void selectPeeked() 
-	{
-		for (RandomizerPool<T> pool : poolMap.values())
-		{
-			pool.selectPeeked();
-		}
 	}
 	
 	@Override
@@ -96,14 +68,5 @@ public class MultiPool<O, K, T> implements RandomizerMultiPool<O, T>
 			return activePool.useNextPool();
 		}
 		return false;
-	}
-
-	@Override
-	public void resetPeeked() 
-	{
-		for (RandomizerPool<T> pool : poolMap.values())
-		{
-			pool.resetPeeked();
-		}
 	}
 }
